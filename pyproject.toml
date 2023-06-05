@@ -1,0 +1,28 @@
+# This example contains just the necessary options for a src-layout, set up
+# the rest of the file as described above.
+[project]
+name = "uvl-tore-classifier-bert"
+version= "0.1"
+
+[tool.setuptools.packages.find]
+where = ["src"]  
+
+[mypy]
+warn_return_any = "True"
+warn_unused_configs = "True"
+module = [
+    'dataloading',
+    'model'
+]
+
+[tool.black]
+exclude = '(\.eggs|\.git|\.hg|\.mypy_cache|\.nox|\.tox|\.venv|_build|buck-out|build|dist|__pycache__|.egg-info)'
+
+line-length = 79
+include = '''
+(
+    ^/tests/
+  | ^/src/
+  
+)
+'''

@@ -1,0 +1,9 @@
+jupyter
+notebook
+nltk
+numpy
+pandas
+pydantic
+black[jupyter]
+mypy
+rich
