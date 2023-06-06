@@ -87,7 +87,6 @@ def _split_document_into_sentences(
         for start, end in zip(starts, ends):
             if end - start != 0:
                 s = Sentence(tokens=[t for t in doc.content[start:end]])
-                print(s)
                 docs_sentences.append(s)
 
         doc.sentences = docs_sentences

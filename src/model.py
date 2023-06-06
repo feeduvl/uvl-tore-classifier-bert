@@ -90,12 +90,13 @@ class Dataset(BaseModel):
     sentences: List[Sentence] = []
 
     def __add__(self, other: "Dataset") -> "Dataset":
-        return Dataset(
+        ds = Dataset.construct(
             docs=self.docs + other.docs,
             tokens=self.tokens + other.tokens,
             codes=self.codes + other.codes,
             sentences=self.sentences + other.sentences,
         )
+        return Dataset.validate(ds)
 
     def to_df(self) -> pd.DataFrame:
         return pd.DataFrame.from_records([s.to_dict() for s in self.sentences])
