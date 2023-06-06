@@ -5,7 +5,6 @@ from model import (
     Token,
     Code,
     Sentence,
-    ToreRelationship,
     Doc,
     Dataset,
 )
@@ -13,17 +12,7 @@ from model import (
 
 def _create_instances(
     imported_dataset: ImportDataSet,
-) -> Tuple[List[Doc], List[Token], List[Code], List[ToreRelationship]]:
-    # create instances
-    relationships = [
-        ToreRelationship.construct(
-            index=tr.index,
-            tore_index=tr.tore_entity,
-            name=tr.relationship_name,
-        )
-        for tr in imported_dataset.tore_relationships
-    ]
-
+) -> Tuple[List[Doc], List[Token], List[Code]]:
     codes = [
         Code.construct(index=c.index, name=c.name, tore_index=c.tore)
         for c in imported_dataset.codes
@@ -36,16 +25,15 @@ def _create_instances(
 
     docs = [Doc.construct(name=d.name) for d in imported_dataset.docs]
 
-    return docs, tokens, codes, relationships
+    return docs, tokens, codes
 
 
-def _create_relationships(
+def _create_connections(
     imported_dataset: ImportDataSet,
     docs: List[Doc],
     tokens: List[Token],
     codes: List[Code],
-    relationships: List[ToreRelationship],
-) -> Tuple[List[Doc], List[Token], List[Code], List[ToreRelationship]]:
+) -> Tuple[List[Doc], List[Token], List[Code]]:
     # doc -> token
     for imported_doc, doc in zip(imported_dataset.docs, docs):
         doc.content = [
@@ -60,15 +48,7 @@ def _create_relationships(
             # code -> token
             code.tokens.append(tokens[i])
 
-        # code -> relationship -> code
-        for i in imported_code.relationship_memberships:
-            relationship = relationships[i]
-            # code -> relationship
-            code.relationship_memberships.append(relationship)
-            # relationship -> code
-            relationship.code = code
-
-    return docs, tokens, codes, relationships
+    return docs, tokens, codes
 
 
 def _split_document_into_sentences(
@@ -120,17 +100,14 @@ def denormalize_dataset(
     imported_dataset: ImportDataSet,
 ) -> Dataset:
     # create instances
-    docs, tokens, codes, relationships = _create_instances(
-        imported_dataset=imported_dataset
-    )
+    docs, tokens, codes = _create_instances(imported_dataset=imported_dataset)
 
     # recreate relationship
-    docs, tokens, codes, relationships = _create_relationships(
+    docs, tokens, codes = _create_connections(
         imported_dataset=imported_dataset,
         docs=docs,
         tokens=tokens,
         codes=codes,
-        relationships=relationships,
     )
 
     docs, sentences = _split_document_into_sentences(docs=docs)
@@ -139,6 +116,5 @@ def denormalize_dataset(
         docs=docs,
         tokens=tokens,
         codes=codes,
-        relationships=relationships,
         sentences=sentences,
     )

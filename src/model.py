@@ -27,14 +27,6 @@ class ImportCode(BaseModel):
     tokens: List[int]
     name: str
     tore: str
-    relationship_memberships: List[int]
-
-
-class ImportToreRelationship(BaseModel):
-    index: int
-    tore_entity: int
-    target_tokens: List[int]
-    relationship_name: str
 
 
 class ImportDataSet(BaseModel):
@@ -45,14 +37,6 @@ class ImportDataSet(BaseModel):
     docs: List[ImportDoc]
     tokens: List[ImportToken]
     codes: List[ImportCode]
-    tore_relationships: List[ImportToreRelationship]
-
-
-class ToreRelationship(BaseModel):
-    index: int
-    code: "Code"
-    name: str
-    target_tokens: List["Token"] = []
 
 
 class Code(BaseModel):
@@ -60,7 +44,6 @@ class Code(BaseModel):
     name: str
     tore_index: str
     tokens: List["Token"] = []
-    relationship_memberships: List[ToreRelationship] = []
 
 
 class Token(BaseModel):
@@ -82,7 +65,7 @@ class Sentence(BaseModel):
     tokens: List[Token] = []
 
     def __str__(self) -> str:
-        return " ".join([str(token.name) for token in self.tokens])
+        return " ".join([str(token) for token in self.tokens])
 
     def get_label_counts(self) -> Counter[str]:
         c: Counter[str] = Counter()
@@ -103,5 +86,4 @@ class Dataset(BaseModel):
     docs: List[Doc] = []
     tokens: List[Token] = []
     codes: List[Code] = []
-    relationships: List[ToreRelationship] = []
     sentences: List[Sentence] = []
