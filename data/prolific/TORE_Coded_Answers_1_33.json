@@ -18628,20 +18628,6 @@
             ]
         },
         {
-            "tokens": [],
-            "name": "",
-            "tore": "",
-            "index": null,
-            "relationship_memberships": []
-        },
-        {
-            "tokens": [],
-            "name": "",
-            "tore": "",
-            "index": null,
-            "relationship_memberships": []
-        },
-        {
             "tokens": [
                 29
             ],
@@ -18651,13 +18637,6 @@
             "relationship_memberships": [
                 523
             ]
-        },
-        {
-            "tokens": [],
-            "name": "",
-            "tore": "",
-            "index": null,
-            "relationship_memberships": []
         },
         {
             "tokens": [
@@ -19523,7 +19502,7 @@
             "end_index": 9752
         }
     ],
-    "last_updated": "ISODate(""2022-09-27T09:44:36.298Z"")",
+    "last_updated": "2022-09-27T09:44:36.298Z",
     "tokens": [
         {
             "index": 0,

@@ -16642,13 +16642,6 @@
             "relationship_memberships": []
         },
         {
-            "tokens": [],
-            "name": "",
-            "tore": "",
-            "index": null,
-            "relationship_memberships": []
-        },
-        {
             "tokens": [
                 2
             ],
@@ -16671,20 +16664,6 @@
             ]
         },
         {
-            "tokens": [],
-            "name": "",
-            "tore": "",
-            "index": null,
-            "relationship_memberships": []
-        },
-        {
-            "tokens": [],
-            "name": "",
-            "tore": "",
-            "index": null,
-            "relationship_memberships": []
-        },
-        {
             "tokens": [
                 2275
             ],
@@ -16694,13 +16673,6 @@
             "relationship_memberships": [
                 430
             ]
-        },
-        {
-            "tokens": [],
-            "name": "",
-            "tore": "",
-            "index": null,
-            "relationship_memberships": []
         },
         {
             "tokens": [
@@ -16765,13 +16737,6 @@
             "relationship_memberships": [
                 435
             ]
-        },
-        {
-            "tokens": [],
-            "name": "",
-            "tore": "",
-            "index": null,
-            "relationship_memberships": []
         },
         {
             "tokens": [
@@ -17512,7 +17477,7 @@
             "end_index": 8293
         }
     ],
-    "last_updated": "ISODate(""2022-09-27T09: 45: 04.478Z"")",
+    "last_updated": "2022-09-27T09:45:04.478Z",
     "tokens": [
         {
             "index": 0,
@@ -87470,5 +87435,5 @@
             "index": 440
         }
     ],
-    "uploaded_at": "2022-09-23T11: 00: 01.439Z"
+    "uploaded_at": "2022-09-23T11:00:01.439Z"
 }

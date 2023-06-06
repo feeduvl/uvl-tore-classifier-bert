@@ -5597,20 +5597,6 @@
             "relationship_memberships": []
         },
         {
-            "tokens": [],
-            "name": "",
-            "tore": "",
-            "index": null,
-            "relationship_memberships": []
-        },
-        {
-            "tokens": [],
-            "name": "",
-            "tore": "",
-            "index": null,
-            "relationship_memberships": []
-        },
-        {
             "tokens": [
                 2527
             ],
@@ -6961,13 +6947,6 @@
             "name": "app",
             "tore": "Software",
             "index": 705,
-            "relationship_memberships": []
-        },
-        {
-            "tokens": [],
-            "name": "",
-            "tore": "",
-            "index": null,
             "relationship_memberships": []
         },
         {
@@ -17997,13 +17976,6 @@
             ]
         },
         {
-            "tokens": [],
-            "name": "",
-            "tore": "",
-            "index": null,
-            "relationship_memberships": []
-        },
-        {
             "tokens": [
                 1728
             ],
@@ -18199,13 +18171,6 @@
             ]
         },
         {
-            "tokens": [],
-            "name": "",
-            "tore": "",
-            "index": null,
-            "relationship_memberships": []
-        },
-        {
             "tokens": [
                 5871
             ],
@@ -18272,13 +18237,6 @@
             ]
         },
         {
-            "tokens": [],
-            "name": "",
-            "tore": "",
-            "index": null,
-            "relationship_memberships": []
-        },
-        {
             "tokens": [
                 8177,
                 8181
@@ -18289,13 +18247,6 @@
             "relationship_memberships": [
                 526
             ]
-        },
-        {
-            "tokens": [],
-            "name": "",
-            "tore": "",
-            "index": null,
-            "relationship_memberships": []
         },
         {
             "tokens": [
@@ -18320,76 +18271,6 @@
             "relationship_memberships": [
                 528
             ]
-        },
-        {
-            "tokens": [],
-            "name": "",
-            "tore": "",
-            "index": null,
-            "relationship_memberships": []
-        },
-        {
-            "tokens": [],
-            "name": "",
-            "tore": "",
-            "index": null,
-            "relationship_memberships": []
-        },
-        {
-            "tokens": [],
-            "name": "",
-            "tore": "",
-            "index": null,
-            "relationship_memberships": []
-        },
-        {
-            "tokens": [],
-            "name": "",
-            "tore": "",
-            "index": null,
-            "relationship_memberships": []
-        },
-        {
-            "tokens": [],
-            "name": "",
-            "tore": "",
-            "index": null,
-            "relationship_memberships": []
-        },
-        {
-            "tokens": [],
-            "name": "",
-            "tore": "",
-            "index": null,
-            "relationship_memberships": []
-        },
-        {
-            "tokens": [],
-            "name": "",
-            "tore": "",
-            "index": null,
-            "relationship_memberships": []
-        },
-        {
-            "tokens": [],
-            "name": "",
-            "tore": "",
-            "index": null,
-            "relationship_memberships": []
-        },
-        {
-            "tokens": [],
-            "name": "",
-            "tore": "",
-            "index": null,
-            "relationship_memberships": []
-        },
-        {
-            "tokens": [],
-            "name": "",
-            "tore": "",
-            "index": null,
-            "relationship_memberships": []
         }
     ],
     "dataset": "Prolific_Datensatz_34-66",
@@ -19055,7 +18936,7 @@
             "end_index": 8625
         }
     ],
-    "last_updated": "ISODate(""2022-10-26T10:21:35.302Z"")",
+    "last_updated": "2022-10-26T10:21:35.302Z",
     "tokens": [
         {
             "index": 0,
