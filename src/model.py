@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from datetime import datetime
 from typing import List, Literal, ItemsView, TypedDict
 from collections import Counter
+import pandas as pd
 
 
 Pos = Literal["v", "n", "a", "r", ""]
@@ -87,3 +88,14 @@ class Dataset(BaseModel):
     tokens: List[Token] = []
     codes: List[Code] = []
     sentences: List[Sentence] = []
+
+    def __add__(self, other: "Dataset") -> "Dataset":
+        return Dataset(
+            docs=self.docs + other.docs,
+            tokens=self.tokens + other.tokens,
+            codes=self.codes + other.codes,
+            sentences=self.sentences + other.sentences,
+        )
+
+    def to_df(self) -> pd.DataFrame:
+        return pd.DataFrame.from_records([s.to_dict() for s in self.sentences])
