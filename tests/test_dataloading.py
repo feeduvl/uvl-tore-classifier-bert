@@ -1,7 +1,7 @@
 import pytest
 from typing import List
 from model import Token, Doc, Sentence
-from dataloading import _split_document_into_sentences
+from dataloading import split_tokenlist_into_sentences
 
 
 def generate_doc(content: str) -> List[Token]:
@@ -58,7 +58,7 @@ def generate_doc(content: str) -> List[Token]:
 )
 def test_eval(content: str, sentence_length: List[int]):
     tokens = generate_doc(content)
-    sentences = _split_document_into_sentences(tokens)
+    sentences = split_tokenlist_into_sentences(tokens)
 
     print(sentences)
 

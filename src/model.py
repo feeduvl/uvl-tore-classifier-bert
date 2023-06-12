@@ -1,9 +1,11 @@
 from pydantic import BaseModel
 from datetime import datetime
-from typing import List, Literal, ItemsView, TypedDict
+from typing import List, Literal, ItemsView, TypedDict, Optional
 from collections import Counter
 import pandas as pd
 import itertools
+from pydantic.dataclasses import dataclass
+import dataclasses
 
 
 Pos = Literal["v", "n", "a", "r", ""]
@@ -16,7 +18,7 @@ class ImportDoc(BaseModel):
 
 
 class ImportToken(BaseModel):
-    index: int
+    index: Optional[int]
     name: str
     lemma: str
     pos: Pos
@@ -25,7 +27,7 @@ class ImportToken(BaseModel):
 
 
 class ImportCode(BaseModel):
-    index: int
+    index: Optional[int]
     tokens: List[int]
     name: str
     tore: str
@@ -41,18 +43,20 @@ class ImportDataSet(BaseModel):
     codes: List[ImportCode]
 
 
-class Code(BaseModel):
+@dataclass(frozen=True, kw_only=True)
+class Code:
     index: int
     name: str
     tore_index: str
 
 
-class Token(BaseModel):
+@dataclass(frozen=True, kw_only=True)
+class Token:
     index: int
     name: str
     lemma: str
     pos: Pos
-    tore_codes: List[Code] = []
+    tore_codes: List[Code] = dataclasses.field(default_factory=list)
 
     def __str__(self) -> str:
         return self.name
@@ -62,8 +66,9 @@ class Token(BaseModel):
         return [tc.tore_index for tc in self.tore_codes]
 
 
-class Sentence(BaseModel):
-    tokens: List[Token] = []
+@dataclass(frozen=True, kw_only=True)
+class Sentence:
+    tokens: List[Token] = dataclasses.field(default_factory=list)
 
     def __str__(self) -> str:
         return " ".join([str(token) for token in self.tokens])
@@ -77,27 +82,20 @@ class Sentence(BaseModel):
         return {"text": str(self)} | self.get_label_counts()
 
 
-class Doc(BaseModel):
-    name: str
-    sentences: List[Sentence] = []
+@dataclass
+class Dataset:
+    sentences: List[Sentence] = dataclasses.field(default_factory=list)
 
     def get_tokens(self):
         return itertools.chain.from_iterable(
             [sentence.tokens for sentence in self.sentences]
         )
 
-
-class Dataset(BaseModel):
-    docs: List[Doc] = []
-
     def __add__(self, other: "Dataset") -> "Dataset":
         ds = Dataset.construct(
-            docs=self.docs + other.docs,
+            docs=self.sentences + other.sentences,
         )
         return Dataset.validate(ds)
 
     def to_df(self) -> pd.DataFrame:
-        sentences = itertools.chain.from_iterable(
-            [doc.sentences for doc in self.docs]
-        )
-        return pd.DataFrame.from_records([s.to_dict() for s in sentences])
+        return pd.DataFrame.from_records([s.to_dict() for s in self.sentences])

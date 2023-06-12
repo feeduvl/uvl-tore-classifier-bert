@@ -1,16 +1,15 @@
 from typing import List, Tuple, TypedDict
-
+from pydantic import ValidationError
 from model import (
     ImportDataSet,
     Token,
     Code,
     Sentence,
-    Doc,
     Dataset,
 )
 
 
-def _split_document_into_sentences(
+def split_tokenlist_into_sentences(
     tokens: List[Token],
 ) -> List[Sentence]:
     # split content into sentences
@@ -51,41 +50,52 @@ def _split_document_into_sentences(
     return doc_sentences
 
 
-def denormalize_dataset_v2(
+def denormalize_dataset(
     imported_dataset: ImportDataSet,
 ) -> Dataset:
     tokenindex_codes: dict[int, List[Code]] = {}
     for imported_code in imported_dataset.codes:
-        code = Code(
-            index=imported_code.index,
-            name=imported_code.name,
-            tore_index=imported_code.tore,
-        )
-        for token_id in imported_code.tokens:
-            if tokenindex_codes[token_id] is None:
-                tokenindex_codes[token_id] = []
+        if imported_code.index is not None:
+            try:
+                code = Code(
+                    index=imported_code.index,
+                    name=imported_code.name,
+                    tore_index=imported_code.tore,
+                )
+                for token_id in imported_code.tokens:
+                    try:
+                        tokenindex_codes[token_id]
+                    except KeyError:
+                        tokenindex_codes[token_id] = []
 
-            tokenindex_codes[token_id].append(code)
+                    tokenindex_codes[token_id].append(code)
+            except ValidationError:
+                pass
 
-    docs = []
+    sentences: List[Sentence] = []
     for imported_document in imported_dataset.docs:
         tokens: List[Token] = []
         for token_index in range(
             imported_document.begin_index, imported_document.end_index
         ):
             imported_token = imported_dataset.tokens[token_index]
-            token = Token(
-                index=imported_token.index,
-                name=imported_token.name,
-                lemma=imported_token.lemma,
-                pos=imported_token.pos,
-                tore_codes=tokenindex_codes[imported_token.index],
-            )
-            tokens.append(token)
+            if imported_token.index is not None:
+                try:
+                    token = Token(
+                        index=imported_token.index,
+                        name=imported_token.name,
+                        lemma=imported_token.lemma,
+                        pos=imported_token.pos,
+                        tore_codes=tokenindex_codes[imported_token.index],
+                    )
+                    tokens.append(token)
+                except KeyError as e:
+                    if imported_token.num_tore_codes == 0:
+                        pass
+                    else:
+                        raise e
 
-        sentences = _split_document_into_sentences(tokens=tokens)
+        new_sentences = split_tokenlist_into_sentences(tokens=tokens)
+        sentences += new_sentences
 
-        doc = Doc(name=imported_document.name, sentences=sentences)
-        docs.append(doc)
-
-    return Dataset(docs=docs)
+    return Dataset(sentences=sentences)
