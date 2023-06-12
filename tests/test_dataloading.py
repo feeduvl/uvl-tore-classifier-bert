@@ -4,11 +4,11 @@ from model import Token, Doc, Sentence
 from dataloading import _split_document_into_sentences
 
 
-def generate_doc(content: str) -> Doc:
+def generate_doc(content: str) -> List[Token]:
     tokens = []
     for idx, letter in enumerate(content):
         tokens.append(Token(index=idx, name=letter, lemma=letter, pos=""))
-    return Doc(name="Test", content=tokens)
+    return tokens
 
 
 @pytest.mark.parametrize(
@@ -57,8 +57,8 @@ def generate_doc(content: str) -> Doc:
     ],
 )
 def test_eval(content: str, sentence_length: List[int]):
-    doc = generate_doc(content)
-    docs, sentences = _split_document_into_sentences([doc])
+    tokens = generate_doc(content)
+    sentences = _split_document_into_sentences(tokens)
 
     print(sentences)
 

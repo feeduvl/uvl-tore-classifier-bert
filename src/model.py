@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import List, Literal, ItemsView, TypedDict
 from collections import Counter
 import pandas as pd
+import itertools
 
 
 Pos = Literal["v", "n", "a", "r", ""]
@@ -44,7 +45,6 @@ class Code(BaseModel):
     index: int
     name: str
     tore_index: str
-    tokens: List["Token"] = []
 
 
 class Token(BaseModel):
@@ -80,23 +80,24 @@ class Sentence(BaseModel):
 class Doc(BaseModel):
     name: str
     sentences: List[Sentence] = []
-    content: List[Token] = []
+
+    def get_tokens(self):
+        return itertools.chain.from_iterable(
+            [sentence.tokens for sentence in self.sentences]
+        )
 
 
 class Dataset(BaseModel):
     docs: List[Doc] = []
-    tokens: List[Token] = []
-    codes: List[Code] = []
-    sentences: List[Sentence] = []
 
     def __add__(self, other: "Dataset") -> "Dataset":
         ds = Dataset.construct(
             docs=self.docs + other.docs,
-            tokens=self.tokens + other.tokens,
-            codes=self.codes + other.codes,
-            sentences=self.sentences + other.sentences,
         )
         return Dataset.validate(ds)
 
     def to_df(self) -> pd.DataFrame:
-        return pd.DataFrame.from_records([s.to_dict() for s in self.sentences])
+        sentences = itertools.chain.from_iterable(
+            [doc.sentences for doc in self.docs]
+        )
+        return pd.DataFrame.from_records([s.to_dict() for s in sentences])

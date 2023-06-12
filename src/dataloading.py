@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Tuple, TypedDict
 
 from model import (
     ImportDataSet,
@@ -10,110 +10,82 @@ from model import (
 )
 
 
-def _create_instances(
-    imported_dataset: ImportDataSet,
-) -> Tuple[List[Doc], List[Token], List[Code]]:
-    codes = [
-        Code.construct(index=c.index, name=c.name, tore_index=c.tore)
-        for c in imported_dataset.codes
-    ]
-
-    tokens = [
-        Token.construct(index=t.index, name=t.name, lemma=t.lemma, pos=t.pos)
-        for t in imported_dataset.tokens
-    ]
-
-    docs = [Doc.construct(name=d.name) for d in imported_dataset.docs]
-
-    return docs, tokens, codes
-
-
-def _create_connections(
-    imported_dataset: ImportDataSet,
-    docs: List[Doc],
-    tokens: List[Token],
-    codes: List[Code],
-) -> Tuple[List[Doc], List[Token], List[Code]]:
-    # doc -> token
-    for imported_doc, doc in zip(imported_dataset.docs, docs):
-        doc.content = [
-            tokens[i]
-            for i in range(imported_doc.begin_index, imported_doc.end_index)
-        ]
-
-    for imported_code, code in zip(imported_dataset.codes, codes):
-        for i in imported_code.tokens:
-            # token -> code
-            tokens[i].tore_codes.append(code)
-            # code -> token
-            code.tokens.append(tokens[i])
-
-    return docs, tokens, codes
-
-
 def _split_document_into_sentences(
-    docs: List[Doc],
-) -> Tuple[List[Doc], List[Sentence]]:
+    tokens: List[Token],
+) -> List[Sentence]:
     # split content into sentences
-    sentences = []
+
     punctuation = [".", "!", "?"]
-    for doc in docs:
-        starts: List[int] = [0]
-        ends: List[int] = [len(doc.content)]
-        shift_reg: List[str] = [" ", " ", " "]
 
-        for idx, token in enumerate(doc.content):
-            # Handle sentence terminator
-            shift_reg.insert(0, token.name)
-            shift_reg.pop()
+    starts: List[int] = [0]
+    ends: List[int] = [len(tokens)]
+    shift_reg: List[str] = [" ", " ", " "]
 
-            if "".join(shift_reg) == "###":
-                ends.append(idx - 2)
-                starts.append(idx + 1)
+    for idx, token in enumerate(tokens):
+        # Handle sentence terminator
+        shift_reg.insert(0, token.name)
+        shift_reg.pop()
 
-            # Handle punctuation
-            if token.name in punctuation:
-                try:
-                    if doc.content[idx + 1].name not in punctuation:
-                        starts.append(idx + 1)
-                        ends.append(idx + 1)
-                except IndexError:
-                    pass
+        if "".join(shift_reg) == "###":
+            ends.append(idx - 2)
+            starts.append(idx + 1)
 
-        starts.sort()
-        ends.sort()
+        # Handle punctuation
+        if token.name in punctuation:
+            try:
+                if tokens[idx + 1].name not in punctuation:
+                    starts.append(idx + 1)
+                    ends.append(idx + 1)
+            except IndexError:
+                pass
 
-        docs_sentences: List[Sentence] = []
-        for start, end in zip(starts, ends):
-            if end - start != 0:
-                s = Sentence(tokens=[t for t in doc.content[start:end]])
-                docs_sentences.append(s)
+    starts.sort()
+    ends.sort()
 
-        doc.sentences = docs_sentences
-        sentences += docs_sentences
+    doc_sentences: List[Sentence] = []
+    for start, end in zip(starts, ends):
+        if end - start != 0:
+            s = Sentence(tokens=[t for t in tokens[start:end]])
+            doc_sentences.append(s)
 
-    return docs, sentences
+    return doc_sentences
 
 
-def denormalize_dataset(
+def denormalize_dataset_v2(
     imported_dataset: ImportDataSet,
 ) -> Dataset:
-    # create instances
-    docs, tokens, codes = _create_instances(imported_dataset=imported_dataset)
+    tokenindex_codes: dict[int, List[Code]] = {}
+    for imported_code in imported_dataset.codes:
+        code = Code(
+            index=imported_code.index,
+            name=imported_code.name,
+            tore_index=imported_code.tore,
+        )
+        for token_id in imported_code.tokens:
+            if tokenindex_codes[token_id] is None:
+                tokenindex_codes[token_id] = []
 
-    # recreate relationship
-    docs, tokens, codes = _create_connections(
-        imported_dataset=imported_dataset,
-        docs=docs,
-        tokens=tokens,
-        codes=codes,
-    )
+            tokenindex_codes[token_id].append(code)
 
-    docs, sentences = _split_document_into_sentences(docs=docs)
+    docs = []
+    for imported_document in imported_dataset.docs:
+        tokens: List[Token] = []
+        for token_index in range(
+            imported_document.begin_index, imported_document.end_index
+        ):
+            imported_token = imported_dataset.tokens[token_index]
+            token = Token(
+                index=imported_token.index,
+                name=imported_token.name,
+                lemma=imported_token.lemma,
+                pos=imported_token.pos,
+                tore_codes=tokenindex_codes[imported_token.index],
+            )
+            tokens.append(token)
 
-    return Dataset(
-        docs=docs,
-        tokens=tokens,
-        codes=codes,
-        sentences=sentences,
-    )
+        sentences = _split_document_into_sentences(tokens=tokens)
+
+        doc = Doc(name=imported_document.name, sentences=sentences)
+        docs.append(doc)
+
+    return Dataset(docs=docs)
