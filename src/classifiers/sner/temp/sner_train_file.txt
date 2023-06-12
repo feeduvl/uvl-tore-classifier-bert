@@ -1,0 +1,285 @@
+extension	Software
+add	Interaction
+chrome	Software
+gives	Interaction
+warning	Interaction Data
+closing	Interaction
+tabs	Workspace
+window	Workspace
+have	Interaction
+tabs	Interaction Data
+click	Interaction
+windows	Workspace
+cross	Workspace
+close	Interaction
+window	Workspace
+add	Interaction
+chrome	Software
+give	Interaction
+warning	Interaction Data
+close	Interaction
+all	Interaction Data
+tabs	Interaction Data
+window	Workspace
+open	Workspace
+tab	Workspace
+closing	Interaction
+tabs	Interaction Data
+window	Workspace
+ 	 
+Android	Software
+Going	Interaction
+back	Interaction
+tab	Workspace
+history	Interaction Data
+minimizes	Interaction
+Chrome	Software
+closing	Interaction
+tab	Workspace
+go	Interaction
+back	Interaction Data
+tab	Workspace
+close	Interaction
+tab	Workspace
+take	Interaction
+tab	Workspace
+looking	Interaction
+minimizes	Interaction
+Chrome	Software
+close	Interaction
+tab	Workspace
+flag	Interaction Data
+set	Interaction
+ 	 
+remove	Interaction
+blue	Workspace
+border	Workspace
+links/buttons	Workspace
+clicked	Interaction
+happens	Interaction
+profiles/accounts	Interaction Data
+computer	Software
+ 	 
+Chrome	Software
+breaks	Interaction
+minimised	Interaction
+Chrome	Software
+Canary	Software
+latest	Software
+version	Software
+Flags	Software
+Windows	Software
+11	Software
+minimise	Interaction
+window	Workspace
+open	Interaction
+window	Workspace
+freezes	Interaction
+ 	 
+Navigation	Domain Data
+instructions	Domain Data
+spoken	Domain Data
+instructions	Domain Data
+tell	Interaction
+go	Activity
+crossing	Domain Data
+take	Activity
+turn	Domain Data
+take	Activity
+turn	Domain Data
+telling	Interaction
+app	Software
+navigating	Activity
+gpx	Domain Data
+route	Domain Data
+app	Software
+gives	Interaction
+instructions	Interaction Data
+ride	Domain Data
+Turn	Interaction
+sound	Interaction Data
+instructions	Interaction Data
+ 	 
+using	Interaction
+komoot	Software
+navigate	Interaction
+data	Interaction Data
+outside	Interaction Data
+my	Interaction Data
+region	Interaction Data
+buy	Interaction
+maps	Interaction Data
+use	Interaction
+navigation	Interaction Data
+outside	Interaction Data
+my	Interaction Data
+region	Interaction Data
+plan	Interaction
+see	Interaction
+route	Interaction Data
+map	Workspace
+get	Interaction
+navigation	Interaction Data
+instructions	Interaction Data
+region	Domain Data
+regions	Domain Data
+world	Domain Data
+komoot	Software
+premium	Software
+ 	 
+SAVE	Interaction
+BOOKMARK	Interaction
+place	Interaction Data
+website	Software
+iOS	Software
+Komoot	Software
+save	Interaction
+address	Interaction Data
+search	Interaction
+Android	Software
+recent	Interaction Data
+searches	Interaction Data
+list	Interaction Data
+search	Interaction
+click	Interaction
+web	Software
+iOS	Software
+device	Software
+add	Interaction
+somewhere	Interaction Data
+near	Interaction Data
+your	Interaction Data
+home	Interaction Data
+road	Interaction Data
+highlight	Interaction Data
+Bookmarks	Domain Data
+Komoot	Software
+start	Interaction
+map	Workspace
+starting	Interaction Data
+point	Interaction Data
+save	Interaction
+map	Interaction Data
+bookmarking	Interaction
+url	Interaction Data
+start	Interaction
+route	Interaction Data
+ 	 
+personal	Domain Data
+notes	Domain Data
+add	Interaction
+personal	Interaction Data
+notes	Interaction Data
+segments	Interaction Data
+remember	Activity
+road	Domain Data
+conditions	Domain Data
+obstacles	Domain Data
+segment	Domain Data
+add	Interaction
+public	Interaction Data
+tips	Interaction Data
+ 	 
+VLC	Software
+store	Internal Action
+certificates	Internal Data
+accepted‏‏‎‏‏‎‏‏‎‏‏‎­some	Interaction
+certificate	Interaction Data
+delete	Interaction
+ 	 
+VLC	Software
+reset	Internal Action
+DISABLE	Internal Data
+start	Interaction
+VLC	Software
+playing	Interaction
+file	Interaction Data
+.ISO	Interaction Data
+file	Interaction Data
+video	Interaction Data
+file	Interaction Data
+video	Interaction Data
+plays	Interaction
+audio	Interaction Data
+click	Interaction
+menu	Workspace
+change	Interaction
+tracks	Interaction Data
+setting	Interaction
+Preferred	Interaction Data
+Language	Interaction Data
+start	Interaction
+VLC	Software
+play	Interaction
+video	Interaction Data
+video	Interaction Data
+plays	Interaction
+audio	Interaction Data
+click	Interaction
+menu	Workspace
+change	Interaction
+tracks	Interaction Data
+use	Interaction
+SEEK	Workspace
+bar	Workspace
+skip	Interaction
+use	Interaction
+press	Interaction
+Audio	Interaction Data
+Track	Interaction Data
+set	Interaction
+change	Interaction
+default	Interaction Data
+behavior	Interaction Data
+VLC	Software
+opens	Interaction
+playing	Interaction
+file	Interaction Data
+ 	 
+Green/Purple	Workspace
+Tint	Workspace
+VLC	Software
+LG	Software
+G1	Software
+play	Interaction
+videos	Interaction Data
+green/purplish	Workspace
+tint	Workspace
+Dolby	Domain Data
+Vision	Domain Data
+videos	Domain Data
+TV	Software
+LG	Software
+G1	Software
+Dolby	Domain Data
+Vision	Domain Data
+ 	 
+Disable	Interaction
+Error	Interaction Data
+dialog	Interaction Data
+message	Interaction Data
+PC	Software
+lubuntu	Software
+RaspPi	Software
+4b	Software
+run	Interaction
+auto	Interaction Data
+start	Interaction Data
+VLC	Software
+launch	Interaction
+stream	Interaction Data
+full	Workspace
+screen	Workspace
+player	Workspace
+window	Workspace
+stops	Interaction
+device	Software
+stream	Interaction Data
+restart	Interaction
+error	Workspace
+dialog	Workspace
+stream	Domain Data
+disable	Interaction
+minimize	Interaction
+error	Workspace
+ 	 

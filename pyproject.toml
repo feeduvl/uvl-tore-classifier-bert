@@ -12,7 +12,9 @@ warn_return_any = "True"
 warn_unused_configs = "True"
 module = [
     'dataloading',
-    'model'
+    'model',
+    'classifiers'
+
 ]
 
 [tool.black]
