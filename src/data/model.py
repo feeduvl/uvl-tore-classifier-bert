@@ -1,11 +1,14 @@
 from pydantic import BaseModel
 from datetime import datetime
-from typing import List, Literal, ItemsView, TypedDict, Optional
+from typing import List, Literal, Optional
 from collections import Counter
 import pandas as pd
 import itertools
-from pydantic.dataclasses import dataclass
 import dataclasses
+
+from pydantic.dataclasses import (
+    dataclass,
+)
 
 
 Pos = Literal["v", "n", "a", "r", ""]
@@ -92,10 +95,9 @@ class Dataset:
         )
 
     def __add__(self, other: "Dataset") -> "Dataset":
-        ds = Dataset.construct(
-            docs=self.sentences + other.sentences,
+        return Dataset(
+            sentences=self.sentences + other.sentences,
         )
-        return Dataset.validate(ds)
 
     def to_df(self) -> pd.DataFrame:
         return pd.DataFrame.from_records([s.to_dict() for s in self.sentences])

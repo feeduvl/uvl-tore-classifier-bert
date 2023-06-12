@@ -1,7 +1,6 @@
 import pytest
 from typing import List
-from model import Token, Doc, Sentence
-from dataloading import split_tokenlist_into_sentences
+from data import Token, split_tokenlist_into_sentences
 
 
 def generate_doc(content: str) -> List[Token]:
