@@ -1,6 +1,8 @@
 import pytest
 from typing import List
 from data import Token, split_tokenlist_into_sentences
+from pathlib import Path
+from data import ImportDataSet, denormalize_dataset
 
 
 def generate_doc(content: str) -> List[Token]:
@@ -65,3 +67,19 @@ def test_eval(content: str, sentence_length: List[int]):
 
     for res, exp in zip(sentences, sentence_length):
         assert len(res.tokens) == exp
+
+
+def test_dataloading():
+    BASE_PATH = Path(__file__).parent
+    FILE_PATH = BASE_PATH.joinpath(Path("./test_dataset.json"))
+
+    imported_ds = ImportDataSet.parse_file(FILE_PATH.resolve())
+    denormalized_ds = denormalize_dataset(imported_dataset=imported_ds)
+    assert (
+        str(denormalized_ds.sentences[0])
+        == "Is there any extension I can add to chrome which gives a warning before closing all tabs in the window by mistake ?"
+    )
+    assert (
+        str(denormalized_ds.sentences[1])
+        == "For example : I have multiple tabs open , by mistake I click on windows cross to close the window , is there something I can add to chrome that it might give a warning like , If I want to close the all tabs in window or only the open tab , instead of directly closing all the tabs open in the window"
+    )

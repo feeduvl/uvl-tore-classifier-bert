@@ -112,19 +112,22 @@ def denormalize_dataset(
             imported_token = imported_dataset.tokens[token_index]
             if imported_token.index is not None:
                 try:
+                    tore_codes = tokenindex_codes[imported_token.index]
+
+                except KeyError as e:
+                    if imported_token.num_tore_codes == 0:
+                        tore_codes = []
+                    else:
+                        raise e
+                finally:
                     token = Token(
                         index=imported_token.index,
                         name=imported_token.name,
                         lemma=imported_token.lemma,
                         pos=imported_token.pos,
-                        tore_codes=tokenindex_codes[imported_token.index],
+                        tore_codes=tore_codes,
                     )
                     tokens.append(token)
-                except KeyError as e:
-                    if imported_token.num_tore_codes == 0:
-                        pass
-                    else:
-                        raise e
 
         new_sentences = split_tokenlist_into_sentences(tokens=tokens)
         sentences += new_sentences
