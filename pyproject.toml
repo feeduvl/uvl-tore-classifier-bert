@@ -12,7 +12,8 @@ warn_return_any = "True"
 warn_unused_configs = "True"
 module = [
     'data',
-    'classifiers'
+    'classifiers',
+    'helpers'
 ]
 
 [tool.black]

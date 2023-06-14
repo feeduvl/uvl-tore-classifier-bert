@@ -1,12 +1,12 @@
 from typing import List
-from model import Sentence
+from data import Sentence
 from dataclasses import dataclass, asdict
 import subprocess
 
+from helpers.filehandling import create_file
+
 from jinja2 import Environment, FileSystemLoader
 from pathlib import Path
-
-from contextlib import contextmanager
 
 
 BASE_PATH = Path(__file__).parent
@@ -37,18 +37,6 @@ class LabeledToken:
 class SNERConfig:
     resultFile: Path = MODEL_PATH.resolve()
     trainFile: Path = TRAIN_FILE_PATH.resolve()
-
-
-@contextmanager
-def create_file(file_path: Path):
-    if file_path.exists():
-        file_path.unlink()
-
-    f = open(file_path, mode="w+", encoding="utf-8", buffering=1)
-    try:
-        yield f
-    finally:
-        f.close()
 
 
 def _get_token(sententces: List[Sentence]) -> List[LabeledToken]:
