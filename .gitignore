@@ -164,3 +164,9 @@ src/data/temp/prolific/TORE_Coded_Answers_67_100.pickle
 src/classifiers/sner/temp/sner.ser.gz
 src/classifiers/sner/temp/sner_train_file.txt
 
+src/classifiers/sner/temp/sner_train_file.txt
+src/classifiers/sner/temp/sner_train_file.txt
+src/classifiers/sner/temp/sner.ser.gz
+src/data/temp/forum/anno_train.pickle
+src/data/data/forum/tore_training_for_SNER.tsv
+src/data/data/forum/tore_test_for_SNER.tsv
