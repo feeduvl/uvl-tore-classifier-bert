@@ -43,7 +43,7 @@ class SNERConfig:
     trainFile: Path = TRAIN_FILE_PATH.resolve()
 
 
-def _get_token(sentence: Sentence) -> List[LabeledToken]:
+def get_labeled_token(sentence: Sentence) -> List[LabeledToken]:
     tokens: List[LabeledToken] = []
 
     for token in sentence.tokens:
@@ -60,7 +60,7 @@ def _get_token(sentence: Sentence) -> List[LabeledToken]:
 
 
 def create_train_file(sentences: pd.Series):
-    tokens = sentences.apply(_get_token)
+    tokens = sentences.apply(get_labeled_token)
     labeled_tokens = itertools.chain.from_iterable(tokens.to_list())
 
     # labeled_tokens = _get_token(sentences)
@@ -119,15 +119,20 @@ def train_sner() -> None:
                 print(output.strip())
             break
 
+    return
 
-def classify(self, dataset):
+
+def classify(text: str) -> List[LabeledToken]:
     st = StanfordNERTagger(
-        MODEL_PATH,
-        STANFORD_JAR_PATH,
+        model_filename=str(MODEL_PATH.resolve()),
+        path_to_jar=str(STANFORD_JAR_PATH),
         encoding="utf-8",
     )
 
-    tokenized_text = word_tokenize(dataset)
+    tokenized_text = word_tokenize(text)
     classified_text = st.tag(tokenized_text)
 
-    return classified_text
+    return [
+        LabeledToken(classified_token[0], classified_token[1])
+        for classified_token in classified_text
+    ]
