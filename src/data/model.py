@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
-from typing import List, Literal, Optional
+from typing import List, Literal, Optional, Union, get_args, Tuple, cast
 from collections import Counter
 import pandas as pd
 import itertools
@@ -12,6 +12,43 @@ from pydantic.dataclasses import (
 
 
 Pos = Literal["v", "n", "a", "r", ""]
+
+
+DomainLevelLabel = Literal[
+    "Task",
+    "Goals",
+    "Domain Data",
+    "Activity",
+    "Stakeholder",
+]
+
+InteractionLevelLabel = Literal[
+    "System Function",
+    "Interaction",
+    "Interaction Data",
+    "Workspace",
+]
+
+SystemLevelLabel = Literal[
+    "Software",
+    "Internal Action",
+    "Internal Data",
+]
+
+AdditionalLabel = Literal["Relationship"]
+
+ToreLabel = Literal[SystemLevelLabel, InteractionLevelLabel, DomainLevelLabel]
+
+DomainLevel = Literal["Domain Level"]
+InteractionLevel = Literal["Interaction Level"]
+SystemLevel = Literal["System Level"]
+ToreLevel = Literal[DomainLevel, InteractionLevel, SystemLevel]
+
+ToreLevelLabels: List[Tuple[ToreLevel, ToreLabel]] = [
+    (DomainLevel, DomainLevelLabel),
+    (InteractionLevel, InteractionLevelLabel),
+    (SystemLevel, SystemLevelLabel),
+]
 
 
 class ImportDoc(BaseModel):
@@ -33,7 +70,7 @@ class ImportCode(BaseModel):
     index: Optional[int]
     tokens: List[int]
     name: str
-    tore: str
+    tore: Union[ToreLabel, Literal[""], AdditionalLabel]
 
 
 class ImportDataSet(BaseModel):
@@ -50,7 +87,15 @@ class ImportDataSet(BaseModel):
 class Code:
     index: int
     name: str
-    tore_index: str
+    tore_index: ToreLabel
+
+    @property
+    def level(self) -> ToreLevel:
+        for level, level_labels in ToreLevelLabels:
+            if self.tore_index in get_args(level_labels):
+                return cast(ToreLevel, get_args(level)[0])
+
+        raise IndexError
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -65,24 +110,42 @@ class Token:
         return self.name
 
     @property
-    def codes(self) -> List[str]:
+    def codes(self) -> List[ToreLabel]:
         return [tc.tore_index for tc in self.tore_codes]
+
+    @property
+    def level_codes(self) -> List[ToreLevel]:
+        return [tc.level for tc in self.tore_codes]
 
 
 @dataclass(frozen=True, kw_only=True)
 class Sentence:
     tokens: List[Token] = dataclasses.field(default_factory=list)
+    source: str
 
     def __str__(self) -> str:
         return " ".join([str(token) for token in self.tokens])
 
-    def get_label_counts(self) -> Counter[str]:
-        c: Counter[str] = Counter()
+    def get_label_counts(self) -> Counter[ToreLabel]:
+        c: Counter[ToreLabel] = Counter()
         [c.update(t.codes) for t in self.tokens]
         return c
 
+    def get_level_counts(self) -> Counter[ToreLevel]:
+        c: Counter[ToreLevel] = Counter()
+        [c.update(t.level_codes) for t in self.tokens]
+        return c
+
     def to_dict(self):
-        return {"text": str(self)} | self.get_label_counts()
+        meta = {
+            "text": str(self),
+            "self": self,
+            "source": self.source,
+        }
+        label = self.get_label_counts()
+        level = self.get_level_counts()
+
+        return meta | label | level
 
 
 @dataclass
@@ -100,4 +163,6 @@ class Dataset:
         )
 
     def to_df(self) -> pd.DataFrame:
-        return pd.DataFrame.from_records([s.to_dict() for s in self.sentences])
+        return pd.DataFrame.from_records(
+            [s.to_dict() for s in self.sentences]
+        ).fillna(0)

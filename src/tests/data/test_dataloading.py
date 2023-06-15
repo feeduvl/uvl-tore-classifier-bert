@@ -59,7 +59,9 @@ def generate_doc(content: str) -> List[Token]:
 )
 def test_eval(content: str, sentence_length: List[int]):
     tokens = generate_doc(content)
-    sentences = split_tokenlist_into_sentences(tokens)
+    sentences = split_tokenlist_into_sentences(
+        tokens=tokens, source="testsource"
+    )
 
     print(sentences)
 

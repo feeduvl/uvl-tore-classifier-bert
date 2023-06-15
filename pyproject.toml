@@ -7,14 +7,22 @@ version= "0.1"
 [tool.setuptools.packages.find]
 where = ["src"]  
 
-[mypy]
+[tool.mypy]
 warn_return_any = "True"
 warn_unused_configs = "True"
-module = [
+modules = [
     'data',
     'classifiers',
     'helpers'
 ]
+
+[[tool.mypy.overrides]]
+module="nltk.*"
+ignore_missing_imports = "True"
+
+[[tool.mypy.overrides]]
+module="sklearn.*"
+ignore_missing_imports = "True"
 
 [tool.black]
 exclude = '(\.eggs|\.git|\.hg|\.mypy_cache|\.nox|\.tox|\.venv|_build|buck-out|build|dist|__pycache__|.egg-info)'

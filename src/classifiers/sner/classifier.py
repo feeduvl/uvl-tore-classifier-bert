@@ -1,9 +1,13 @@
-from typing import List
+from typing import List, Union, Literal
+from data import ToreLabel
 from data import Sentence
 from dataclasses import dataclass, asdict
 import subprocess
-
+from nltk.tag import StanfordNERTagger
+from nltk.tokenize import word_tokenize
+import pandas as pd
 from helpers.filehandling import create_file
+import itertools
 
 from jinja2 import Environment, FileSystemLoader
 from pathlib import Path
@@ -39,24 +43,27 @@ class SNERConfig:
     trainFile: Path = TRAIN_FILE_PATH.resolve()
 
 
-def _get_token(sententces: List[Sentence]) -> List[LabeledToken]:
+def _get_token(sentence: Sentence) -> List[LabeledToken]:
     tokens: List[LabeledToken] = []
 
-    for sentence in sententces:
-        for token in sentence.tokens:
-            try:
-                label = token.tore_codes[0].tore_index
-            except IndexError:
-                label = "0"
-            tokens.append(LabeledToken(name=token.name, label=label))
-        # append empty token to signal sentence end
-        tokens.append(LabeledToken(name=" ", label=" "))
+    for token in sentence.tokens:
+        label: Union[ToreLabel, Literal["0"]]
+        try:
+            label = token.tore_codes[0].tore_index
+        except IndexError:
+            label = "0"
+        tokens.append(LabeledToken(name=token.name, label=label))
+    # append empty token to signal sentence end
+    tokens.append(LabeledToken(name=" ", label=" "))
 
     return tokens
 
 
-def create_train_file(sentences: List[Sentence]):
-    labeled_tokens = _get_token(sentences)
+def create_train_file(sentences: pd.Series):
+    tokens = sentences.apply(_get_token)
+    labeled_tokens = itertools.chain.from_iterable(tokens.to_list())
+
+    # labeled_tokens = _get_token(sentences)
 
     with create_file(TRAIN_FILE_PATH) as tf:
         training_data = "\n".join(
@@ -111,3 +118,16 @@ def train_sner() -> None:
             for output in process.stdout.readlines():
                 print(output.strip())
             break
+
+
+def classify(self, dataset):
+    st = StanfordNERTagger(
+        MODEL_PATH,
+        STANFORD_JAR_PATH,
+        encoding="utf-8",
+    )
+
+    tokenized_text = word_tokenize(dataset)
+    classified_text = st.tag(tokenized_text)
+
+    return classified_text
