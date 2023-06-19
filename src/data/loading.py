@@ -1,4 +1,4 @@
-from typing import List, Tuple, cast, get_args
+from typing import List, Tuple, cast, get_args, Optional
 from pydantic import ValidationError
 from .model import (
     ImportDataSet,
@@ -6,6 +6,7 @@ from .model import (
     Code,
     Sentence,
     Dataset,
+    ImportToreLabel,
     ToreLabel,
     ImportCode,
 )
@@ -32,13 +33,8 @@ IMPORT_DATASET_PATHS = [
 ]
 TEMP_PATH = BASE_PATH.joinpath(Path("./temp"))
 
-LOADED_DATASET_PATHS = [
-    TEMP_PATH.joinpath(Path(dataset)).with_suffix(".pickle")
-    for dataset in datasets
-]
-DATASETS = list(
-    zip(dataset_source, IMPORT_DATASET_PATHS, LOADED_DATASET_PATHS)
-)
+LOADED_DATASET_PATH = TEMP_PATH.joinpath(Path("loaded_dataset.pickle"))
+DATASETS = list(zip(dataset_source, IMPORT_DATASET_PATHS))
 FORUM = DATASETS[:2]
 PROLIFIC = DATASETS[2:]
 
@@ -84,6 +80,15 @@ def split_tokenlist_into_sentences(
     return doc_sentences
 
 
+def clean_token(token_str: str) -> Optional[str]:
+    cleaned = token_str.replace("\\", "")
+
+    if cleaned == "":
+        return None
+
+    return cleaned
+
+
 def denormalize_dataset(
     imported_dataset: ImportDataSet, dataset_source=str
 ) -> Dataset:
@@ -100,12 +105,14 @@ def denormalize_dataset(
             # We don't want the second kind and check for it.
             # They are added to the code_skip_set to be skipped in the per document loop
 
-            if imported_code.tore in get_args(ToreLabel):
+            if imported_code.tore in get_args(ImportToreLabel):
                 try:
                     code = Code(
                         index=imported_code.index,
                         name=imported_code.name,
-                        tore_index=cast(ToreLabel, imported_code.tore),
+                        tore_index=cast(
+                            ToreLabel, imported_code.tore.replace(" ", "_")
+                        ),
                     )
                     for token_id in imported_code.tokens:
                         try:
@@ -140,9 +147,13 @@ def denormalize_dataset(
                         print(imported_token)
                         raise e
                 finally:
+                    token_str = clean_token(imported_token.name)
+                    if token_str is None:
+                        continue
+
                     token = Token(
                         index=imported_token.index,
-                        name=imported_token.name,
+                        name=imported_token.name.replace("\\", ""),
                         lemma=imported_token.lemma,
                         pos=imported_token.pos,
                         tore_codes=tore_codes,
@@ -157,33 +168,32 @@ def denormalize_dataset(
     return Dataset(sentences=sentences)
 
 
-def _import_dataset(dataset_info: Tuple[str, Path, Path]):
-    dataset_source, import_path, pickle_path = dataset_info
-    print(dataset_source)
+def _import_dataset(dataset_info: Tuple[str, Path]):
+    dataset_source, import_path = dataset_info
+    print(f"Importing dataset: {dataset_source}")
+
     imported_ds = ImportDataSet.parse_file(import_path.resolve())
     denormalized_ds = denormalize_dataset(
         imported_dataset=imported_ds, dataset_source=dataset_source
     )
-    with create_file(pickle_path, mode="wb", encoding=None, buffering=-1) as f:
-        f.write(pickle.dumps(denormalized_ds))
 
     return denormalized_ds
 
 
-def _load_dataset(dataset_info: Tuple[str, Path, Path]):
-    dataset_source, import_path, pickle_path = dataset_info
-    with open(pickle_path, mode="rb") as pickle_file:
+def import_dataset(ds_spec: List[Tuple[str, Path]]):
+    ds: Dataset = Dataset()
+    for d_spec in ds_spec:
+        ds += _import_dataset(d_spec)
+
+    ds_df = ds.to_df()
+
+    with create_file(
+        LOADED_DATASET_PATH, mode="wb", encoding=None, buffering=-1
+    ) as f:
+        f.write(pickle.dumps(ds_df))
+
+
+def load_dataset():
+    with open(LOADED_DATASET_PATH, mode="rb") as pickle_file:
         dataset = pickle.load(pickle_file)
     return dataset
-
-
-def import_dataset(ds_spec: List[Tuple[str, Path, Path]]):
-    for d_spec in ds_spec:
-        _import_dataset(d_spec)
-
-
-def load_dataset(ds_spec: List[Tuple[str, Path, Path]]):
-    ds: Dataset = Dataset()
-    for dataset in ds_spec:
-        ds += _load_dataset(dataset)
-    return ds
