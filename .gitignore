@@ -180,3 +180,5 @@ src/data/temp/sampled/text_train.pickle
 src/classifiers/sner/temp/classification_result.pickle
 src/classifiers/sner/temp/sner_config_file.prop
 /raw_data
+src/classifiers/sner/temp/eval/live/metrics.json
+src/classifiers/sner/temp/eval/live/plots/sklearn/confusion_matrix.json

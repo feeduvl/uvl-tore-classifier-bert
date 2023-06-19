@@ -21,11 +21,19 @@ solution = sentences_to_token_df(pd.Series(labels_test))
 
 
 precision = precision_score(
-    solution["label"], results["label"], average="macro", labels=TORE_LABELS
+    solution["label"],
+    results["label"],
+    average="macro",
+    labels=TORE_LABELS,
+    zero_division=0,
 )
 
 recall = recall_score(
-    solution["label"], results["label"], average="macro", labels=TORE_LABELS
+    solution["label"],
+    results["label"],
+    average="macro",
+    labels=TORE_LABELS,
+    zero_division=0,
 )
 
 
@@ -40,8 +48,9 @@ live.log_sklearn_plot(
     "confusion_matrix",
     solution["label"],
     results["label"],
-    labels=TORE_LABELS,
+    normalized=True,
     xticks_rotation="vertical",
 )
+
 
 live.make_summary()
