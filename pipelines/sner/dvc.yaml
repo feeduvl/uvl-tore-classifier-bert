@@ -52,15 +52,4 @@ stages:
       - src/classifiers/sner/temp/classification_result.pickle
       - src/data/temp/sampled/labels_test.pickle
     always_changed: true
-
     wdir: ../../
-    metrics:
-      - src/classisiers/sner/temp/eval/live/metrics.json
-    plots:
-      - src/classisiers/sner/temp/eval/live/plots/sklearn/confusion_matrix.json:
-          template: confusion
-          x: actual
-          y: predicted
-          title: Confusion Matrix
-          x_label: True Label
-          y_label: Predicted Label
