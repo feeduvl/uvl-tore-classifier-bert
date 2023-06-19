@@ -170,3 +170,10 @@ src/classifiers/sner/temp/sner.ser.gz
 src/data/temp/forum/anno_train.pickle
 src/data/data/forum/tore_training_for_SNER.tsv
 src/data/data/forum/tore_test_for_SNER.tsv
+load_files.ipynb
+src/data/temp/loaded_dataset.pickle
+src/data/temp/forum/anno_test.pickle
+src/data/temp/sampled/labels_test.pickle
+src/data/temp/sampled/labels_train.pickle
+src/data/temp/sampled/text_test.pickle
+src/data/temp/sampled/text_train.pickle
