@@ -1,7 +1,7 @@
 # This example contains just the necessary options for a src-layout, set up
 # the rest of the file as described above.
 [project]
-name = "uvl-tore-classifier-bert"
+name = "uvl_tore_classifier_bert"
 version= "0.1"
 
 [tool.setuptools.packages.find]

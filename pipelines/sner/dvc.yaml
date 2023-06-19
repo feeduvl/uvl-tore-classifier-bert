@@ -1,0 +1,62 @@
+stages:
+  import_data:
+    cmd: >-
+      python src/cmd/import.py
+      --dataset forum 
+      --dataset prolific
+    deps:
+      - src/data/data/
+    outs:
+      - src/data/temp/imported_dataset.pickle
+    wdir: ../../
+
+  sample_data:
+    cmd: >-
+      python src/cmd/sample.py
+      --test_size 0.2
+      --random_state 125
+    deps:
+      - src/data/temp/imported_dataset.pickle
+    outs:
+      - src/data/temp/sampled/labels_test.pickle
+      - src/data/temp/sampled/labels_train.pickle
+      - src/data/temp/sampled/text_test.pickle
+      - src/data/temp/sampled/text_train.pickle
+    wdir: ../../
+
+  train_sner:
+    cmd: >-
+      python src/cmd/train_sner.py
+    deps:
+      - src/data/temp/sampled/labels_train.pickle
+    outs:
+      - src/classifiers/sner/temp/sner_config_file.prop
+      - src/classifiers/sner/temp/sner_train_file.txt
+      - src/classifiers/sner/temp/sner.ser.gz
+    wdir: ../../
+
+  classify_sner:
+    cmd: >-
+      python src/cmd/classify_sner.py
+    deps:
+      - src/classifiers/sner/temp/sner.ser.gz
+      - src/data/temp/sampled/text_test.pickle
+    outs:
+      - src/classifiers/sner/temp/classification_result.pickle
+    wdir: ../../
+
+  evaluate_sner:
+    cmd: >-
+      python src/cmd/evaluate_sner.py
+    deps:
+      - src/classifiers/sner/temp/classification_result.pickle
+      - src/data/temp/sampled/labels_test.pickle
+
+    wdir: ../../
+    metrics:
+      - src/classifiers/sner/temp/eval/live/metrics.json:
+          cache: false
+
+    plots:
+      - src/classifiers/sner/temp/eval/live/plots/sklearn/confusion_matrix.json:
+          cache: false
