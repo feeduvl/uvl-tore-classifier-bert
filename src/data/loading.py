@@ -33,7 +33,7 @@ IMPORT_DATASET_PATHS = [
 ]
 TEMP_PATH = BASE_PATH.joinpath(Path("./temp"))
 
-LOADED_DATASET_PATH = TEMP_PATH.joinpath(Path("loaded_dataset.pickle"))
+IMPORTED_DATASET_PATH = TEMP_PATH.joinpath(Path("imported_dataset.pickle"))
 DATASETS = list(zip(dataset_source, IMPORT_DATASET_PATHS))
 FORUM = DATASETS[:2]
 PROLIFIC = DATASETS[2:]
@@ -188,12 +188,12 @@ def import_dataset(ds_spec: List[Tuple[str, Path]]):
     ds_df = ds.to_df()
 
     with create_file(
-        LOADED_DATASET_PATH, mode="wb", encoding=None, buffering=-1
+        IMPORTED_DATASET_PATH, mode="wb", encoding=None, buffering=-1
     ) as f:
         f.write(pickle.dumps(ds_df))
 
 
 def load_dataset():
-    with open(LOADED_DATASET_PATH, mode="rb") as pickle_file:
+    with open(IMPORTED_DATASET_PATH, mode="rb") as pickle_file:
         dataset = pickle.load(pickle_file)
     return dataset

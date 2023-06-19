@@ -1,4 +1,4 @@
-from typing import List, Union, Literal, Tuple
+from typing import List, Union, Literal, Tuple, cast, Optional
 from data import ToreLabel
 from data import Sentence
 from dataclasses import dataclass, asdict
@@ -59,31 +59,32 @@ def _sentence_to_token_and_label(sentence: Sentence) -> List[Tuple[str, str]]:
     return tokens
 
 
+def match_tokenization(sentence: Sentence) -> List[Tuple[str, str]]:
+    dataset_token_and_labels = _sentence_to_token_and_label(sentence)
+    generated_tokens = word_tokenize(str(sentence))
+
+    dataset_char_labels: List[str] = []
+    for token, label in dataset_token_and_labels:
+        for char in token:
+            dataset_char_labels.append(label)
+
+    aligned_tokens: List[Tuple[str, str]] = []
+    for token in generated_tokens:
+        aligned_tokens.append((token, dataset_char_labels[0]))
+        dataset_char_labels = dataset_char_labels[len(token) :]
+
+    return aligned_tokens
+
+
 def sentences_to_token_df(sentences: pd.Series):
-    temp_tokens = itertools.chain.from_iterable(
-        sentences.apply(_sentence_to_token_and_label).to_list()
+    aligned_tokens = sentences.apply(match_tokenization)
+
+    flattened_aligned_tokens = itertools.chain.from_iterable(
+        aligned_tokens.to_list()
     )
-    tokens = []
-    for token in temp_tokens:
-        # the tokenization between the ground truth and the classifier results differ
-        # by running the ground truth through the tokenizer we avoid this issue
-        ts = word_tokenize(token[0])
-        if len(ts) == 1:
-            # ok, tokenziation for ground truth and classifier results are identical
-            tokens.append(token)
-        else:
-            # the results differ, lets inspect every token we got back
-            for t in ts:
-                if len(t) > 1:
-                    # the new token is longer than a single character. we use the ground truths label for the new token as well
-                    t_new = (t, token[1])
-                else:
-                    # the new token is only a character long. probably insignificant
-                    t_new = (t, "0")
-                tokens.append(t_new)
 
     return pd.DataFrame(
-        tokens,
+        flattened_aligned_tokens,
         columns=["name", "label"],
     )
 
