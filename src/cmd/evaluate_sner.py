@@ -12,7 +12,7 @@ from sklearn.metrics import (
 import pandas as pd
 from dvclive import Live
 from pathlib import Path
-
+import matplotlib.pyplot as plt
 
 results = load_classification_result()
 
@@ -44,13 +44,18 @@ live = Live(LIVE_PATH, dvcyaml=False)
 live.summary["precission"] = precision
 live.summary["recall"] = recall
 
-live.log_sklearn_plot(
-    "confusion_matrix",
+
+CONF_MATRIX_PATH = LIVE_PATH.joinpath("./confusion_matrix.png")
+ConfusionMatrixDisplay.from_predictions(
     solution["label"],
     results["label"],
-    normalized=True,
     xticks_rotation="vertical",
+    normalize="true",
+    values_format=".2f",
 )
+plt.savefig(CONF_MATRIX_PATH)
+
+live.log_image("conf_matrix.png", CONF_MATRIX_PATH)
 
 
 live.make_summary()

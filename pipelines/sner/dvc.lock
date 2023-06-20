@@ -84,3 +84,12 @@ stages:
       hash: md5
       md5: 5c0b5a41ce5957f6de75914ce187e4a1
       size: 417831
+    outs:
+    - path: src/classifiers/sner/temp/eval/live/confusion_matrix.png
+      hash: md5
+      md5: 87922a415fbb208697c5012e40c1997c
+      size: 76558
+    - path: src/classifiers/sner/temp/eval/live/metrics.json
+      hash: md5
+      md5: 8c91a6e384c5d863f1da16febdeafe82
+      size: 75

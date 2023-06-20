@@ -53,3 +53,8 @@ stages:
       - src/data/temp/sampled/labels_test.pickle
     always_changed: true
     wdir: ../../
+
+    metrics:
+      - src/classifiers/sner/temp/eval/live/metrics.json
+    plots:
+      - src/classifiers/sner/temp/eval/live/confusion_matrix.png
