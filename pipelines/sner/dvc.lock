@@ -5,9 +5,9 @@ stages:
     deps:
     - path: src/data/data/
       hash: md5
-      md5: ebc8f796a81fe8427cab71922cf2bcd7.dir
-      size: 9427716
-      nfiles: 7
+      md5: 87c96ef55ccb6726509542d95da5cb4d.dir
+      size: 9421568
+      nfiles: 6
     outs:
     - path: src/data/temp/imported_dataset.pickle
       hash: md5
@@ -47,12 +47,12 @@ stages:
     outs:
     - path: src/classifiers/sner/temp/sner.ser.gz
       hash: md5
-      md5: 33f21884ff7c3a4cb6fbb86f1fa04bdc
-      size: 27309419
+      md5: f5e1eb537271db1547e0acab1bb86ada
+      size: 27310024
     - path: src/classifiers/sner/temp/sner_config_file.prop
       hash: md5
-      md5: a924dafcc30c04040d6dcaf4df2890e6
-      size: 591
+      md5: b12993a4124f188c48462055f43f80aa
+      size: 595
     - path: src/classifiers/sner/temp/sner_train_file.txt
       hash: md5
       md5: 90b2fd101b10f2247e9e700f123161eb
@@ -62,8 +62,8 @@ stages:
     deps:
     - path: src/classifiers/sner/temp/sner.ser.gz
       hash: md5
-      md5: 33f21884ff7c3a4cb6fbb86f1fa04bdc
-      size: 27309419
+      md5: f5e1eb537271db1547e0acab1bb86ada
+      size: 27310024
     - path: src/data/temp/sampled/text_test.pickle
       hash: md5
       md5: 9b9caca6ffad9e980e59dc0746edf1d1
@@ -71,15 +71,15 @@ stages:
     outs:
     - path: src/classifiers/sner/temp/classification_result.pickle
       hash: md5
-      md5: 7518dfc9521e692b5b48b96db69eea1f
-      size: 108437
+      md5: 405e7733548e4e2dbfbc225f9622de00
+      size: 108393
   evaluate_sner:
     cmd: python src/cmd/evaluate_sner.py
     deps:
     - path: src/classifiers/sner/temp/classification_result.pickle
       hash: md5
-      md5: 7518dfc9521e692b5b48b96db69eea1f
-      size: 108437
+      md5: 405e7733548e4e2dbfbc225f9622de00
+      size: 108393
     - path: src/data/temp/sampled/labels_test.pickle
       hash: md5
       md5: 5c0b5a41ce5957f6de75914ce187e4a1
@@ -87,9 +87,9 @@ stages:
     outs:
     - path: src/classifiers/sner/temp/eval/live/confusion_matrix.png
       hash: md5
-      md5: 87922a415fbb208697c5012e40c1997c
-      size: 76558
+      md5: 6e60cd51be85cc256efc015af7a3008b
+      size: 76578
     - path: src/classifiers/sner/temp/eval/live/metrics.json
       hash: md5
-      md5: 8c91a6e384c5d863f1da16febdeafe82
+      md5: ab961199084c17215a57270525c0dc2e
       size: 75

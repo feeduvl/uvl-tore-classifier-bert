@@ -7,3 +7,7 @@ pydantic
 black[jupyter]
 mypy
 rich
+dvc
+scikit-learn
+matplotlib
+dvclive
