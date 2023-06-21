@@ -51,7 +51,7 @@ ConfusionMatrixDisplay.from_predictions(
     results["label"],
     xticks_rotation="vertical",
     normalize="true",
-    values_format=".2f",
+    values_format=".3f",
 )
 plt.savefig(CONF_MATRIX_PATH)
 

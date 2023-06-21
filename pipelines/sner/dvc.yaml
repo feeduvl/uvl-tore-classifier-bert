@@ -3,9 +3,11 @@ stages:
     cmd: >-
       python src/cmd/import.py
       --dataset forum 
-      --dataset prolific
+
     deps:
       - src/data/data/
+      - src/cmd/import.py
+      - src/data/loading.py
     outs:
       - src/data/temp/imported_dataset.pickle
     wdir: ../../
@@ -17,6 +19,8 @@ stages:
       --random_state 125
     deps:
       - src/data/temp/imported_dataset.pickle
+      - src/cmd/sample.py
+      - src/data/sampling.py
     outs:
       - src/data/temp/sampled/labels_test.pickle
       - src/data/temp/sampled/labels_train.pickle
@@ -29,11 +33,15 @@ stages:
       python src/cmd/train_sner.py
     deps:
       - src/data/temp/sampled/labels_train.pickle
+      - src/cmd/train_sner.py
+      - src/classifiers/sner/ressources/
+      - src/classifiers/sner/classifier.py
     outs:
       - src/classifiers/sner/temp/sner_config_file.prop
       - src/classifiers/sner/temp/sner_train_file.txt
       - src/classifiers/sner/temp/sner.ser.gz
     wdir: ../../
+     
 
   classify_sner:
     cmd: >-
@@ -41,19 +49,24 @@ stages:
     deps:
       - src/classifiers/sner/temp/sner.ser.gz
       - src/data/temp/sampled/text_test.pickle
+      - src/cmd/classify_sner.py
+      - src/classifiers/sner/ressources/
+      - src/classifiers/sner/classifier.py
+
     outs:
       - src/classifiers/sner/temp/classification_result.pickle
     wdir: ../../
 
+     
   evaluate_sner:
     cmd: >-
       python src/cmd/evaluate_sner.py
     deps:
       - src/classifiers/sner/temp/classification_result.pickle
       - src/data/temp/sampled/labels_test.pickle
-    always_changed: true
+      - src/cmd/evaluate_sner.py
     wdir: ../../
-
+      
     metrics:
       - src/classifiers/sner/temp/eval/live/metrics.json
     plots:
