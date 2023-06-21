@@ -71,7 +71,7 @@ stages:
             - src/tooling/evaluation.py
         wdir: ../../
 
-metrics:
-    - src/data/temp/evaluation/${name}/metrics.json
-plots:
-    - src/data/temp/evaluation/${name}/confusion_matrix.png
+        metrics:
+            - src/data/temp/evaluation/${name}/metrics.json
+        plots:
+            - src/data/temp/evaluation/${name}/confusion_matrix.png

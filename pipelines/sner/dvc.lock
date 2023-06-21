@@ -142,3 +142,12 @@ stages:
       hash: md5
       md5: cf686f28625da1dca253a9093fe33c07
       size: 1597
+    outs:
+    - path: src/data/temp/evaluation/DEFAULT1/confusion_matrix.png
+      hash: md5
+      md5: b9623133718ddebfb343c31df105e72a
+      size: 56700
+    - path: src/data/temp/evaluation/DEFAULT1/metrics.json
+      hash: md5
+      md5: 45178853c5ae1ba5006f2e5a94cb07f8
+      size: 76
