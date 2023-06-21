@@ -1,43 +1,37 @@
 from typing import List, Union, Literal, Tuple, cast, Optional
-from data import ToreLabel
-from data import Sentence
+from tooling import ToreLabel
+from tooling import Sentence
 from dataclasses import dataclass, asdict
 import subprocess
 from nltk.tag import StanfordNERTagger
 from nltk.tokenize import word_tokenize
 import pandas as pd
-from helpers.filehandling import create_file
+
 import itertools
 import pickle
 
 from jinja2 import Environment, FileSystemLoader
 from pathlib import Path
-
+from data import SNER_TEMP, sner_filepath, create_file
 
 BASE_PATH = Path(__file__).parent
-TEMP_PATH = BASE_PATH.joinpath(Path("./temp"))
 RESSOURCES_PATH = BASE_PATH.joinpath(Path("./ressources"))
-
-TRAIN_FILE = Path("./sner_train_file.txt")
-CONFIG_FILE = Path("./sner_config_file.prop")
-MODEL = Path("./sner.ser.gz")
-RESULT = Path("./classification_result.pickle")
-
-TRAIN_FILE_PATH = TEMP_PATH.joinpath(TRAIN_FILE)
-CONFIG_FILE_PATH = TEMP_PATH.joinpath(CONFIG_FILE)
-MODEL_PATH = TEMP_PATH.joinpath(MODEL)
-
 STANFORD_JAR_PATH = RESSOURCES_PATH.joinpath("./stanford-ner.jar")
 
-CONFIG_TEMPLATE = "ner_training.prop.j2"
 
-CLASSIFICATION_RESULT_PATH = TEMP_PATH.joinpath(RESULT)
+TEMPLATE_FILENAME = "ner_training.prop.j2"
+
+
+TRAIN_FILENAME = "sner_train_file.txt"
+CONFIG_FILENAME = "sner_config_file.prop"
+MODEL_FILENAME = "sner.ser.gz"
+RESULT_FILENAME = "classification_result.pickle"
 
 
 @dataclass(frozen=True)
 class SNERConfig:
-    resultFile: Path = MODEL_PATH.resolve()
-    trainFile: Path = TRAIN_FILE_PATH.resolve()
+    resultFile: Path
+    trainFile: Path
 
 
 def _sentence_to_token_and_label(sentence: Sentence) -> List[Tuple[str, str]]:
@@ -89,7 +83,7 @@ def sentences_to_token_df(sentences: pd.Series):
     )
 
 
-def create_train_file(sentences: pd.Series):
+def create_train_file(name: str, sentences: pd.Series):
     def get_labeled_token_for_training(
         sentence: Sentence,
     ) -> List[Tuple[str, str]]:
@@ -108,7 +102,7 @@ def create_train_file(sentences: pd.Series):
         columns=["name", "label"],
     )
 
-    with create_file(TRAIN_FILE_PATH) as tf:
+    with create_file(sner_filepath(name=name, filename=TRAIN_FILENAME)) as tf:
         training_data = "\n".join(
             [
                 f"{labeled_token['name']}\t{labeled_token['label']}"
@@ -121,12 +115,17 @@ def create_train_file(sentences: pd.Series):
     return
 
 
-def create_config_file(config: SNERConfig = SNERConfig()):
-    with create_file(CONFIG_FILE_PATH) as cf:
+def create_config_file(name: str):
+    config = SNERConfig(
+        resultFile=sner_filepath(name=name, filename=MODEL_FILENAME),
+        trainFile=sner_filepath(name=name, filename=TRAIN_FILENAME),
+    )
+
+    with create_file(sner_filepath(name=name, filename=CONFIG_FILENAME)) as cf:
         template_dir = RESSOURCES_PATH
 
         environment = Environment(loader=FileSystemLoader(template_dir))
-        template = environment.get_template(CONFIG_TEMPLATE)
+        template = environment.get_template(TEMPLATE_FILENAME)
         content = template.render(**asdict(config))
 
         cf.write(content)
@@ -134,18 +133,18 @@ def create_config_file(config: SNERConfig = SNERConfig()):
     return
 
 
-def train_sner() -> None:
+def train_sner(name: str) -> None:
     executable = STANFORD_JAR_PATH
 
     with subprocess.Popen(
         args=[
             "java",
+            "-Xmx3744M",
             "-cp",
             executable,
             "edu.stanford.nlp.ie.crf.CRFClassifier",
             "-prop",
-            CONFIG_FILE_PATH.resolve(),
-            "-Xmx3744M",
+            sner_filepath(name=name, filename=CONFIG_FILENAME).resolve(),
         ],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
@@ -158,9 +157,11 @@ def train_sner() -> None:
                 print(output, end="")
 
 
-def instantiate_tagger():
+def instantiate_tagger(name: str):
     st = StanfordNERTagger(
-        model_filename=str(MODEL_PATH.resolve()),
+        model_filename=str(
+            sner_filepath(name=name, filename=MODEL_FILENAME).resolve()
+        ),
         path_to_jar=str(STANFORD_JAR_PATH),
         encoding="utf-8",
     )
@@ -180,9 +181,8 @@ def classify_sentence(text: str, tagger) -> List[Tuple[str, str]]:
     ]
 
 
-def classify_sentences(sentences: pd.Series):
-    st = instantiate_tagger()
-    # classification_result = sentences.apply(classify_sentence, args=(st,))
+def classify_sentences(name: str, sentences: pd.Series):
+    st = instantiate_tagger(name=name)
 
     sentence_list = sentences.apply(word_tokenize).to_list()
 
@@ -192,12 +192,17 @@ def classify_sentences(sentences: pd.Series):
     )
 
     with create_file(
-        CLASSIFICATION_RESULT_PATH, mode="wb", encoding=None, buffering=-1
+        sner_filepath(name=name, filename=RESULT_FILENAME),
+        mode="wb",
+        encoding=None,
+        buffering=-1,
     ) as f:
         f.write(pickle.dumps(classification_result))
 
 
-def load_classification_result() -> pd.DataFrame:
-    with open(CLASSIFICATION_RESULT_PATH, mode="rb") as pickle_file:
+def load_classification_result(name: str) -> pd.DataFrame:
+    with open(
+        sner_filepath(name=name, filename=RESULT_FILENAME), mode="rb"
+    ) as pickle_file:
         dataset = pickle.load(pickle_file)
-    return dataset
+    return cast(pd.DataFrame, dataset)

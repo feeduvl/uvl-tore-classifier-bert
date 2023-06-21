@@ -1,73 +1,77 @@
+vars:
+    - name: DEFAULT1
+
 stages:
-  import_data:
-    cmd: >-
-      python src/cmd/import.py
-      --dataset forum 
+    import_data:
+        cmd: >-
+            python src/cmd/import.py
+            --name ${name}
+            --dataset forum
+        deps:
+            - src/data/datasets/
+            - src/cmd/import.py
+            - src/tooling/loading.py
+        outs:
+            - src/data/temp/loading/${name}/imported_dataset.pickle
+        wdir: ../../
 
-    deps:
-      - src/data/data/
-      - src/cmd/import.py
-      - src/data/loading.py
-    outs:
-      - src/data/temp/imported_dataset.pickle
-    wdir: ../../
+    sample_data:
+        cmd: >-
+            python src/cmd/sample.py
+            --name ${name}
+            --test_size 0.2
+            --random_state 125
+        deps:
+            - src/data/temp/loading/${name}/imported_dataset.pickle
+            - src/cmd/sample.py
+            - src/tooling/sampling.py
+            - src/tooling/loading.py
+        outs:
+            - src/data/temp/sampling/${name}/labels_test.pickle
+            - src/data/temp/sampling/${name}/labels_train.pickle
+            - src/data/temp/sampling/${name}/text_test.pickle
+            - src/data/temp/sampling/${name}/text_train.pickle
+        wdir: ../../
 
-  sample_data:
-    cmd: >-
-      python src/cmd/sample.py
-      --test_size 0.2
-      --random_state 125
-    deps:
-      - src/data/temp/imported_dataset.pickle
-      - src/cmd/sample.py
-      - src/data/sampling.py
-    outs:
-      - src/data/temp/sampled/labels_test.pickle
-      - src/data/temp/sampled/labels_train.pickle
-      - src/data/temp/sampled/text_test.pickle
-      - src/data/temp/sampled/text_train.pickle
-    wdir: ../../
+    train_sner:
+        cmd: >-
+            python src/cmd/train_sner.py --name ${name}
+        deps:
+            - src/data/temp/sampling/${name}/labels_train.pickle
+            - src/cmd/train_sner.py
+            - src/classifiers/sner/ressources/
+            - src/tooling/sampling.py
+            - src/classifiers/sner/classifier.py
+        outs:
+            - src/data/temp/sner/${name}/sner_config_file.prop
+            - src/data/temp/sner/${name}/sner_train_file.txt
+            - src/data/temp/sner/${name}/sner.ser.gz
+        wdir: ../../
 
-  train_sner:
-    cmd: >-
-      python src/cmd/train_sner.py
-    deps:
-      - src/data/temp/sampled/labels_train.pickle
-      - src/cmd/train_sner.py
-      - src/classifiers/sner/ressources/
-      - src/classifiers/sner/classifier.py
-    outs:
-      - src/classifiers/sner/temp/sner_config_file.prop
-      - src/classifiers/sner/temp/sner_train_file.txt
-      - src/classifiers/sner/temp/sner.ser.gz
-    wdir: ../../
-     
+    classify_sner:
+        cmd: >-
+            python src/cmd/classify_sner.py --name ${name}
+        deps:
+            - src/data/temp/sner/${name}/sner.ser.gz
+            - src/data/temp/sampling/${name}/text_test.pickle
+            - src/cmd/classify_sner.py
+            - src/classifiers/sner/ressources/
+            - src/classifiers/sner/classifier.py
+        outs:
+            - src/data/temp/sner/${name}/classification_result.pickle
+        wdir: ../../
 
-  classify_sner:
-    cmd: >-
-      python src/cmd/classify_sner.py
-    deps:
-      - src/classifiers/sner/temp/sner.ser.gz
-      - src/data/temp/sampled/text_test.pickle
-      - src/cmd/classify_sner.py
-      - src/classifiers/sner/ressources/
-      - src/classifiers/sner/classifier.py
+    evaluate_sner:
+        cmd: >-
+            python src/cmd/evaluate_sner.py --name ${name}
+        deps:
+            - src/data/temp/sampling/${name}/labels_test.pickle
+            - src/data/temp/sner/${name}/classification_result.pickle
+            - src/cmd/evaluate_sner.py
+            - src/tooling/evaluation.py
+        wdir: ../../
 
-    outs:
-      - src/classifiers/sner/temp/classification_result.pickle
-    wdir: ../../
-
-     
-  evaluate_sner:
-    cmd: >-
-      python src/cmd/evaluate_sner.py
-    deps:
-      - src/classifiers/sner/temp/classification_result.pickle
-      - src/data/temp/sampled/labels_test.pickle
-      - src/cmd/evaluate_sner.py
-    wdir: ../../
-      
-    metrics:
-      - src/classifiers/sner/temp/eval/live/metrics.json
-    plots:
-      - src/classifiers/sner/temp/eval/live/confusion_matrix.png
+metrics:
+    - src/data/temp/evaluation/${name}/metrics.json
+plots:
+    - src/data/temp/evaluation/${name}/confusion_matrix.png

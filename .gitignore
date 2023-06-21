@@ -158,28 +158,5 @@ cython_debug/
 #  and can be added to the global gitignore or merged into this file.  For a more nuclear
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
-src/data/temp/prolific/TORE_Coded_Answers_1_33.pickle
-src/data/temp/prolific/TORE_Coded_Answers_34_66.pickle
-src/data/temp/prolific/TORE_Coded_Answers_67_100.pickle
-src/classifiers/sner/temp/sner.ser.gz
-src/classifiers/sner/temp/sner_train_file.txt
+src/data/temp/
 
-src/classifiers/sner/temp/sner_train_file.txt
-src/classifiers/sner/temp/sner_train_file.txt
-src/classifiers/sner/temp/sner.ser.gz
-src/data/temp/forum/anno_train.pickle
-src/data/data/forum/tore_training_for_SNER.tsv
-src/data/data/forum/tore_test_for_SNER.tsv
-load_files.ipynb
-src/data/temp/loaded_dataset.pickle
-src/data/temp/forum/anno_test.pickle
-src/data/temp/sampled/labels_test.pickle
-src/data/temp/sampled/labels_train.pickle
-src/data/temp/sampled/text_test.pickle
-src/data/temp/sampled/text_train.pickle
-src/classifiers/sner/temp/classification_result.pickle
-src/classifiers/sner/temp/sner_config_file.prop
-/raw_data
-src/classifiers/sner/temp/eval/live/metrics.json
-src/classifiers/sner/temp/eval/live/plots/sklearn/confusion_matrix.json
-src/classifiers/sner/temp/eval/live/plots/images/conf_matrix.png

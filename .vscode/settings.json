@@ -3,5 +3,18 @@
         "editor.defaultFormatter": "ms-python.black-formatter"
     },
     "python.formatting.provider": "none",
-    "ansible.python.interpreterPath": "/Users/bockstaller/MA/uvl-tore-classifier-bert/venv/bin/python"
+    "ansible.python.interpreterPath": "/Users/bockstaller/MA/uvl-tore-classifier-bert/venv/bin/python",
+    "cSpell.words": [
+        "denormalize",
+        "denormalized",
+        "iterrows",
+        "nltk",
+        "ressources",
+        "RESSOURCES",
+        "sents",
+        "sner",
+        "SNER",
+        "tokenindex",
+        "tokenlist"
+    ]
 }

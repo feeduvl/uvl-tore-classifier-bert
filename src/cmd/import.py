@@ -2,16 +2,19 @@ import argparse
 import sys
 
 
-from data import import_dataset, FORUM, PROLIFIC
+from tooling import import_dataset
+from data import FORUM, PROLIFIC
 
 
 parser = argparse.ArgumentParser()
 
+parser.add_argument('--name', default="default")
 parser.add_argument(
     "--dataset", choices=["forum", "prolific"], action="append"
 )
 
 args = parser.parse_args()
+name = args.name
 dataset_list = args.dataset
 
 
@@ -24,4 +27,4 @@ for d in dataset_list:
 
 # execute
 
-import_dataset(datasets)
+import_dataset(name=name, ds_spec=datasets)

@@ -1,0 +1,945 @@
+{
+    "uploaded_at": "2022-06-16T15:44:41.609Z",
+    "last_updated": "2022-06-19T11:52:19.077Z",
+    "name": "tore_test_data_annotated",
+    "dataset": "tore_test_data",
+    "docs": [{ "name": "chrome_0", "begin_index": 0, "end_index": 93 }],
+    "tokens": [
+        {
+            "index": 0,
+            "name": "Is",
+            "lemma": "is",
+            "pos": "v",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 1,
+            "name": "there",
+            "lemma": "there",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 2,
+            "name": "any",
+            "lemma": "any",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 3,
+            "name": "extension",
+            "lemma": "extension",
+            "pos": "n",
+            "num_name_codes": 1,
+            "num_tore_codes": 1
+        },
+        {
+            "index": 4,
+            "name": "I",
+            "lemma": "i",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 5,
+            "name": "can",
+            "lemma": "can",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 6,
+            "name": "add",
+            "lemma": "add",
+            "pos": "v",
+            "num_name_codes": 1,
+            "num_tore_codes": 1
+        },
+        {
+            "index": 7,
+            "name": "to",
+            "lemma": "to",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 8,
+            "name": "chrome",
+            "lemma": "chrome",
+            "pos": "v",
+            "num_name_codes": 1,
+            "num_tore_codes": 1
+        },
+        {
+            "index": 9,
+            "name": "which",
+            "lemma": "which",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 10,
+            "name": "gives",
+            "lemma": "give",
+            "pos": "v",
+            "num_name_codes": 1,
+            "num_tore_codes": 1
+        },
+        {
+            "index": 11,
+            "name": "a",
+            "lemma": "a",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 12,
+            "name": "warning",
+            "lemma": "warning",
+            "pos": "n",
+            "num_name_codes": 1,
+            "num_tore_codes": 1
+        },
+        {
+            "index": 13,
+            "name": "before",
+            "lemma": "before",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 14,
+            "name": "closing",
+            "lemma": "close",
+            "pos": "v",
+            "num_name_codes": 1,
+            "num_tore_codes": 1
+        },
+        {
+            "index": 15,
+            "name": "all",
+            "lemma": "all",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 16,
+            "name": "tabs",
+            "lemma": "tab",
+            "pos": "n",
+            "num_name_codes": 1,
+            "num_tore_codes": 1
+        },
+        {
+            "index": 17,
+            "name": "in",
+            "lemma": "in",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 18,
+            "name": "the",
+            "lemma": "the",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 19,
+            "name": "window",
+            "lemma": "window",
+            "pos": "n",
+            "num_name_codes": 1,
+            "num_tore_codes": 1
+        },
+        {
+            "index": 20,
+            "name": "by",
+            "lemma": "by",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 21,
+            "name": "mistake",
+            "lemma": "mistake",
+            "pos": "n",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 22,
+            "name": "?",
+            "lemma": "?",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 23,
+            "name": "#",
+            "lemma": "#",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 24,
+            "name": "#",
+            "lemma": "#",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 25,
+            "name": "#",
+            "lemma": "#",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 26,
+            "name": "For",
+            "lemma": "for",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 27,
+            "name": "example",
+            "lemma": "example",
+            "pos": "n",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 28,
+            "name": ":",
+            "lemma": ":",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 29,
+            "name": "I",
+            "lemma": "i",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 30,
+            "name": "have",
+            "lemma": "have",
+            "pos": "v",
+            "num_name_codes": 1,
+            "num_tore_codes": 1
+        },
+        {
+            "index": 31,
+            "name": "multiple",
+            "lemma": "multiple",
+            "pos": "a",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 32,
+            "name": "tabs",
+            "lemma": "tab",
+            "pos": "n",
+            "num_name_codes": 1,
+            "num_tore_codes": 1
+        },
+        {
+            "index": 33,
+            "name": "open",
+            "lemma": "open",
+            "pos": "a",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 34,
+            "name": ",",
+            "lemma": ",",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 35,
+            "name": "by",
+            "lemma": "by",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 36,
+            "name": "mistake",
+            "lemma": "mistake",
+            "pos": "n",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 37,
+            "name": "I",
+            "lemma": "i",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 38,
+            "name": "click",
+            "lemma": "click",
+            "pos": "v",
+            "num_name_codes": 1,
+            "num_tore_codes": 1
+        },
+        {
+            "index": 39,
+            "name": "on",
+            "lemma": "on",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 40,
+            "name": "windows",
+            "lemma": "window",
+            "pos": "n",
+            "num_name_codes": 1,
+            "num_tore_codes": 1
+        },
+        {
+            "index": 41,
+            "name": "cross",
+            "lemma": "cross",
+            "pos": "v",
+            "num_name_codes": 1,
+            "num_tore_codes": 1
+        },
+        {
+            "index": 42,
+            "name": "to",
+            "lemma": "to",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 43,
+            "name": "close",
+            "lemma": "close",
+            "pos": "v",
+            "num_name_codes": 1,
+            "num_tore_codes": 1
+        },
+        {
+            "index": 44,
+            "name": "the",
+            "lemma": "the",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 45,
+            "name": "window",
+            "lemma": "window",
+            "pos": "n",
+            "num_name_codes": 1,
+            "num_tore_codes": 1
+        },
+        {
+            "index": 46,
+            "name": ",",
+            "lemma": ",",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 47,
+            "name": "is",
+            "lemma": "be",
+            "pos": "v",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 48,
+            "name": "there",
+            "lemma": "there",
+            "pos": "r",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 49,
+            "name": "something",
+            "lemma": "something",
+            "pos": "n",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 50,
+            "name": "I",
+            "lemma": "i",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 51,
+            "name": "can",
+            "lemma": "can",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 52,
+            "name": "add",
+            "lemma": "add",
+            "pos": "v",
+            "num_name_codes": 1,
+            "num_tore_codes": 1
+        },
+        {
+            "index": 53,
+            "name": "to",
+            "lemma": "to",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 54,
+            "name": "chrome",
+            "lemma": "chrome",
+            "pos": "v",
+            "num_name_codes": 1,
+            "num_tore_codes": 1
+        },
+        {
+            "index": 55,
+            "name": "that",
+            "lemma": "that",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 56,
+            "name": "it",
+            "lemma": "it",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 57,
+            "name": "might",
+            "lemma": "might",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 58,
+            "name": "give",
+            "lemma": "give",
+            "pos": "v",
+            "num_name_codes": 1,
+            "num_tore_codes": 1
+        },
+        {
+            "index": 59,
+            "name": "a",
+            "lemma": "a",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 60,
+            "name": "warning",
+            "lemma": "warning",
+            "pos": "n",
+            "num_name_codes": 1,
+            "num_tore_codes": 1
+        },
+        {
+            "index": 61,
+            "name": "like",
+            "lemma": "like",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 62,
+            "name": ",",
+            "lemma": ",",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 63,
+            "name": "If",
+            "lemma": "if",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 64,
+            "name": "I",
+            "lemma": "i",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 65,
+            "name": "want",
+            "lemma": "want",
+            "pos": "v",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 66,
+            "name": "to",
+            "lemma": "to",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 67,
+            "name": "close",
+            "lemma": "close",
+            "pos": "v",
+            "num_name_codes": 1,
+            "num_tore_codes": 1
+        },
+        {
+            "index": 68,
+            "name": "the",
+            "lemma": "the",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 69,
+            "name": "all",
+            "lemma": "all",
+            "pos": "",
+            "num_name_codes": 1,
+            "num_tore_codes": 1
+        },
+        {
+            "index": 70,
+            "name": "tabs",
+            "lemma": "tab",
+            "pos": "n",
+            "num_name_codes": 1,
+            "num_tore_codes": 1
+        },
+        {
+            "index": 71,
+            "name": "in",
+            "lemma": "in",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 72,
+            "name": "window",
+            "lemma": "window",
+            "pos": "n",
+            "num_name_codes": 1,
+            "num_tore_codes": 1
+        },
+        {
+            "index": 73,
+            "name": "or",
+            "lemma": "or",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 74,
+            "name": "only",
+            "lemma": "only",
+            "pos": "r",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 75,
+            "name": "the",
+            "lemma": "the",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 76,
+            "name": "open",
+            "lemma": "open",
+            "pos": "a",
+            "num_name_codes": 1,
+            "num_tore_codes": 1
+        },
+        {
+            "index": 77,
+            "name": "tab",
+            "lemma": "tab",
+            "pos": "n",
+            "num_name_codes": 1,
+            "num_tore_codes": 1
+        },
+        {
+            "index": 78,
+            "name": ",",
+            "lemma": ",",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 79,
+            "name": "instead",
+            "lemma": "instead",
+            "pos": "r",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 80,
+            "name": "of",
+            "lemma": "of",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 81,
+            "name": "directly",
+            "lemma": "directly",
+            "pos": "r",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 82,
+            "name": "closing",
+            "lemma": "close",
+            "pos": "v",
+            "num_name_codes": 1,
+            "num_tore_codes": 1
+        },
+        {
+            "index": 83,
+            "name": "all",
+            "lemma": "all",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 84,
+            "name": "the",
+            "lemma": "the",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 85,
+            "name": "tabs",
+            "lemma": "tab",
+            "pos": "n",
+            "num_name_codes": 1,
+            "num_tore_codes": 1
+        },
+        {
+            "index": 86,
+            "name": "open",
+            "lemma": "open",
+            "pos": "a",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 87,
+            "name": "in",
+            "lemma": "in",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 88,
+            "name": "the",
+            "lemma": "the",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 89,
+            "name": "window",
+            "lemma": "window",
+            "pos": "n",
+            "num_name_codes": 1,
+            "num_tore_codes": 1
+        },
+        {
+            "index": 90,
+            "name": "#",
+            "lemma": "#",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 91,
+            "name": "#",
+            "lemma": "#",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        },
+        {
+            "index": 92,
+            "name": "#",
+            "lemma": "#",
+            "pos": "",
+            "num_name_codes": 0,
+            "num_tore_codes": 0
+        }
+    ],
+    "codes": [
+        {
+            "tokens": [6],
+            "name": "to add",
+            "tore": "Interaction",
+            "index": 0,
+            "relationship_memberships": []
+        },
+        {
+            "tokens": [8],
+            "name": "to chrome",
+            "tore": "Software",
+            "index": 1,
+            "relationship_memberships": []
+        },
+        {
+            "tokens": [10],
+            "name": "to give",
+            "tore": "Interaction",
+            "index": 2,
+            "relationship_memberships": []
+        },
+        {
+            "tokens": [12],
+            "name": "warning",
+            "tore": "Interaction Data",
+            "index": 3,
+            "relationship_memberships": []
+        },
+        {
+            "tokens": [14],
+            "name": "to close",
+            "tore": "Interaction",
+            "index": 4,
+            "relationship_memberships": []
+        },
+        {
+            "tokens": [16],
+            "name": "tab",
+            "tore": "Workspace",
+            "index": 5,
+            "relationship_memberships": []
+        },
+        {
+            "tokens": [19],
+            "name": "window",
+            "tore": "Workspace",
+            "index": 6,
+            "relationship_memberships": []
+        },
+        {
+            "tokens": [38],
+            "name": "to click",
+            "tore": "Interaction",
+            "index": 7,
+            "relationship_memberships": []
+        },
+        {
+            "tokens": [40, 41],
+            "name": "window",
+            "tore": "Workspace",
+            "index": 8,
+            "relationship_memberships": []
+        },
+        {
+            "tokens": [43],
+            "name": "to close",
+            "tore": "Interaction",
+            "index": 9,
+            "relationship_memberships": []
+        },
+        {
+            "tokens": [52],
+            "name": "to add",
+            "tore": "Interaction",
+            "index": 10,
+            "relationship_memberships": []
+        },
+        {
+            "tokens": [54],
+            "name": "to chrome",
+            "tore": "Software",
+            "index": 11,
+            "relationship_memberships": []
+        },
+        {
+            "tokens": [58],
+            "name": "to give",
+            "tore": "Interaction",
+            "index": 12,
+            "relationship_memberships": []
+        },
+        {
+            "tokens": [60],
+            "name": "warning",
+            "tore": "Interaction Data",
+            "index": 13,
+            "relationship_memberships": []
+        },
+        {
+            "tokens": [67],
+            "name": "to close",
+            "tore": "Interaction",
+            "index": 14,
+            "relationship_memberships": []
+        },
+        {
+            "tokens": [69, 70],
+            "name": "all",
+            "tore": "Interaction Data",
+            "index": 15,
+            "relationship_memberships": []
+        },
+        {
+            "tokens": [72],
+            "name": "window",
+            "tore": "Workspace",
+            "index": 16,
+            "relationship_memberships": []
+        },
+        {
+            "tokens": [82],
+            "name": "to close",
+            "tore": "Interaction",
+            "index": 17,
+            "relationship_memberships": []
+        },
+        {
+            "tokens": [85],
+            "name": "tab",
+            "tore": "Interaction Data",
+            "index": 18,
+            "relationship_memberships": []
+        },
+        {
+            "tokens": [89],
+            "name": "window",
+            "tore": "Workspace",
+            "index": 19,
+            "relationship_memberships": []
+        },
+        {
+            "tokens": [93],
+            "name": "android",
+            "tore": "Software",
+            "index": 20,
+            "relationship_memberships": []
+        },
+        {
+            "tokens": [95, 96],
+            "name": "to going",
+            "tore": "Interaction",
+            "index": 21,
+            "relationship_memberships": []
+        },
+        {
+            "tokens": [76, 77],
+            "name": "open",
+            "tore": "Workspace",
+            "index": 221,
+            "relationship_memberships": []
+        },
+        {
+            "tokens": [3],
+            "name": "extension",
+            "tore": "Software",
+            "index": 188,
+            "relationship_memberships": []
+        },
+        {
+            "tokens": [30],
+            "name": "to have",
+            "tore": "Interaction",
+            "index": 189,
+            "relationship_memberships": []
+        },
+        {
+            "tokens": [32],
+            "name": "tab",
+            "tore": "Interaction Data",
+            "index": 190,
+            "relationship_memberships": []
+        },
+        {
+            "tokens": [45],
+            "name": "window",
+            "tore": "Workspace",
+            "index": 191,
+            "relationship_memberships": []
+        }
+    ],
+    "tore_relationships": []
+}

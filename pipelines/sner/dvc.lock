@@ -1,65 +1,69 @@
 schema: '2.0'
 stages:
   import_data:
-    cmd: 'python src/cmd/import.py --dataset forum '
+    cmd: python src/cmd/import.py --name DEFAULT1 --dataset forum
     deps:
     - path: src/cmd/import.py
       hash: md5
-      md5: 8c9f198d063cd2fd0a14a6d2f15b4b15
-      size: 435
-    - path: src/data/data/
+      md5: 9f9a9d1b8742d4ca15a7fdf5b5399957
+      size: 539
+    - path: src/data/datasets/
       hash: md5
-      md5: 87c96ef55ccb6726509542d95da5cb4d.dir
-      size: 9421568
+      md5: 3e2183738727f808852036581d48666a.dir
+      size: 9828843
       nfiles: 6
-    - path: src/data/loading.py
+    - path: src/tooling/loading.py
       hash: md5
-      md5: decd293ddef675e922d0d4329a6fda59
-      size: 6038
+      md5: 5fcd20273234178bb430e3352b78c1e2
+      size: 5556
     outs:
-    - path: src/data/temp/imported_dataset.pickle
+    - path: src/data/temp/loading/DEFAULT1/imported_dataset.pickle
       hash: md5
-      md5: 461e70544d04333a9cb960012eb7d0de
-      size: 1306858
+      md5: ce04714f1eb8561c1d009bc49647d138
+      size: 1306861
   sample_data:
-    cmd: python src/cmd/sample.py --test_size 0.2 --random_state 125
+    cmd: python src/cmd/sample.py --name DEFAULT1 --test_size 0.2 --random_state 125
     deps:
     - path: src/cmd/sample.py
       hash: md5
-      md5: 36efddd66c6be9228253cb133e8a549f
-      size: 445
-    - path: src/data/sampling.py
+      md5: 9d213f1a7b8b982724b95be841dbdf76
+      size: 549
+    - path: src/data/temp/loading/DEFAULT1/imported_dataset.pickle
       hash: md5
-      md5: a2499e9d323d1ca7a2d03673a423d9bd
-      size: 1292
-    - path: src/data/temp/imported_dataset.pickle
+      md5: ce04714f1eb8561c1d009bc49647d138
+      size: 1306861
+    - path: src/tooling/loading.py
       hash: md5
-      md5: 461e70544d04333a9cb960012eb7d0de
-      size: 1306858
+      md5: 5fcd20273234178bb430e3352b78c1e2
+      size: 5556
+    - path: src/tooling/sampling.py
+      hash: md5
+      md5: 89aff97504560d534d88ca14d6550593
+      size: 1317
     outs:
-    - path: src/data/temp/sampled/labels_test.pickle
+    - path: src/data/temp/sampling/DEFAULT1/labels_test.pickle
       hash: md5
-      md5: ca42428d112d4c006abba8d3cc603c98
-      size: 139780
-    - path: src/data/temp/sampled/labels_train.pickle
+      md5: 7510c54d2d2d431eaeaebd8daaffc399
+      size: 139783
+    - path: src/data/temp/sampling/DEFAULT1/labels_train.pickle
       hash: md5
-      md5: aad70ff06da7f48ae66bcc6fd11b57d3
-      size: 611386
-    - path: src/data/temp/sampled/text_test.pickle
+      md5: 25e7e61a43615f667b6bf9e08018235e
+      size: 611389
+    - path: src/data/temp/sampling/DEFAULT1/text_test.pickle
       hash: md5
       md5: b94611d3757cefb61ca218af7a4568ea
       size: 16680
-    - path: src/data/temp/sampled/text_train.pickle
+    - path: src/data/temp/sampling/DEFAULT1/text_train.pickle
       hash: md5
       md5: e3000889a79918c7b6266947c9daf231
       size: 70346
   train_sner:
-    cmd: python src/cmd/train_sner.py
+    cmd: python src/cmd/train_sner.py --name DEFAULT1
     deps:
     - path: src/classifiers/sner/classifier.py
       hash: md5
-      md5: d74034d3476fffb873e3d5f3d05faf5f
-      size: 5602
+      md5: fe9f5debdb15d7817295504c5fd97190
+      size: 5720
     - path: src/classifiers/sner/ressources/
       hash: md5
       md5: 15e48b6cd2ba011135268a1e8916febe.dir
@@ -67,75 +71,74 @@ stages:
       nfiles: 2
     - path: src/cmd/train_sner.py
       hash: md5
-      md5: c06498332338feb2dd66a7a362480cbd
-      size: 313
-    - path: src/data/temp/sampled/labels_train.pickle
+      md5: 1f16a1797be4a3f444a631b106a9253a
+      size: 523
+    - path: src/data/temp/sampling/DEFAULT1/labels_train.pickle
       hash: md5
-      md5: aad70ff06da7f48ae66bcc6fd11b57d3
-      size: 611386
+      md5: 25e7e61a43615f667b6bf9e08018235e
+      size: 611389
+    - path: src/tooling/sampling.py
+      hash: md5
+      md5: 89aff97504560d534d88ca14d6550593
+      size: 1317
     outs:
-    - path: src/classifiers/sner/temp/sner.ser.gz
+    - path: src/data/temp/sner/DEFAULT1/sner.ser.gz
       hash: md5
-      md5: ae35bcb2155df8e7b433e46bed12534c
-      size: 13142281
-    - path: src/classifiers/sner/temp/sner_config_file.prop
+      md5: 6ad99295b79c7b0f7692f252ccefcf45
+      size: 13142260
+    - path: src/data/temp/sner/DEFAULT1/sner_config_file.prop
       hash: md5
-      md5: b12993a4124f188c48462055f43f80aa
-      size: 595
-    - path: src/classifiers/sner/temp/sner_train_file.txt
+      md5: c78412e51f63b3aa2fb7203b9bb207d7
+      size: 599
+    - path: src/data/temp/sner/DEFAULT1/sner_train_file.txt
       hash: md5
       md5: 72b01e202b97cd1a683afa326162725d
       size: 105276
   classify_sner:
-    cmd: python src/cmd/classify_sner.py
+    cmd: python src/cmd/classify_sner.py --name DEFAULT1
     deps:
     - path: src/classifiers/sner/classifier.py
       hash: md5
-      md5: d74034d3476fffb873e3d5f3d05faf5f
-      size: 5602
+      md5: fe9f5debdb15d7817295504c5fd97190
+      size: 5720
     - path: src/classifiers/sner/ressources/
       hash: md5
       md5: 15e48b6cd2ba011135268a1e8916febe.dir
       size: 4661902
       nfiles: 2
-    - path: src/classifiers/sner/temp/sner.ser.gz
-      hash: md5
-      md5: ae35bcb2155df8e7b433e46bed12534c
-      size: 13142281
     - path: src/cmd/classify_sner.py
       hash: md5
-      md5: 96e4f844a918f0c96eb0a229c7022c11
-      size: 209
-    - path: src/data/temp/sampled/text_test.pickle
+      md5: d723d64ea251f5042ae531d344180f75
+      size: 398
+    - path: src/data/temp/sampling/DEFAULT1/text_test.pickle
       hash: md5
       md5: b94611d3757cefb61ca218af7a4568ea
       size: 16680
+    - path: src/data/temp/sner/DEFAULT1/sner.ser.gz
+      hash: md5
+      md5: 6ad99295b79c7b0f7692f252ccefcf45
+      size: 13142260
     outs:
-    - path: src/classifiers/sner/temp/classification_result.pickle
+    - path: src/data/temp/sner/DEFAULT1/classification_result.pickle
       hash: md5
       md5: d4fe4ab4344bd6c04fce4c58be86cd96
       size: 34023
   evaluate_sner:
-    cmd: python src/cmd/evaluate_sner.py
+    cmd: python src/cmd/evaluate_sner.py --name DEFAULT1
     deps:
-    - path: src/classifiers/sner/temp/classification_result.pickle
+    - path: src/cmd/evaluate_sner.py
+      hash: md5
+      md5: 2a035cb3054c4133527b9cc2618e5d44
+      size: 919
+    - path: src/data/temp/sampling/DEFAULT1/labels_test.pickle
+      hash: md5
+      md5: 7510c54d2d2d431eaeaebd8daaffc399
+      size: 139783
+    - path: src/data/temp/sner/DEFAULT1/classification_result.pickle
       hash: md5
       md5: d4fe4ab4344bd6c04fce4c58be86cd96
       size: 34023
-    - path: src/cmd/evaluate_sner.py
+    - path: src/tooling/evaluation.py
       hash: md5
-      md5: 44b7c5b7e768b300b35160b00a169566
-      size: 1339
-    - path: src/data/temp/sampled/labels_test.pickle
-      hash: md5
-      md5: ca42428d112d4c006abba8d3cc603c98
-      size: 139780
-    outs:
-    - path: src/classifiers/sner/temp/eval/live/confusion_matrix.png
-      hash: md5
-      md5: 688aa7b3a3651f70b834c1bd5bc4b795
-      size: 64811
-    - path: src/classifiers/sner/temp/eval/live/metrics.json
-      hash: md5
-      md5: 9dd1d0b934b9ca380095f975bd14c775
-      size: 77
+      md5: cf686f28625da1dca253a9093fe33c07
+      size: 1597

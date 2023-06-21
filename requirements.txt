@@ -11,3 +11,4 @@ dvc
 scikit-learn
 matplotlib
 dvclive
+pytest
