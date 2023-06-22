@@ -6,30 +6,16 @@ from pathlib import Path
 from data import create_file
 from typing import Tuple, cast
 from data import EVALUATION_TEMP, evaluation_filepath
-
-
-from sklearn.metrics import (
-    ConfusionMatrixDisplay,
-    recall_score,
-    precision_score,
-)
-
-from dvclive import Live
-
+from sklearn import metrics
 import matplotlib.pyplot as plt
-
-
-def create_live(name: str):
-    return Live(evaluation_filepath(name=name, filename=""), dvcyaml=False)
 
 
 def confusion_matrix(
     name: str,
-    live: Live,
     solution: pd.Series,
     results: pd.Series,
 ):
-    ConfusionMatrixDisplay.from_predictions(
+    metrics.ConfusionMatrixDisplay.from_predictions(
         solution,
         results,
         xticks_rotation="vertical",
@@ -43,34 +29,28 @@ def confusion_matrix(
 
     plt.savefig(fig_path)
 
-    live.log_image("conf_matrix.png", fig_path)
-
 
 def score_precision(
-    live: Live, solution: pd.Series, results: pd.Series, labels: List[str]
+    solution: pd.Series, results: pd.Series, labels: List[str]
 ):
-    precision = precision_score(
+    precision = metrics.precision_score(
         solution,
         results,
         average="macro",
         labels=labels,
         zero_division=0,
     )
-    live.summary["precision"] = precision
+    print(f"Precision: {precision}")
+    return precision
 
 
-def score_recall(
-    live: Live, solution: pd.Series, results: pd.Series, labels: List[str]
-):
-    recall = recall_score(
+def score_recall(solution: pd.Series, results: pd.Series, labels: List[str]):
+    recall = metrics.recall_score(
         solution,
         results,
         average="macro",
         labels=labels,
         zero_division=0,
     )
-    live.summary["recall"] = recall
-
-
-def summarize(live: Live):
-    live.make_summary()
+    print(f"Recall: {recall}")
+    return recall
