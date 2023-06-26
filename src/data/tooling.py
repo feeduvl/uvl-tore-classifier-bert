@@ -36,7 +36,9 @@ EVALUATION_TEMP = TEMP.joinpath(Path("evaluation"))
 
 
 def filename(basepath: Path, name: str, filename: str) -> Path:
-    return basepath.joinpath(Path(name)).joinpath(Path(filename))
+    path = basepath.joinpath(Path(name)).joinpath(Path(filename))
+    path.parent.mkdir(parents=True, exist_ok=True)
+    return path
 
 
 loading_filepath = partial(filename, basepath=LOADING_TEMP)

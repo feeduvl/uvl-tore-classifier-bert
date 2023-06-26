@@ -36,9 +36,9 @@ DomainLevelLabel = Literal[
     "Stakeholder",
 ]
 
-DOMAIN_LEVEL_LABELS: tuple[DomainLevelLabel] = cast(tuple[DomainLevelLabel],typing.get_args(
-    DomainLevelLabel
-))
+DOMAIN_LEVEL_LABELS: tuple[DomainLevelLabel] = cast(
+    tuple[DomainLevelLabel], typing.get_args(DomainLevelLabel)
+)
 
 
 ImportInteractionLevelLabel = Literal[
@@ -53,9 +53,9 @@ InteractionLevelLabel = Literal[
     "Interaction_Data",
     "Workspace",
 ]
-INTERACTION_LEVEL_LABELS: tuple[InteractionLevelLabel] = cast(tuple[InteractionLevelLabel], typing.get_args(
-    InteractionLevelLabel
-))
+INTERACTION_LEVEL_LABELS: tuple[InteractionLevelLabel] = cast(
+    tuple[InteractionLevelLabel], typing.get_args(InteractionLevelLabel)
+)
 
 ImportSystemLevelLabel = Literal[
     "Software",
@@ -67,14 +67,14 @@ SystemLevelLabel = Literal[
     "Internal_Action",
     "Internal_Data",
 ]
-SYSTEM_LEVEL_LABELS: tuple[SystemLevelLabel] = cast(tuple[SystemLevelLabel],typing.get_args(
-    SystemLevelLabel
-))
+SYSTEM_LEVEL_LABELS: tuple[SystemLevelLabel] = cast(
+    tuple[SystemLevelLabel], typing.get_args(SystemLevelLabel)
+)
 
 AdditionalLabel = Literal["Relationship"]
-ADDITIONAL_LABEL: tuple[AdditionalLabel] = cast(tuple[AdditionalLabel],typing.get_args(
-    AdditionalLabel
-))
+ADDITIONAL_LABEL: tuple[AdditionalLabel] = cast(
+    tuple[AdditionalLabel], typing.get_args(AdditionalLabel)
+)
 
 
 ImportToreLabel = Literal[
@@ -106,7 +106,11 @@ INTERACTION: Interaction = (INTERACTION_LEVEL, INTERACTION_LEVEL_LABELS)
 SYSTEM: System = (SYSTEM_LEVEL, SYSTEM_LEVEL_LABELS)
 
 Tore: TypeAlias = tuple[Domain, Interaction, System]
-TORE: Tore = (DOMAIN, INTERACTION, SYSTEM,)
+TORE: Tore = (
+    DOMAIN,
+    INTERACTION,
+    SYSTEM,
+)
 
 # ToreLevelLabels:  List[tuple[ToreLevel, ToreLabel]]
 # TORE_LEVEL_LABELS: ToreLevelLabels = cast(ToreLevelLabels,[
@@ -157,8 +161,8 @@ class Code:
     @property
     def level(self) -> ToreLevel:
         for level, level_labels in TORE:
-            if self.tore_index in get_args(level_labels):
-                return cast(ToreLevel, get_args(level)[0])
+            if self.tore_index in level_labels:
+                return cast(ToreLevel, level)
 
         raise IndexError
 

@@ -26,7 +26,13 @@ import_dataset(name=NAME, ds_spec=FORUM)
 
 d = load_dataset(name=NAME)
 
-split_dataset(name=NAME, text=d["text"], labels=d["self"], test_size=0.2, stratify=d["source"], random_state=125
+split_dataset(
+    name=NAME,
+    text=d["text"],
+    labels=d["self"],
+    test_size=0.2,
+    stratify=d["source"],
+    random_state=125,
 )
 
 # %%
@@ -52,15 +58,23 @@ solution = sentences_to_token_df(labels_test)
 
 # %%
 
-p = evaluation.score_precision(solution=solution["label"], results=results['label'], labels=TORE_LABELS)
+p = evaluation.score_precision(
+    solution=solution["label"], results=results["label"], labels=TORE_LABELS
+)
 
 
 # %%
 
 
-r = evaluation.score_recall(solution=solution["label"], results=results['label'], labels=TORE_LABELS)
+r = evaluation.score_recall(
+    solution=solution["label"], results=results["label"], labels=TORE_LABELS
+)
 
 # %%
 
 
-conf = evaluation.confusion_matrix(name=NAME, solution=solution["label"], results=results["label"])
+conf = evaluation.confusion_matrix(
+    name=NAME, solution=solution["label"], results=results["label"]
+)
+
+# %%
