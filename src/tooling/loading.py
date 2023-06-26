@@ -6,6 +6,7 @@ from typing import List
 from typing import Optional
 from typing import Tuple
 
+import pandas as pd
 from data import create_file
 from data import loading_filepath
 from data import LOADING_TEMP
@@ -164,25 +165,30 @@ def _import_dataset(dataset_info: Tuple[str, Path]):
     return denormalized_ds
 
 
-def import_dataset(name: str, ds_spec: List[Tuple[str, Path]]):
+def import_dataset(name: str, ds_spec: List[Tuple[str, Path]]) -> Path:
     ds: Dataset = Dataset()
     for d_spec in ds_spec:
         ds += _import_dataset(d_spec)
 
     ds_df = ds.to_df()
 
+    filepath = loading_filepath(name=name, filename=IMPORTED_DATASET_FILENAME)
+
     with create_file(
-        loading_filepath(name=name, filename=IMPORTED_DATASET_FILENAME),
+        file_path=filepath,
         mode="wb",
         encoding=None,
         buffering=-1,
     ) as f:
         f.write(pickle.dumps(ds_df))
 
+    return filepath
 
-def load_dataset(name: str):
+
+def load_dataset(name: str) -> pd.DataFrame:
+    filepath = loading_filepath(name=name, filename=IMPORTED_DATASET_FILENAME)
     with open(
-        loading_filepath(name=name, filename=IMPORTED_DATASET_FILENAME),
+        filepath,
         mode="rb",
     ) as pickle_file:
         dataset = pickle.load(pickle_file)

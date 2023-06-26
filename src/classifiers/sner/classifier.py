@@ -34,6 +34,7 @@ TRAIN_FILENAME = "sner_train_file.txt"
 CONFIG_FILENAME = "sner_config_file.prop"
 MODEL_FILENAME = "sner.ser.gz"
 RESULT_FILENAME = "classification_result.pickle"
+SOLUTION_FILENAME = "solution.pickle"
 
 
 @dataclass(frozen=True)
@@ -91,6 +92,29 @@ def sentences_to_token_df(sentences: pd.Series):
     )
 
 
+def create_solution(name: str, labels_test: pd.DataFrame) -> Path:
+    solution_df = sentences_to_token_df(labels_test)
+    filepath = sner_filepath(name=name, filename=SOLUTION_FILENAME)
+
+    with create_file(
+        filepath,
+        mode="wb",
+        encoding=None,
+        buffering=-1,
+    ) as f:
+        f.write(pickle.dumps(solution_df))
+
+    return filepath
+
+
+def load_solution(name: str) -> pd.DataFrame:
+    with open(
+        sner_filepath(name=name, filename=SOLUTION_FILENAME), mode="rb"
+    ) as pickle_file:
+        dataset = pickle.load(pickle_file)
+    return cast(pd.DataFrame, dataset)
+
+
 def create_train_file(name: str, sentences: pd.Series):
     def get_labeled_token_for_training(
         sentence: Sentence,
@@ -109,8 +133,9 @@ def create_train_file(name: str, sentences: pd.Series):
         itertools.chain.from_iterable(tokens.to_list()),
         columns=["name", "label"],
     )
+    filepath = sner_filepath(name=name, filename=TRAIN_FILENAME)
 
-    with create_file(sner_filepath(name=name, filename=TRAIN_FILENAME)) as tf:
+    with create_file(filepath) as tf:
         training_data = "\n".join(
             [
                 f"{labeled_token['name']}\t{labeled_token['label']}"
@@ -123,13 +148,21 @@ def create_train_file(name: str, sentences: pd.Series):
     return
 
 
-def create_config_file(name: str):
+def create_config_file(name: str) -> List[Path]:
+    paths: List[Path] = []
+
     config = SNERConfig(
         resultFile=sner_filepath(name=name, filename=MODEL_FILENAME),
         trainFile=sner_filepath(name=name, filename=TRAIN_FILENAME),
     )
 
-    with create_file(sner_filepath(name=name, filename=CONFIG_FILENAME)) as cf:
+    configFile = sner_filepath(name=name, filename=CONFIG_FILENAME)
+
+    paths.append(configFile)
+    paths.append(config.trainFile)
+    paths.append(config.resultFile)
+
+    with create_file(configFile) as cf:
         template_dir = RESSOURCES_PATH
 
         environment = Environment(loader=FileSystemLoader(template_dir))
@@ -138,7 +171,7 @@ def create_config_file(name: str):
 
         cf.write(content)
         cf.flush()
-    return
+    return paths
 
 
 def train_sner(name: str) -> None:
@@ -189,7 +222,7 @@ def classify_sentence(text: str, tagger) -> List[Tuple[str, str]]:
     ]
 
 
-def classify_sentences(name: str, sentences: pd.Series):
+def classify_sentences(name: str, sentences: pd.Series) -> Path:
     st = instantiate_tagger(name=name)
 
     sentence_list = sentences.apply(word_tokenize).to_list()
@@ -199,13 +232,17 @@ def classify_sentences(name: str, sentences: pd.Series):
         columns=["name", "label"],
     )
 
+    filepath = sner_filepath(name=name, filename=RESULT_FILENAME)
+
     with create_file(
-        sner_filepath(name=name, filename=RESULT_FILENAME),
+        filepath,
         mode="wb",
         encoding=None,
         buffering=-1,
     ) as f:
         f.write(pickle.dumps(classification_result))
+
+    return filepath
 
 
 def load_classification_result(name: str) -> pd.DataFrame:

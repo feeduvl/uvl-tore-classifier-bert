@@ -1,6 +1,7 @@
 import pickle
 from pathlib import Path
 from typing import cast
+from typing import List
 from typing import Tuple
 
 import numpy as np
@@ -31,7 +32,7 @@ def split_dataset(
     test_size: float,
     stratify: pd.DataFrame,
     random_state: int,
-):
+) -> List[Path]:
     partial_files = train_test_split(
         text,
         labels,
@@ -39,15 +40,19 @@ def split_dataset(
         stratify=stratify,
         random_state=random_state,
     )
+    paths: List[Path] = []
 
     for partial_file, filename in zip(partial_files, FILES):
+        filepath = sampling_filepath(name=name, filename=filename)
         with create_file(
-            sampling_filepath(name=name, filename=filename),
+            file_path=filepath,
             mode="wb",
             encoding=None,
             buffering=-1,
         ) as f:
             f.write(pickle.dumps(partial_file))
+            paths.append(filepath)
+    return paths
 
 
 def load_split_dataset(

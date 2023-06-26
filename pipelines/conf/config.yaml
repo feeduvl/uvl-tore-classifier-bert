@@ -1,7 +1,10 @@
 experiment:
-    name: DEFAULT
+    name: SNER Solo
     test_size: 0.2
     random_state: 125
 
 dataset:
     name: forum
+
+mlflow:
+    tracking_uri: "http://127.0.0.1:5000"

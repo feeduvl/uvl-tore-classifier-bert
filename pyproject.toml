@@ -16,7 +16,8 @@ packages = [
     "classifiers",
     "data",
     "tests",
-    "tooling"
+    "tooling",
+    "observability"
 ]
 
 

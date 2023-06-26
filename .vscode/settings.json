@@ -5,9 +5,11 @@
     "python.formatting.provider": "none",
     "ansible.python.interpreterPath": "/Users/bockstaller/MA/uvl-tore-classifier-bert/venv/bin/python",
     "cSpell.words": [
+        "autolog",
         "denormalize",
         "denormalized",
         "iterrows",
+        "mlflow",
         "nltk",
         "ressources",
         "RESSOURCES",
