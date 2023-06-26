@@ -1,16 +1,17 @@
+-e .
+black[jupyter]
+dvc
+dvclive
+hydra-core
 jupyter
-notebook
+matplotlib
+mypy
 nltk
+notebook
 numpy
 pandas
+pre-commit
 pydantic
-black[jupyter]
-mypy
-rich
-dvc
-scikit-learn
-matplotlib
-dvclive
 pytest
-hydra-core
--e .
+rich
+scikit-learn

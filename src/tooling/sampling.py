@@ -1,11 +1,14 @@
-import numpy as np
-from sklearn.model_selection import train_test_split
 import pickle
-import pandas as pd
 from pathlib import Path
+from typing import cast
+from typing import Tuple
+
+import numpy as np
+import pandas as pd
 from data import create_file
-from typing import Tuple, cast
-from data import SAMPLING_TEMP, sampling_filepath
+from data import sampling_filepath
+from data import SAMPLING_TEMP
+from sklearn.model_selection import train_test_split
 
 
 TEXT_TRAIN = "text_train.pickle"

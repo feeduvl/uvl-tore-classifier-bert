@@ -1,11 +1,11 @@
-from tooling.sampling import load_split_dataset, LABELS_TRAIN
-from classifiers.sner import (
-    create_train_file,
-    create_config_file,
-    train_sner,
-)
-import pandas as pd
 import argparse
+
+import pandas as pd
+from classifiers.sner import create_config_file
+from classifiers.sner import create_train_file
+from classifiers.sner import train_sner
+from tooling.sampling import LABELS_TRAIN
+from tooling.sampling import load_split_dataset
 
 
 parser = argparse.ArgumentParser()

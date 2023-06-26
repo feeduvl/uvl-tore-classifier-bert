@@ -1,9 +1,9 @@
 import argparse
 import sys
 
-
+from data import FORUM
+from data import PROLIFIC
 from tooling import import_dataset
-from data import FORUM, PROLIFIC
 
 
 parser = argparse.ArgumentParser()

@@ -1,18 +1,26 @@
-from typing import List, Union, Literal, Tuple, cast, Optional
-from tooling import ToreLabel
-from tooling import Sentence
-from dataclasses import dataclass, asdict
-import subprocess
-from nltk.tag import StanfordNERTagger
-from nltk.tokenize import word_tokenize
-import pandas as pd
-
 import itertools
 import pickle
-
-from jinja2 import Environment, FileSystemLoader
+import subprocess
+from dataclasses import asdict
+from dataclasses import dataclass
 from pathlib import Path
-from data import SNER_TEMP, sner_filepath, create_file
+from typing import cast
+from typing import List
+from typing import Literal
+from typing import Optional
+from typing import Tuple
+from typing import Union
+
+import pandas as pd
+from data import create_file
+from data import sner_filepath
+from data import SNER_TEMP
+from jinja2 import Environment
+from jinja2 import FileSystemLoader
+from nltk.tag import StanfordNERTagger
+from nltk.tokenize import word_tokenize
+from tooling import Sentence
+from tooling import ToreLabel
 
 BASE_PATH = Path(__file__).parent
 RESSOURCES_PATH = BASE_PATH.joinpath(Path("./ressources"))

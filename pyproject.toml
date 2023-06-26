@@ -4,17 +4,21 @@
 name = "uvl_tore_classifier_bert"
 version= "0.1"
 
-[tool.setuptools.packages.find]
-where = ["src"]  
+[tool.setuptools]
+# ...
+package-dir = {"" = "src"}
 
 [tool.mypy]
 warn_return_any = "True"
 warn_unused_configs = "True"
-modules = [
-    'tooling',
-    'classifiers',
-    'data'
+mypy_path="src"
+packages = [
+    "classifiers",
+    "data",
+    "tests",
+    "tooling"
 ]
+
 
 [[tool.mypy.overrides]]
 module="nltk.*"
@@ -22,6 +26,10 @@ ignore_missing_imports = "True"
 
 [[tool.mypy.overrides]]
 module="sklearn.*"
+ignore_missing_imports = "True"
+
+[[tool.mypy.overrides]]
+module="matplotlib.*"
 ignore_missing_imports = "True"
 
 [tool.black]
@@ -32,6 +40,6 @@ include = '''
 (
     ^/tests/
   | ^/src/
-  
+
 )
 '''

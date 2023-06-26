@@ -1,13 +1,16 @@
-import numpy as np
-from sklearn.model_selection import train_test_split
-from typing import List
-import pandas as pd
 from pathlib import Path
-from data import create_file
-from typing import Tuple, cast
-from data import EVALUATION_TEMP, evaluation_filepath
-from sklearn import metrics
+from typing import cast
+from typing import List
+from typing import Tuple
+
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from data import create_file
+from data import evaluation_filepath
+from data import EVALUATION_TEMP
+from sklearn import metrics
+from sklearn.model_selection import train_test_split
 
 
 def confusion_matrix(

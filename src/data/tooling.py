@@ -1,6 +1,5 @@
-from pathlib import Path
-from functools import partial
 from contextlib import contextmanager
+from functools import partial
 from pathlib import Path
 
 

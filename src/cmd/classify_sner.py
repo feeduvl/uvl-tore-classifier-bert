@@ -1,7 +1,9 @@
-from classifiers.sner import classify_sentences
-from tooling.sampling import load_split_dataset, TEXT_TEST
-import pandas as pd
 import argparse
+
+import pandas as pd
+from classifiers.sner import classify_sentences
+from tooling.sampling import load_split_dataset
+from tooling.sampling import TEXT_TEST
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--name", default="default")

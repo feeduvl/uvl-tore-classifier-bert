@@ -1,8 +1,11 @@
-import pytest
-from typing import List
-from tooling import Token, split_tokenlist_into_sentences
 from pathlib import Path
-from tooling import ImportDataSet, denormalize_dataset
+from typing import List
+
+import pytest
+from tooling import denormalize_dataset
+from tooling import ImportDataSet
+from tooling import split_tokenlist_into_sentences
+from tooling import Token
 
 
 def generate_doc(content: str) -> List[Token]:

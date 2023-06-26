@@ -1,20 +1,24 @@
-from typing import List, Tuple, cast, get_args, Optional
-from pydantic import ValidationError
-from .model import (
-    ImportDataSet,
-    Token,
-    Code,
-    Sentence,
-    Dataset,
-    ImportToreLabel,
-    ToreLabel,
-    ImportCode,
-)
-from pathlib import Path
 import pickle
+from pathlib import Path
+from typing import cast
+from typing import get_args
+from typing import List
+from typing import Optional
+from typing import Tuple
 
+from data import create_file
+from data import loading_filepath
+from data import LOADING_TEMP
+from pydantic import ValidationError
 
-from data import LOADING_TEMP, create_file, loading_filepath
+from .model import Code
+from .model import Dataset
+from .model import ImportCode
+from .model import ImportDataSet
+from .model import ImportToreLabel
+from .model import Sentence
+from .model import Token
+from .model import ToreLabel
 
 IMPORTED_DATASET_FILENAME = "imported_dataset.pickle"
 
@@ -152,7 +156,7 @@ def _import_dataset(dataset_info: Tuple[str, Path]):
     dataset_source, import_path = dataset_info
     print(f"Importing dataset: {dataset_source} from {import_path}")
 
-    
+
 
     imported_ds = ImportDataSet.parse_file(import_path.resolve())
     denormalized_ds = denormalize_dataset(

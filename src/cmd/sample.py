@@ -1,6 +1,7 @@
 import argparse
 
-from tooling import load_dataset, split_dataset
+from tooling import load_dataset
+from tooling import split_dataset
 
 
 parser = argparse.ArgumentParser()

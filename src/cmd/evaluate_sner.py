@@ -1,13 +1,12 @@
-from tooling import evaluation
-
 import argparse
-from classifiers.sner import (
-    sentences_to_token_df,
-    load_classification_result,
- 
-)
+
 import pandas as pd
-from tooling import load_split_dataset, LABELS_TEST, TORE_LABELS
+from classifiers.sner import load_classification_result
+from classifiers.sner import sentences_to_token_df
+from tooling import evaluation
+from tooling import LABELS_TEST
+from tooling import load_split_dataset
+from tooling import TORE_LABELS
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--name', default="default")

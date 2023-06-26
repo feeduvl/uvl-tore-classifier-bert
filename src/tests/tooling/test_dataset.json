@@ -3,7 +3,13 @@
     "last_updated": "2022-06-19T11:52:19.077Z",
     "name": "tore_test_data_annotated",
     "dataset": "tore_test_data",
-    "docs": [{ "name": "chrome_0", "begin_index": 0, "end_index": 93 }],
+    "docs": [
+        {
+            "name": "chrome_0",
+            "begin_index": 0,
+            "end_index": 93
+        }
+    ],
     "tokens": [
         {
             "index": 0,

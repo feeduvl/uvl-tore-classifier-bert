@@ -1,12 +1,18 @@
-from pydantic import BaseModel
-from datetime import datetime
-from typing import List, Literal, Optional, Union, get_args, Tuple, cast
-from collections import Counter
-import pandas as pd
+import dataclasses
 import itertools
 import typing
-import dataclasses
+from collections import Counter
+from datetime import datetime
+from typing import cast
+from typing import get_args
+from typing import List
+from typing import Literal
+from typing import Optional
+from typing import TypeAlias
+from typing import Union
 
+import pandas as pd
+from pydantic import BaseModel
 from pydantic.dataclasses import (
     dataclass,
 )
@@ -30,9 +36,9 @@ DomainLevelLabel = Literal[
     "Stakeholder",
 ]
 
-DOMAIN_LEVEL_LABELS: Tuple[DomainLevelLabel, ...] = typing.get_args(
+DOMAIN_LEVEL_LABELS: tuple[DomainLevelLabel] = cast(tuple[DomainLevelLabel],typing.get_args(
     DomainLevelLabel
-)
+))
 
 
 ImportInteractionLevelLabel = Literal[
@@ -47,9 +53,9 @@ InteractionLevelLabel = Literal[
     "Interaction_Data",
     "Workspace",
 ]
-INTERACTION_LEVEL_LABELS: Tuple[InteractionLevelLabel, ...] = typing.get_args(
+INTERACTION_LEVEL_LABELS: tuple[InteractionLevelLabel] = cast(tuple[InteractionLevelLabel], typing.get_args(
     InteractionLevelLabel
-)
+))
 
 ImportSystemLevelLabel = Literal[
     "Software",
@@ -61,14 +67,14 @@ SystemLevelLabel = Literal[
     "Internal_Action",
     "Internal_Data",
 ]
-SYSTEM_LEVEL_LABELS: Tuple[SystemLevelLabel, ...] = typing.get_args(
+SYSTEM_LEVEL_LABELS: tuple[SystemLevelLabel] = cast(tuple[SystemLevelLabel],typing.get_args(
     SystemLevelLabel
-)
+))
 
 AdditionalLabel = Literal["Relationship"]
-ADDITIONAL_LABEL: Tuple[AdditionalLabel, ...] = typing.get_args(
+ADDITIONAL_LABEL: tuple[AdditionalLabel] = cast(tuple[AdditionalLabel],typing.get_args(
     AdditionalLabel
-)
+))
 
 
 ImportToreLabel = Literal[
@@ -80,22 +86,34 @@ TORE_LABELS = (
 )
 
 DomainLevel = Literal["Domain_Level"]
-DOMAIN_LEVEL: str = typing.get_args(DomainLevel)[0]
+DOMAIN_LEVEL: DomainLevel = typing.get_args(DomainLevel)[0]
 
 InteractionLevel = Literal["Interaction_Level"]
-INTERACTION_LEVEL: str = typing.get_args(InteractionLevel)[0]
+INTERACTION_LEVEL: InteractionLevel = typing.get_args(InteractionLevel)[0]
 
 SystemLevel = Literal["System_Level"]
-SYSTEM_LEVEL: str = typing.get_args(SystemLevel)[0]
+SYSTEM_LEVEL: SystemLevel = typing.get_args(SystemLevel)[0]
 
 ToreLevel = Literal[DomainLevel, InteractionLevel, SystemLevel]
 TORE_LEVEL = [DOMAIN_LEVEL, INTERACTION_LEVEL, SYSTEM_LEVEL]
 
-ToreLevelLabels: List[Tuple[ToreLevel, ToreLabel]] = [
-    (DomainLevel, DomainLevelLabel),
-    (InteractionLevel, InteractionLevelLabel),
-    (SystemLevel, SystemLevelLabel),
-]
+Domain: TypeAlias = tuple[DomainLevel, tuple[DomainLevelLabel]]
+Interaction: TypeAlias = tuple[InteractionLevel, tuple[InteractionLevelLabel]]
+System: TypeAlias = tuple[SystemLevel, tuple[SystemLevelLabel]]
+
+DOMAIN: Domain = (DOMAIN_LEVEL, DOMAIN_LEVEL_LABELS)
+INTERACTION: Interaction = (INTERACTION_LEVEL, INTERACTION_LEVEL_LABELS)
+SYSTEM: System = (SYSTEM_LEVEL, SYSTEM_LEVEL_LABELS)
+
+Tore: TypeAlias = tuple[Domain, Interaction, System]
+TORE: Tore = (DOMAIN, INTERACTION, SYSTEM,)
+
+# ToreLevelLabels:  List[tuple[ToreLevel, ToreLabel]]
+# TORE_LEVEL_LABELS: ToreLevelLabels = cast(ToreLevelLabels,[
+#    (DomainLevel, DomainLevelLabel),
+#    (InteractionLevel, InteractionLevelLabel),
+#    (SystemLevel, SystemLevelLabel),
+# ])
 
 
 class ImportDoc(BaseModel):
@@ -138,7 +156,7 @@ class Code:
 
     @property
     def level(self) -> ToreLevel:
-        for level, level_labels in ToreLevelLabels:
+        for level, level_labels in TORE:
             if self.tore_index in get_args(level_labels):
                 return cast(ToreLevel, get_args(level)[0])
 
