@@ -1,6 +1,5 @@
 {
     "recommendations": [
-        "iterative.dvc",
         "ms-python.black-formatter"
     ]
 }

@@ -12,3 +12,5 @@ scikit-learn
 matplotlib
 dvclive
 pytest
+hydra-core
+-e .
