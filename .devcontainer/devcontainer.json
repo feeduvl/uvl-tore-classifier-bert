@@ -20,7 +20,7 @@
 
     // Use 'postCreateCommand' to run commands after the container is created.
     // "postCreateCommand": "pip3 install --user -r requirements.txt",
-    "postCreateCommand": "pip install -r requirements.txt && python -m nltk.downloader punkt && pre-commit install && mypy --install-types --non-interactive",
+    "postCreateCommand": "pip install -r requirements.txt && python -m nltk.downloader punkt && pre-commit install && mypy --install-types --non-interactive  || true",
 
     // Configure tool-specific properties.
     "customizations": {

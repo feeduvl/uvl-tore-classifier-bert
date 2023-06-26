@@ -1,7 +1,7 @@
 from contextlib import contextmanager
 from functools import partial
 from pathlib import Path
-
+from typing import List
 
 DATA_ROOT = Path(__file__).parent
 
@@ -22,6 +22,17 @@ IMPORT_DATASET_PATHS = [
 DATASETS = list(zip(dataset_source, IMPORT_DATASET_PATHS))
 FORUM = DATASETS[:2]
 PROLIFIC = DATASETS[2:]
+
+
+def return_dataset(name: str) -> List[tuple[str, Path]]:
+    if name == "forum":
+        return FORUM
+    if name == "prolific":
+        return PROLIFIC
+    if name == "all":
+        return DATASETS
+
+    raise ValueError("No dataset with this name available")
 
 
 # Temporary directories

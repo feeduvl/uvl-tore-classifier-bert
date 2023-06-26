@@ -33,7 +33,7 @@ module="matplotlib.*"
 ignore_missing_imports = "True"
 
 [tool.black]
-exclude = '(\.eggs|\.git|\.hg|\.mypy_cache|\.nox|\.tox|\.venv|_build|buck-out|build|dist|__pycache__|.egg-info)'
+exclude = '(\.eggs|\.git|\.hg|\.mypy_cache|\.nox|\.tox|.pickle|.gz|.png|.txt|.json|.prop|.jar|\.venv|_build|buck-out|build|dist|__pycache__|.egg-info)'
 
 line-length = 79
 include = '''

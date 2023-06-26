@@ -8,7 +8,7 @@ from tooling import import_dataset
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument('--name', default="default")
+parser.add_argument("--name", default="default")
 parser.add_argument(
     "--dataset", choices=["forum", "prolific"], action="append"
 )

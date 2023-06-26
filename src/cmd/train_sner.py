@@ -10,7 +10,7 @@ from tooling.sampling import load_split_dataset
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument('--name', default="default")
+parser.add_argument("--name", default="default")
 
 args = parser.parse_args()
 name = args.name

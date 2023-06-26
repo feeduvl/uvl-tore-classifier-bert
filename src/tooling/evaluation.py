@@ -17,7 +17,7 @@ def confusion_matrix(
     name: str,
     solution: pd.Series,
     results: pd.Series,
-):
+) -> Path:
     metrics.ConfusionMatrixDisplay.from_predictions(
         solution,
         results,
@@ -31,12 +31,13 @@ def confusion_matrix(
     )
 
     plt.savefig(fig_path)
+    return fig_path
 
 
 def score_precision(
     solution: pd.Series, results: pd.Series, labels: List[str]
-):
-    precision = metrics.precision_score(
+) -> float:
+    precision: float = metrics.precision_score(
         solution,
         results,
         average="macro",
@@ -47,8 +48,10 @@ def score_precision(
     return precision
 
 
-def score_recall(solution: pd.Series, results: pd.Series, labels: List[str]):
-    recall = metrics.recall_score(
+def score_recall(
+    solution: pd.Series, results: pd.Series, labels: List[str]
+) -> float:
+    recall: float = metrics.recall_score(
         solution,
         results,
         average="macro",

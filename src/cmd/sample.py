@@ -6,7 +6,7 @@ from tooling import split_dataset
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument('--name', default="default")
+parser.add_argument("--name", default="default")
 parser.add_argument("--test_size", type=float)
 parser.add_argument("--random_state", type=int)
 

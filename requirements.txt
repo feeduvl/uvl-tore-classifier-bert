@@ -5,6 +5,7 @@ dvclive
 hydra-core
 jupyter
 matplotlib
+mlflow
 mypy
 nltk
 notebook
