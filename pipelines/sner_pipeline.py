@@ -28,6 +28,7 @@ from tooling.sampling import LABELS_TRAIN
 from tooling.sampling import load_split_dataset
 from tooling.sampling import split_dataset
 from tooling.sampling import TEXT_TEST
+from tooling.transformation import transform_dataset
 
 
 @hydra.main(version_base=None, config_path="conf", config_name="config")
@@ -44,6 +45,8 @@ def main(cfg: DictConfig) -> None:
     log_artifacts(dataset_path)
     # %%
     d = load_dataset(name=run_name)
+
+    d = transform_dataset(d)
 
     split_dataset_paths = split_dataset(
         name=run_name,

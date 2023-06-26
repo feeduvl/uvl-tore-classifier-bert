@@ -17,7 +17,8 @@ packages = [
     "data",
     "tests",
     "tooling",
-    "observability"
+    "observability",
+    "transformation"
 ]
 
 

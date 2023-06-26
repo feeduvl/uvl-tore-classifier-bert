@@ -152,7 +152,7 @@ class ImportDataSet(BaseModel):
     codes: List[ImportCode]
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(frozen=True)
 class Code:
     index: int
     name: str
@@ -167,7 +167,7 @@ class Code:
         raise IndexError
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(frozen=True)
 class Token:
     index: int
     name: str
