@@ -1,4 +1,6 @@
 import pickle
+import uuid
+from dataclasses import dataclass
 from pathlib import Path
 from typing import cast
 from typing import get_args
@@ -12,21 +14,17 @@ from data import loading_filepath
 from data import LOADING_TEMP
 from pydantic import ValidationError
 
-from .model import Code
-from .model import Dataset
 from .model import ImportCode
 from .model import ImportDataSet
 from .model import ImportToreLabel
-from .model import Sentence
 from .model import Token
 from .model import ToreLabel
 
-IMPORTED_DATASET_FILENAME = "imported_dataset.pickle"
+IMPORTED_DATASET_FILENAME_CSV = "imported_dataset.csv"
+IMPORTED_DATASET_FILENAME_PICKLE = "imported_dataset.pickle"
 
 
-def split_tokenlist_into_sentences(
-    tokens: List[Token], source: str
-) -> List[Sentence]:
+def split_tokenlist_into_sentences(tokens: List[Token]) -> List[Token]:
     # split content into sentences
 
     punctuation = [".", "!", "?"]
@@ -37,7 +35,7 @@ def split_tokenlist_into_sentences(
 
     for idx, token in enumerate(tokens):
         # Handle sentence terminator
-        shift_reg.insert(0, token.name)
+        shift_reg.insert(0, token.string)
         shift_reg.pop()
 
         if "".join(shift_reg) == "###":
@@ -45,9 +43,9 @@ def split_tokenlist_into_sentences(
             starts.append(idx + 1)
 
         # Handle punctuation
-        if token.name in punctuation:
+        if token.string in punctuation:
             try:
-                if tokens[idx + 1].name not in punctuation:
+                if tokens[idx + 1].string not in punctuation:
                     starts.append(idx + 1)
                     ends.append(idx + 1)
             except IndexError:
@@ -56,13 +54,17 @@ def split_tokenlist_into_sentences(
     starts.sort()
     ends.sort()
 
-    doc_sentences: List[Sentence] = []
+    result_tokens: List[Token] = []
     for start, end in zip(starts, ends):
         if end - start != 0:
-            s = Sentence(tokens=[t for t in tokens[start:end]], source=source)
-            doc_sentences.append(s)
+            sentence_uuid = uuid.uuid4()
+            sentence = tokens[start:end]
+            for idx, token in enumerate(sentence):
+                token.sentence_idx = idx
+                token.sentence_id = sentence_uuid
+            result_tokens += sentence
 
-    return doc_sentences
+    return result_tokens
 
 
 def clean_token(token_str: str) -> Optional[str]:
@@ -74,9 +76,16 @@ def clean_token(token_str: str) -> Optional[str]:
     return cleaned
 
 
+@dataclass(frozen=True)
+class Code:
+    index: int
+    name: str
+    tore_index: ToreLabel
+
+
 def denormalize_dataset(
     imported_dataset: ImportDataSet, dataset_source=str
-) -> Dataset:
+) -> pd.DataFrame:
     tokenindex_codes: dict[int, List[Code]] = {}
 
     code_skip_set = set()
@@ -89,7 +98,6 @@ def denormalize_dataset(
             # imported_code.tore can be a ToreLabel or Literal["Relationship", ""].
             # We don't want the second kind and check for it.
             # They are added to the code_skip_set to be skipped in the per document loop
-
             if imported_code.tore in get_args(ImportToreLabel):
                 try:
                     code = Code(
@@ -112,7 +120,7 @@ def denormalize_dataset(
                 for token_id in imported_code.tokens:
                     code_skip_set.add(token_id)
 
-    sentences: List[Sentence] = []
+    dataset: List[Token] = []
     for imported_document in imported_dataset.docs:
         tokens: List[Token] = []
         for token_index in range(
@@ -136,21 +144,29 @@ def denormalize_dataset(
                     if token_str is None:
                         continue
 
+                    try:
+                        tore_labels = [t.tore_index for t in tore_codes]
+                        tore_label = tore_labels[0]
+
+                    except IndexError:
+                        tore_label = None
+
                     token = Token(
-                        index=imported_token.index,
-                        name=imported_token.name.replace("\\", ""),
+                        string=imported_token.name.replace("\\", ""),
                         lemma=imported_token.lemma,
                         pos=imported_token.pos,
-                        tore_codes=tore_codes,
+                        source=dataset_source,
+                        sentence_id=None,
+                        sentence_idx=None,
+                        tore_label=tore_label,
                     )
                     tokens.append(token)
 
-        new_sentences = split_tokenlist_into_sentences(
-            tokens=tokens, source=dataset_source
-        )
-        sentences += new_sentences
+        dataset += split_tokenlist_into_sentences(tokens=tokens)
 
-    return Dataset(sentences=sentences)
+    df = pd.DataFrame(dataset)
+
+    return df
 
 
 def _import_dataset(dataset_info: Tuple[str, Path]):
@@ -166,27 +182,43 @@ def _import_dataset(dataset_info: Tuple[str, Path]):
 
 
 def import_dataset(name: str, ds_spec: List[Tuple[str, Path]]) -> Path:
-    ds: Dataset = Dataset()
+    dataframes: List[pd.DataFrame] = []
     for d_spec in ds_spec:
-        ds += _import_dataset(d_spec)
+        dataframes.append(_import_dataset(d_spec))
 
-    ds_df = ds.to_df()
+    ds_df = pd.concat(dataframes, ignore_index=True)
 
-    filepath = loading_filepath(name=name, filename=IMPORTED_DATASET_FILENAME)
+    filepath_pickle = loading_filepath(
+        name=name, filename=IMPORTED_DATASET_FILENAME_PICKLE
+    )
 
     with create_file(
-        file_path=filepath,
+        file_path=filepath_pickle,
         mode="wb",
         encoding=None,
         buffering=-1,
     ) as f:
-        f.write(pickle.dumps(ds_df))
+        ds_df.to_pickle(f)
 
-    return filepath
+    filepath_csv = loading_filepath(
+        name=name, filename=IMPORTED_DATASET_FILENAME_CSV
+    )
+
+    with create_file(
+        file_path=filepath_csv,
+        mode="wb",
+        encoding=None,
+        buffering=-1,
+    ) as f:
+        ds_df.to_csv(f)
+
+    return filepath_pickle, filepath_csv
 
 
 def load_dataset(name: str) -> pd.DataFrame:
-    filepath = loading_filepath(name=name, filename=IMPORTED_DATASET_FILENAME)
+    filepath = loading_filepath(
+        name=name, filename=IMPORTED_DATASET_FILENAME_PICKLE
+    )
     with open(
         filepath,
         mode="rb",

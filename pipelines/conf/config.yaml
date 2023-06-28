@@ -1,7 +1,9 @@
 experiment:
     name: SNER Solo
-    test_size: 0.2
+    folds: 10
     random_state: 125
+    precision_average: "weighted"
+    recall_average: "weighted"
 
 dataset:
     name: forum

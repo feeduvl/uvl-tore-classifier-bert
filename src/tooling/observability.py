@@ -1,7 +1,9 @@
+import statistics
 from collections.abc import (
     Iterable,
 )
 from pathlib import Path
+from typing import List
 from typing import Union
 
 import mlflow
@@ -18,8 +20,21 @@ def log_artifacts(artifact_paths: Union[Path, Iterable[Path]]):
         mlflow.log_artifact(artifact_paths)
 
 
-def log_metric(name: str, value: any):
-    mlflow.log_metric(name, value)
+def log_metric(name: str, value: float, step: int):
+    mlflow.log_metric(name, value, step)
+
+
+def log_metrics(
+    base_name: str, labels: List[str], values: List[float], step=int
+):
+    for label, value in zip(labels, values, strict=True):
+        mlflow.log_metric(f"{label}_{base_name}", value, step=step)
+
+
+def log_kfold_metric(name: str, values: List[float]):
+    mlflow.log_metric(f"{name}_mean", statistics.mean(values))
+    mlflow.log_metric(f"{name}_max", max(values))
+    mlflow.log_metric(f"{name}_min", min(values))
 
 
 def log_config(cfg: DictConfig):

@@ -13,50 +13,74 @@ from sklearn import metrics
 from sklearn.model_selection import train_test_split
 
 
-def confusion_matrix(
-    name: str,
+def output_confusion_matrix(
+    fig_path: Path,
     solution: pd.Series,
     results: pd.Series,
 ) -> Path:
     metrics.ConfusionMatrixDisplay.from_predictions(
-        solution,
-        results,
+        y_true=solution,
+        y_pred=results,
         xticks_rotation="vertical",
         normalize="true",
         values_format=".2f",
     )
 
+    plt.savefig(fig_path, bbox_inches="tight")
+
+
+def confusion_matrix(
+    name: str, iteration: int, solution: pd.Series, results: pd.Series
+):
     fig_path = evaluation_filepath(
-        name=name, filename=("./confusion_matrix.png")
+        name=name, filename=(f"./{iteration}_confusion_matrix.png")
+    )
+    output_confusion_matrix(
+        fig_path=fig_path, solution=solution, results=results
     )
 
-    plt.savefig(fig_path)
+    return fig_path
+
+
+def sum_confusion_matrix(name: str, solution: pd.Series, results: pd.Series):
+    fig_path = evaluation_filepath(
+        name=name, filename=(f"./confusion_matrix.png")
+    )
+    output_confusion_matrix(
+        fig_path=fig_path, solution=solution, results=results
+    )
+
     return fig_path
 
 
 def score_precision(
-    solution: pd.Series, results: pd.Series, labels: List[str]
+    solution: pd.Series,
+    results: pd.Series,
+    labels: List[str],
+    average: str | None,
 ) -> float:
     precision: float = metrics.precision_score(
         solution,
         results,
-        average="macro",
+        average=average,
         labels=labels,
         zero_division=0,
     )
-    print(f"Precision: {precision}")
+
     return precision
 
 
 def score_recall(
-    solution: pd.Series, results: pd.Series, labels: List[str]
+    solution: pd.Series,
+    results: pd.Series,
+    labels: List[str],
+    average: str | None,
 ) -> float:
     recall: float = metrics.recall_score(
         solution,
         results,
-        average="macro",
+        average=average,
         labels=labels,
         zero_division=0,
     )
-    print(f"Recall: {recall}")
     return recall

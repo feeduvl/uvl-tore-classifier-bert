@@ -16,3 +16,4 @@ pydantic
 pytest
 rich
 scikit-learn
+strictly-typed-pandas

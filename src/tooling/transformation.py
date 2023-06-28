@@ -1,33 +1,15 @@
+from typing import Optional
+
 import pandas as pd
-from tooling.model import Sentence
 from tooling.model import Token
+from tooling.model import ToreLabel
 
 
-def transform_token(token: Token) -> Token:
-    codes = token.tore_codes
-    if codes:
-        new_codes = codes
-        new_token = Token(
-            index=token.index,
-            name=token.name,
-            lemma=token.lemma,
-            pos=token.pos,
-            tore_codes=new_codes,
-        )
-
-        return new_token
-    return token
-
-
-def transform_row(row: pd.DataFrame) -> pd.DataFrame:
-    sentence: Sentence = row["self"]
-    new_token_list = list(map(transform_token, sentence.tokens))
-
-    sentence = Sentence(tokens=new_token_list, source=sentence.source)
-    row["self"] = sentence
-
-    return row
+def transform_token_label(token_label: ToreLabel) -> Optional[ToreLabel]:
+    return token_label
 
 
 def transform_dataset(ds: pd.DataFrame) -> pd.DataFrame:
-    return ds.apply(transform_row, axis=1)
+    ds["tore_label"] = ds["tore_label"].apply(transform_token_label)
+
+    return ds

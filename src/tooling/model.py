@@ -1,6 +1,7 @@
 import dataclasses
 import itertools
 import typing
+import uuid
 from collections import Counter
 from datetime import datetime
 from typing import cast
@@ -16,7 +17,7 @@ from pydantic import BaseModel
 from pydantic.dataclasses import (
     dataclass,
 )
-
+from strictly_typed_pandas import DataSet
 
 Pos = Literal["v", "n", "a", "r", ""]
 
@@ -85,6 +86,8 @@ TORE_LABELS = (
     DOMAIN_LEVEL_LABELS + INTERACTION_LEVEL_LABELS + SYSTEM_LEVEL_LABELS
 )
 
+TORE_LABELS_0 = TORE_LABELS + ("0",)
+
 DomainLevel = Literal["Domain_Level"]
 DOMAIN_LEVEL: DomainLevel = typing.get_args(DomainLevel)[0]
 
@@ -152,28 +155,18 @@ class ImportDataSet(BaseModel):
     codes: List[ImportCode]
 
 
-@dataclass(frozen=True)
-class Code:
-    index: int
-    name: str
-    tore_index: ToreLabel
-
-    @property
-    def level(self) -> ToreLevel:
-        for level, level_labels in TORE:
-            if self.tore_index in level_labels:
-                return cast(ToreLevel, level)
-
-        raise IndexError
-
-
-@dataclass(frozen=True)
+@dataclass(kw_only=True)
 class Token:
-    index: int
-    name: str
+    sentence_id: Optional[uuid.UUID]
+    sentence_idx: Optional[int]
+
+    string: str
     lemma: str
     pos: Pos
-    tore_codes: List[Code] = dataclasses.field(default_factory=list)
+
+    source: str
+
+    tore_label: Optional[ToreLabel]
 
     def __str__(self) -> str:
         return self.name
@@ -185,6 +178,42 @@ class Token:
     @property
     def level_codes(self) -> List[ToreLevel]:
         return [tc.level for tc in self.tore_codes]
+
+    @property
+    def level(self) -> ToreLevel:
+        for level, level_labels in TORE:
+            if self.tore_index in level_labels:
+                return cast(ToreLevel, level)
+
+        raise IndexError
+
+
+class DataDF:
+    id: int
+    sentence_id: uuid.UUID
+    sentence_idx: int
+    string: str
+    tore_label: Optional[ToreLabel]
+
+
+def data_to_sentences(data: DataSet[DataDF]) -> List[str]:
+    sentences: List[str] = []
+    for sentence_idx, data in data.groupby("sentence_id"):
+        sentence = " ".join([string for string in data["string"]])
+        sentences.append(sentence)
+
+    return sentences
+
+
+class SentencesDF:
+    id: int
+    sentences_id: uuid.UUID
+
+
+class ResultDF:
+    id: int
+    string: str
+    tore_label: Optional[ToreLabel]
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -215,23 +244,3 @@ class Sentence:
         level = self.get_level_counts()
 
         return meta | label | level
-
-
-@dataclass
-class Dataset:
-    sentences: List[Sentence] = dataclasses.field(default_factory=list)
-
-    def get_tokens(self):
-        return itertools.chain.from_iterable(
-            [sentence.tokens for sentence in self.sentences]
-        )
-
-    def __add__(self, other: "Dataset") -> "Dataset":
-        return Dataset(
-            sentences=self.sentences + other.sentences,
-        )
-
-    def to_df(self) -> pd.DataFrame:
-        return pd.DataFrame.from_records(
-            [s.to_dict() for s in self.sentences]
-        ).fillna(0)
