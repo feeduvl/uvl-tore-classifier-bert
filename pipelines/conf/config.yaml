@@ -8,19 +8,21 @@ experiment:
 dataset:
     name: forum
 
-transformation:
-    task:
-    goals:
-    domain_data:
-    activity:
-    stakeholder:
-    system_function:
-    interaction:
-    interaction_data:
-    workspace:
-    software:
-    internal_action:
-    internal_data:
-
 mlflow:
     tracking_uri: "http://127.0.0.1:5000"
+
+defaults:
+    - _self_
+    - transformation: all
+
+    - override hydra/launcher: joblib
+    - override hydra/job_logging: colorlog
+    - override hydra/hydra_logging: colorlog
+
+hydra:
+    launcher:
+        n_jobs: 3
+    sweeper:
+        params:
+            dataset.name: forum,prolific,all
+            transformation: "glob(*)"

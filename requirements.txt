@@ -3,6 +3,8 @@ black[jupyter]
 dvc
 dvclive
 hydra-core
+hydra-joblib-launcher
+hydra_colorlog
 jupyter
 matplotlib
 mlflow

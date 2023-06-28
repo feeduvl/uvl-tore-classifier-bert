@@ -125,7 +125,7 @@ def match_tokenization(
         for idx, word in data.iterrows():
             for char in word["string"]:
                 sentence_tore_mask.append(word["tore_label"])
-            sentence_tore_mask.append(None)
+
         sentence_tore_masks.append(sentence_tore_mask)
 
     aligned_tokens: List[Tuple[str, ToreLabel | None]] = []

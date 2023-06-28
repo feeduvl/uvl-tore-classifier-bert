@@ -44,7 +44,7 @@ def main(cfg: DictConfig) -> None:
 
     d = load_dataset(name=run_name)
 
-    transformed_d = transform_dataset(d)
+    transformed_d = transform_dataset(dataset=d, cfg=cfg.transformation)
 
     weighted_precision: List[float] = []
     weighted_recall: List[float] = []
