@@ -1,17 +1,29 @@
 from pathlib import Path
 from typing import List
 
+import pandas as pd
 import pytest
 from tooling import denormalize_dataset
 from tooling import ImportDataSet
 from tooling import split_tokenlist_into_sentences
 from tooling import Token
+from tooling.model import data_to_sentences
 
 
 def generate_doc(content: str) -> List[Token]:
     tokens = []
     for idx, letter in enumerate(content):
-        tokens.append(Token(index=idx, name=letter, lemma=letter, pos=""))
+        tokens.append(
+            Token(
+                sentence_id=None,
+                sentence_idx=None,
+                string=letter,
+                lemma=letter,
+                pos="",
+                source="random",
+                tore_label=None,
+            )
+        )
     return tokens
 
 
@@ -62,16 +74,15 @@ def generate_doc(content: str) -> List[Token]:
 )
 def test_eval(content: str, sentence_length: List[int]):
     tokens = generate_doc(content)
-    sentences = split_tokenlist_into_sentences(
-        tokens=tokens, source="testsource"
-    )
+    list_tokens = split_tokenlist_into_sentences(tokens=tokens)
 
-    print(sentences)
+    sentences = data_to_sentences(pd.DataFrame(list_tokens))
 
     assert len(sentences) == len(sentence_length)
 
     for res, exp in zip(sentences, sentence_length):
-        assert len(res.tokens) == exp
+        res_new = res.replace(" ", "")
+        assert len(res_new) == exp
 
 
 def test_dataloading():
@@ -82,11 +93,14 @@ def test_dataloading():
     denormalized_ds = denormalize_dataset(
         imported_dataset=imported_ds, dataset_source="test"
     )
+
+    sentences = data_to_sentences(denormalized_ds)
+
     assert (
-        str(denormalized_ds.sentences[0])
+        sentences[0]
         == "Is there any extension I can add to chrome which gives a warning before closing all tabs in the window by mistake ?"
     )
     assert (
-        str(denormalized_ds.sentences[1])
+        sentences[1]
         == "For example : I have multiple tabs open , by mistake I click on windows cross to close the window , is there something I can add to chrome that it might give a warning like , If I want to close the all tabs in window or only the open tab , instead of directly closing all the tabs open in the window"
     )

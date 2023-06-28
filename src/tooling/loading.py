@@ -57,7 +57,7 @@ def split_tokenlist_into_sentences(tokens: List[Token]) -> List[Token]:
     result_tokens: List[Token] = []
     for start, end in zip(starts, ends):
         if end - start != 0:
-            sentence_uuid = uuid.uuid4()
+            sentence_uuid = uuid.uuid1()
             sentence = tokens[start:end]
             for idx, token in enumerate(sentence):
                 token.sentence_idx = idx
