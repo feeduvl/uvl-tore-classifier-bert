@@ -115,12 +115,7 @@ TORE: Tore = (
     SYSTEM,
 )
 
-# ToreLevelLabels:  List[tuple[ToreLevel, ToreLabel]]
-# TORE_LEVEL_LABELS: ToreLevelLabels = cast(ToreLevelLabels,[
-#    (DomainLevel, DomainLevelLabel),
-#    (InteractionLevel, InteractionLevelLabel),
-#    (SystemLevel, SystemLevelLabel),
-# ])
+Label = ToreLabel | ToreLevel | Literal["0"]
 
 
 class ImportDoc(BaseModel):
@@ -166,26 +161,7 @@ class Token:
 
     source: str
 
-    tore_label: Optional[ToreLabel]
-
-    def __str__(self) -> str:
-        return self.name
-
-    @property
-    def codes(self) -> List[ToreLabel]:
-        return [tc.tore_index for tc in self.tore_codes]
-
-    @property
-    def level_codes(self) -> List[ToreLevel]:
-        return [tc.level for tc in self.tore_codes]
-
-    @property
-    def level(self) -> ToreLevel:
-        for level, level_labels in TORE:
-            if self.tore_index in level_labels:
-                return cast(ToreLevel, level)
-
-        raise IndexError
+    tore_label: Optional[Label]
 
 
 class DataDF:
@@ -193,16 +169,27 @@ class DataDF:
     sentence_id: uuid.UUID
     sentence_idx: int
     string: str
-    tore_label: Optional[ToreLabel]
+    tore_label: Optional[Label]
+
+
+def create_datadf(data: pd.DataFrame) -> DataSet[DataDF]:
+    datadf = data[["sentence_id", "sentence_idx", "string", "tore_label"]]
+    return cast(DataSet[DataDF], data)
 
 
 def data_to_sentences(data: DataSet[DataDF]) -> List[str]:
     sentences: List[str] = []
-    for sentence_idx, data in data.groupby("sentence_id"):
-        sentence = " ".join([string for string in data["string"]])
+
+    for sentence_idx, grouped_data in data.groupby("sentence_id"):
+        sentence = " ".join([string for string in grouped_data["string"]])
         sentences.append(sentence)
 
     return sentences
+
+
+def tokenlist_to_datadf(tokens: List[Token]) -> DataSet[DataDF]:
+    dataframe = pd.DataFrame(tokens)
+    return cast(DataSet[DataDF], dataframe)
 
 
 class SentencesDF:
@@ -213,34 +200,10 @@ class SentencesDF:
 class ResultDF:
     id: int
     string: str
-    tore_label: Optional[ToreLabel]
+    tore_label: Optional[Label]
 
 
-@dataclass(frozen=True, kw_only=True)
-class Sentence:
-    tokens: List[Token] = dataclasses.field(default_factory=list)
-    source: str
-
-    def __str__(self) -> str:
-        return " ".join([str(token) for token in self.tokens])
-
-    def get_label_counts(self) -> Counter[ToreLabel]:
-        c: Counter[ToreLabel] = Counter()
-        [c.update(t.codes) for t in self.tokens]
-        return c
-
-    def get_level_counts(self) -> Counter[ToreLevel]:
-        c: Counter[ToreLevel] = Counter()
-        [c.update(t.level_codes) for t in self.tokens]
-        return c
-
-    def to_dict(self):
-        meta = {
-            "text": str(self),
-            "self": self,
-            "source": self.source,
-        }
-        label = self.get_label_counts()
-        level = self.get_level_counts()
-
-        return meta | label | level
+def get_labels(
+    dataset: DataSet[ResultDF],
+) -> List[Label]:
+    return cast(List[Label], dataset["tore_label"].unique().tolist())

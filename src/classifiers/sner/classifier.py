@@ -20,11 +20,10 @@ from jinja2 import FileSystemLoader
 from nltk.tag import StanfordNERTagger
 from nltk.tokenize import word_tokenize
 from strictly_typed_pandas import DataSet
-from tooling import Sentence
-from tooling import ToreLabel
 from tooling.model import data_to_sentences
 from tooling.model import DataDF
 from tooling.model import ResultDF
+from tooling.model import ToreLabel
 
 BASE_PATH = Path(__file__).parent
 RESSOURCES_PATH = BASE_PATH.joinpath(Path("./ressources"))
@@ -41,48 +40,48 @@ RESULT_FILENAME = "classification_result"
 SOLUTION_FILENAME = "solution"
 
 
-def trainfile(name: str, iteration: int) -> str:
+def trainfile(name: str, iteration: int) -> Path:
     return sner_filepath(
         name=name,
         filename=f"{iteration}_" + TRAIN_FILENAME + ".txt",
     )
 
 
-def configfile(name: str, iteration: int) -> str:
+def configfile(name: str, iteration: int) -> Path:
     return sner_filepath(
         name=name,
         filename=f"{iteration}_" + CONFIG_FILENAME + ".prop",
     )
 
 
-def modelfile(name: str, iteration: int) -> str:
+def modelfile(name: str, iteration: int) -> Path:
     return sner_filepath(
         name=name,
         filename=f"{iteration}_" + MODEL_FILENAME + ".ser.gz",
     )
 
 
-def resultfile_csv(name: str, iteration: int) -> str:
+def resultfile_csv(name: str, iteration: int) -> Path:
     return sner_filepath(
         name=name,
         filename=f"{iteration}_" + RESULT_FILENAME + ".csv",
     )
 
 
-def resultfile_pickle(name: str, iteration: int) -> str:
+def resultfile_pickle(name: str, iteration: int) -> Path:
     return sner_filepath(
         name=name, filename=f"{iteration}_" + RESULT_FILENAME + ".pickle"
     )
 
 
-def solutionfile_pickle(name: str, iteration: int) -> str:
+def solutionfile_pickle(name: str, iteration: int) -> Path:
     return sner_filepath(
         name=name,
         filename=f"{iteration}_" + SOLUTION_FILENAME + ".pickle",
     )
 
 
-def solutionfile_csv(name: str, iteration: int) -> str:
+def solutionfile_csv(name: str, iteration: int) -> Path:
     return sner_filepath(
         name=name,
         filename=f"{iteration}_" + SOLUTION_FILENAME + ".csv",
@@ -93,25 +92,6 @@ def solutionfile_csv(name: str, iteration: int) -> str:
 class SNERConfig:
     resultFile: Path
     trainFile: Path
-
-
-def _sentence_to_token_and_label(sentence: Sentence) -> List[Tuple[str, str]]:
-    tokens: List[Tuple[str, str]] = []
-
-    for token in sentence.tokens:
-        label: Union[ToreLabel, Literal["0"]]
-        try:
-            label = token.tore_codes[0].tore_index
-        except IndexError:
-            label = "0"
-        tokens.append(
-            (
-                token.name,
-                label,
-            )
-        )
-
-    return tokens
 
 
 def match_tokenization(
@@ -148,7 +128,7 @@ def match_tokenization(
 
 def create_solution(
     name: str, iteration: int, data_test: DataSet[DataDF]
-) -> Path:
+) -> Tuple[Path, Path]:
     aligned_tokens = match_tokenization(data_test=data_test)
 
     solution_df = pd.DataFrame(
@@ -175,7 +155,10 @@ def create_solution(
     ) as f:
         solution_df.to_pickle(f)
 
-    return [csv_filepath, pickle_filepath]
+    return (
+        csv_filepath,
+        pickle_filepath,
+    )
 
 
 def load_solution(name: str, iteration: int) -> DataSet[ResultDF]:
@@ -183,7 +166,8 @@ def load_solution(name: str, iteration: int) -> DataSet[ResultDF]:
         solutionfile_pickle(name=name, iteration=iteration), mode="rb"
     ) as pickle_file:
         dataset = pickle.load(pickle_file)
-    return cast(pd.DataFrame, dataset)
+
+    return cast(DataSet[ResultDF], dataset)
 
 
 def create_train_file(
@@ -238,13 +222,13 @@ def create_config_file(name: str, iteration: int) -> Path:
     return filename
 
 
-def train_sner(name: str, iteration: int) -> List[Path]:
+def train_sner(name: str, iteration: int) -> Path:
     executable = STANFORD_JAR_PATH
 
     with subprocess.Popen(
         args=[
             "java",
-            "-Xmx3744M",
+            "-Xmx4G",
             "-cp",
             executable,
             "edu.stanford.nlp.ie.crf.CRFClassifier",
@@ -261,10 +245,10 @@ def train_sner(name: str, iteration: int) -> List[Path]:
                 output = process.stdout.readline()
                 print(output, end="")
 
-    return (modelfile(name=name, iteration=iteration),)
+    return modelfile(name=name, iteration=iteration)
 
 
-def instantiate_tagger(name: str, iteration: int):
+def instantiate_tagger(name: str, iteration: int) -> StanfordNERTagger:
     st = StanfordNERTagger(
         model_filename=str(modelfile(name=name, iteration=iteration)),
         path_to_jar=str(STANFORD_JAR_PATH),
@@ -273,7 +257,9 @@ def instantiate_tagger(name: str, iteration: int):
     return st
 
 
-def classify_sentence(text: str, tagger) -> List[Tuple[str, str]]:
+def classify_sentence(
+    text: str, tagger: StanfordNERTagger
+) -> List[Tuple[str, str]]:
     tokenized_text = word_tokenize(text)
     classified_text = tagger.tag(tokenized_text)
 
@@ -295,9 +281,12 @@ def classify_sentences(
 
     sentence_list = list(map(word_tokenize, sentences))
 
-    classification_result: DataSet[ResultDF] = pd.DataFrame(
-        itertools.chain.from_iterable(st.tag_sents(sentence_list)),
-        columns=["string", "tore_label"],
+    classification_result: DataSet[ResultDF] = cast(
+        DataSet[ResultDF],
+        pd.DataFrame(
+            itertools.chain.from_iterable(st.tag_sents(sentence_list)),
+            columns=["string", "tore_label"],
+        ),
     )
 
     pickle_path = resultfile_pickle(name=name, iteration=iteration)
@@ -318,7 +307,10 @@ def classify_sentences(
     ) as f:
         classification_result.to_csv(f)
 
-    return [pickle_path, csv_path]
+    return (
+        pickle_path,
+        csv_path,
+    )
 
 
 def load_classification_result(name: str, iteration: int) -> pd.DataFrame:

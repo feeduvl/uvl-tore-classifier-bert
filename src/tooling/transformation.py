@@ -1,4 +1,9 @@
+from typing import cast
+from typing import List
+from typing import Literal
 from typing import Optional
+from typing import Tuple
+from typing import Union
 
 import omegaconf
 import pandas as pd
@@ -6,16 +11,20 @@ from strictly_typed_pandas import DataSet
 from tooling.model import DataDF
 from tooling.model import Token
 from tooling.model import TORE_LABELS
+from tooling.model import TORE_LEVEL
 from tooling.model import ToreLabel
+from tooling.model import ToreLevel
 
 
 def transform_token_label(
     token_label: ToreLabel | None, cfg: dict[str, str]
-) -> Optional[ToreLabel]:
+) -> Optional[ToreLabel | ToreLevel]:
     if token_label is None:
         return None
 
-    new_value = cfg.get(token_label.lower(), None)
+    new_value = cast(
+        Union[ToreLevel, ToreLabel, None], cfg.get(token_label.lower(), None)
+    )
 
     if new_value is None:
         return None
@@ -28,13 +37,22 @@ def transform_token_label(
 
 def transform_dataset(
     dataset: DataSet[DataDF], cfg: omegaconf.DictConfig
-) -> DataSet[DataDF]:
+) -> Tuple[List[Union[ToreLevel, ToreLabel, Literal["0"]]], DataSet[DataDF]]:
     dict_cfg = omegaconf.OmegaConf.to_container(cfg)
+
+    if not isinstance(dict_cfg, dict):
+        raise ValueError("No config passed")
 
     del dict_cfg["description"]
 
+    labels: List[Union[ToreLevel, ToreLabel, Literal["0"]]] = []
+
     for new_value in dict_cfg.values():
         if new_value in TORE_LABELS:
+            labels.append(new_value)
+            continue
+        elif new_value in TORE_LEVEL:
+            labels.append(new_value)
             continue
         elif new_value is None:
             continue
@@ -47,4 +65,6 @@ def transform_dataset(
         transform_token_label, cfg=cfg
     )
 
-    return dataset
+    labels = list(set(labels))
+
+    return labels, dataset

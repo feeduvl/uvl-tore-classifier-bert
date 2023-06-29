@@ -2,8 +2,8 @@ experiment:
     name: SNER Solo
     folds: 10
     random_state: 125
-    precision_average: "weighted"
-    recall_average: "weighted"
+    precision_average: "micro"
+    recall_average: "micro"
 
 dataset:
     name: forum
@@ -21,7 +21,7 @@ defaults:
 
 hydra:
     launcher:
-        n_jobs: 3
+        n_jobs: 10
     sweeper:
         params:
             dataset.name: forum,prolific,all

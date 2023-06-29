@@ -13,7 +13,10 @@ from data import create_file
 from data import loading_filepath
 from data import LOADING_TEMP
 from pydantic import ValidationError
+from strictly_typed_pandas import DataSet
+from tooling.model import tokenlist_to_datadf
 
+from .model import DataDF
 from .model import ImportCode
 from .model import ImportDataSet
 from .model import ImportToreLabel
@@ -84,8 +87,8 @@ class Code:
 
 
 def denormalize_dataset(
-    imported_dataset: ImportDataSet, dataset_source=str
-) -> pd.DataFrame:
+    imported_dataset: ImportDataSet, dataset_source: str
+) -> DataSet[DataDF]:
     tokenindex_codes: dict[int, List[Code]] = {}
 
     code_skip_set = set()
@@ -141,13 +144,15 @@ def denormalize_dataset(
                         raise e
                 finally:
                     token_str = clean_token(imported_token.name)
+
                     if token_str is None:
                         continue
+
+                    tore_label: Optional[ToreLabel]
 
                     try:
                         tore_labels = [t.tore_index for t in tore_codes]
                         tore_label = tore_labels[0]
-
                     except IndexError:
                         tore_label = None
 
@@ -164,12 +169,10 @@ def denormalize_dataset(
 
         dataset += split_tokenlist_into_sentences(tokens=tokens)
 
-    df = pd.DataFrame(dataset)
-
-    return df
+    return tokenlist_to_datadf(dataset)
 
 
-def _import_dataset(dataset_info: Tuple[str, Path]):
+def _import_dataset(dataset_info: Tuple[str, Path]) -> DataSet[DataDF]:
     dataset_source, import_path = dataset_info
     print(f"Importing dataset: {dataset_source} from {import_path}")
 
@@ -181,8 +184,10 @@ def _import_dataset(dataset_info: Tuple[str, Path]):
     return denormalized_ds
 
 
-def import_dataset(name: str, ds_spec: List[Tuple[str, Path]]) -> Path:
-    dataframes: List[pd.DataFrame] = []
+def import_dataset(
+    name: str, ds_spec: List[Tuple[str, Path]]
+) -> Tuple[Path, Path]:
+    dataframes: List[DataSet[DataDF]] = []
     for d_spec in ds_spec:
         dataframes.append(_import_dataset(d_spec))
 
@@ -215,7 +220,7 @@ def import_dataset(name: str, ds_spec: List[Tuple[str, Path]]) -> Path:
     return filepath_pickle, filepath_csv
 
 
-def load_dataset(name: str) -> pd.DataFrame:
+def load_dataset(name: str) -> DataSet[DataDF]:
     filepath = loading_filepath(
         name=name, filename=IMPORTED_DATASET_FILENAME_PICKLE
     )
@@ -224,4 +229,4 @@ def load_dataset(name: str) -> pd.DataFrame:
         mode="rb",
     ) as pickle_file:
         dataset = pickle.load(pickle_file)
-    return dataset
+    return cast(DataSet[DataDF], dataset)

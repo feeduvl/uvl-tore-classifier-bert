@@ -16,6 +16,7 @@ from data import SAMPLING_TEMP
 from sklearn.model_selection import GroupKFold
 from sklearn.model_selection import train_test_split
 from strictly_typed_pandas import DataSet
+from tooling.model import create_datadf
 from tooling.model import DataDF
 
 DataTrain = Literal["data_train"]
@@ -37,14 +38,12 @@ def split_dataset_k_fold(
     folds: int,
     random_state: int,
 ) -> Iterator[Tuple[int, List[Path]]]:
-    data: DataSet[DataDF] = dataset[
-        ["sentence_id", "sentence_idx", "string", "tore_label"]
-    ]
-    sentences = dataset["sentence_id"]
+    data = create_datadf(data=dataset)
+    sentence_ids = dataset["sentence_id"]
 
     splitter = GroupKFold(n_splits=folds)
     for iteration, (train_index, test_index) in enumerate(
-        splitter.split(X=data, groups=sentences)
+        splitter.split(X=data, groups=sentence_ids)
     ):
         data_train = data.loc[train_index]
         data_test = data.loc[test_index]
@@ -84,11 +83,11 @@ def load_split_dataset(
     name: str,
     filename: DataTest | DataTrain,
     iteration: int,
-) -> DataSet[DataDF] | DataSet[DataDF]:
+) -> DataSet[DataDF]:
     with open(
         sampling_filepath(
             name=name, filename=f"{iteration}_{filename}.pickle"
         ),
         mode="rb",
     ) as pickle_file:
-        return cast(pd.DataFrame, pickle.load(pickle_file))
+        return cast(DataSet[DataDF], pickle.load(pickle_file))

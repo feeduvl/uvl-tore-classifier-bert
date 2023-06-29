@@ -1,6 +1,9 @@
 from contextlib import contextmanager
 from functools import partial
 from pathlib import Path
+from typing import Any
+from typing import IO
+from typing import Iterator
 from typing import List
 
 DATA_ROOT = Path(__file__).parent
@@ -60,7 +63,12 @@ evaluation_filepath = partial(filename, basepath=EVALUATION_TEMP)
 
 
 @contextmanager
-def create_file(file_path: Path, mode="w+", encoding="utf-8", buffering=1):
+def create_file(
+    file_path: Path,
+    mode: str = "w+",
+    encoding: str | None = "utf-8",
+    buffering: int = 1,
+) -> Iterator[IO[Any]]:
     if file_path.exists():
         file_path.unlink()
 

@@ -17,8 +17,7 @@ from omegaconf import OmegaConf
 from tooling import evaluation
 from tooling.loading import import_dataset
 from tooling.loading import load_dataset
-from tooling.model import TORE_LABELS
-from tooling.model import TORE_LABELS_0
+from tooling.model import get_labels
 from tooling.observability import config_mlflow
 from tooling.observability import end_tracing
 from tooling.observability import log_artifacts
@@ -44,7 +43,9 @@ def main(cfg: DictConfig) -> None:
 
     d = load_dataset(name=run_name)
 
-    transformed_d = transform_dataset(dataset=d, cfg=cfg.transformation)
+    labels, transformed_d = transform_dataset(
+        dataset=d, cfg=cfg.transformation
+    )
 
     weighted_precision: List[float] = []
     weighted_recall: List[float] = []
@@ -96,10 +97,12 @@ def main(cfg: DictConfig) -> None:
         )
         solution = load_solution(name=run_name, iteration=iteration)
 
+        solution_labels = get_labels(solution)
+
         p = evaluation.score_precision(
             solution=solution["tore_label"],
             results=results["tore_label"],
-            labels=TORE_LABELS,
+            labels=solution_labels,
             average=cfg.experiment.precision_average,
         )
         weighted_precision.append(p)
@@ -109,7 +112,7 @@ def main(cfg: DictConfig) -> None:
         r = evaluation.score_recall(
             solution=solution["tore_label"],
             results=results["tore_label"],
-            labels=TORE_LABELS_0,
+            labels=solution_labels,
             average=cfg.experiment.recall_average,
         )
         weighted_recall.append(r)
@@ -119,13 +122,13 @@ def main(cfg: DictConfig) -> None:
         pl_p = evaluation.score_precision(
             solution=solution["tore_label"],
             results=results["tore_label"],
-            labels=TORE_LABELS_0,
+            labels=solution_labels,
             average=None,
         )
         per_label_precision.append(pl_p)
         log_metrics(
             base_name="precision",
-            labels=TORE_LABELS_0,
+            labels=solution_labels,
             values=pl_p,
             step=iteration,
         )
@@ -133,13 +136,13 @@ def main(cfg: DictConfig) -> None:
         pl_r = evaluation.score_recall(
             solution=solution["tore_label"],
             results=results["tore_label"],
-            labels=TORE_LABELS_0,
+            labels=solution_labels,
             average=None,
         )
         per_label_recall.append(pl_r)
         log_metrics(
             base_name="recall",
-            labels=TORE_LABELS_0,
+            labels=solution_labels,
             values=pl_r,
             step=iteration,
         )

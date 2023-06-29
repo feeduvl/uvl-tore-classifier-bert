@@ -3,11 +3,12 @@ from typing import List
 
 import pandas as pd
 import pytest
-from tooling import denormalize_dataset
-from tooling import ImportDataSet
-from tooling import split_tokenlist_into_sentences
-from tooling import Token
+from tooling.loading import denormalize_dataset
+from tooling.loading import split_tokenlist_into_sentences
 from tooling.model import data_to_sentences
+from tooling.model import ImportDataSet
+from tooling.model import Token
+from tooling.model import tokenlist_to_datadf
 
 
 def generate_doc(content: str) -> List[Token]:
@@ -72,11 +73,12 @@ def generate_doc(content: str) -> List[Token]:
         ),  # Single Sentence with an elipsis in the middle and a dot at the end
     ],
 )
-def test_eval(content: str, sentence_length: List[int]):
+def test_eval(content: str, sentence_length: List[int]) -> None:
     tokens = generate_doc(content)
     list_tokens = split_tokenlist_into_sentences(tokens=tokens)
 
-    sentences = data_to_sentences(pd.DataFrame(list_tokens))
+    dataset = tokenlist_to_datadf(list_tokens)
+    sentences = data_to_sentences(dataset)
 
     assert len(sentences) == len(sentence_length)
 
@@ -85,7 +87,7 @@ def test_eval(content: str, sentence_length: List[int]):
         assert len(res_new) == exp
 
 
-def test_dataloading():
+def test_dataloading() -> None:
     BASE_PATH = Path(__file__).parent
     FILE_PATH = BASE_PATH.joinpath(Path("./test_dataset.json"))
 
