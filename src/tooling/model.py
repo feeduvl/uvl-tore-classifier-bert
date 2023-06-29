@@ -187,6 +187,32 @@ def data_to_sentences(data: DataSet[DataDF]) -> List[str]:
     return sentences
 
 
+def data_to_list_of_token_lists(
+    data: DataSet[DataDF],
+) -> List[List[str]]:
+    sentences: List[List[str]] = []
+
+    for sentence_idx, grouped_data in data.groupby("sentence_id"):
+        sentence = [string for string in grouped_data["string"]]
+        sentences.append(sentence)
+
+    return sentences
+
+
+def data_to_list_of_label_lists(
+    data: DataSet[DataDF],
+) -> List[List[Label]]:
+    sentences: List[List[Label]] = []
+
+    for sentence_idx, grouped_data in data.groupby("sentence_id"):
+        sentence = [
+            cast(Label, string) for string in grouped_data["tore_label"]
+        ]
+        sentences.append(sentence)
+
+    return sentences
+
+
 def tokenlist_to_datadf(tokens: List[Token]) -> DataSet[DataDF]:
     dataframe = pd.DataFrame(tokens)
     return cast(DataSet[DataDF], dataframe)
@@ -204,6 +230,6 @@ class ResultDF:
 
 
 def get_labels(
-    dataset: DataSet[ResultDF],
+    dataset: DataSet[ResultDF] | DataSet[DataDF],
 ) -> List[Label]:
     return cast(List[Label], dataset["tore_label"].unique().tolist())

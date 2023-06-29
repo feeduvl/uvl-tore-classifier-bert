@@ -2,10 +2,12 @@
 black[jupyter]
 dvc
 dvclive
+gensim
 hydra-core
 hydra-joblib-launcher
 hydra_colorlog
 jupyter
+keras
 matplotlib
 mlflow
 mypy
@@ -19,3 +21,4 @@ pytest
 rich
 scikit-learn
 strictly-typed-pandas
+tensorflow
