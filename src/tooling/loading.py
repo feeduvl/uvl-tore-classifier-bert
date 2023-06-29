@@ -9,12 +9,8 @@ from typing import Optional
 from typing import Tuple
 
 import pandas as pd
-from data import create_file
-from data import loading_filepath
-from data import LOADING_TEMP
 from pydantic import ValidationError
 from strictly_typed_pandas import DataSet
-from tooling.model import tokenlist_to_datadf
 
 from .model import DataDF
 from .model import ImportCode
@@ -22,6 +18,10 @@ from .model import ImportDataSet
 from .model import ImportToreLabel
 from .model import Token
 from .model import ToreLabel
+from data import create_file
+from data import loading_filepath
+from data import LOADING_TEMP
+from tooling.model import tokenlist_to_datadf
 
 IMPORTED_DATASET_FILENAME_CSV = "imported_dataset.csv"
 IMPORTED_DATASET_FILENAME_PICKLE = "imported_dataset.pickle"

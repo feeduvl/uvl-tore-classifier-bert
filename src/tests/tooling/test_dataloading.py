@@ -3,6 +3,7 @@ from typing import List
 
 import pandas as pd
 import pytest
+
 from tooling.loading import denormalize_dataset
 from tooling.loading import split_tokenlist_into_sentences
 from tooling.model import data_to_sentences

@@ -8,6 +8,7 @@ from typing import Union
 import omegaconf
 import pandas as pd
 from strictly_typed_pandas import DataSet
+
 from tooling.model import DataDF
 from tooling.model import Token
 from tooling.model import TORE_LABELS

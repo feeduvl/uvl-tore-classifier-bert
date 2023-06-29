@@ -1,9 +1,9 @@
+from collections.abc import Iterator
 from contextlib import contextmanager
 from functools import partial
 from pathlib import Path
 from typing import Any
 from typing import IO
-from typing import Iterator
 from typing import List
 
 DATA_ROOT = Path(__file__).parent

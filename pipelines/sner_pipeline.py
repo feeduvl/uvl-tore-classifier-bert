@@ -4,6 +4,9 @@ from typing import List
 import hydra
 import mlflow
 import pandas as pd
+from omegaconf import DictConfig
+from omegaconf import OmegaConf
+
 from classifiers.sner import classify_sentences
 from classifiers.sner import create_config_file
 from classifiers.sner import create_solution
@@ -12,8 +15,6 @@ from classifiers.sner import load_classification_result
 from classifiers.sner import load_solution
 from classifiers.sner import train_sner
 from data import return_dataset
-from omegaconf import DictConfig
-from omegaconf import OmegaConf
 from tooling import evaluation
 from tooling.loading import import_dataset
 from tooling.loading import load_dataset

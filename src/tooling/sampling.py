@@ -1,7 +1,7 @@
 import pickle
+from collections.abc import Iterator
 from pathlib import Path
 from typing import cast
-from typing import Iterator
 from typing import List
 from typing import Literal
 from typing import Optional
@@ -10,12 +10,13 @@ from typing import Tuple
 
 import numpy as np
 import pandas as pd
-from data import create_file
-from data import sampling_filepath
-from data import SAMPLING_TEMP
 from sklearn.model_selection import GroupKFold
 from sklearn.model_selection import train_test_split
 from strictly_typed_pandas import DataSet
+
+from data import create_file
+from data import sampling_filepath
+from data import SAMPLING_TEMP
 from tooling.model import create_datadf
 from tooling.model import DataDF
 

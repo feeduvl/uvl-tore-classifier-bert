@@ -6,20 +6,18 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import cast
 from typing import List
-from typing import Literal
-from typing import Optional
 from typing import Tuple
-from typing import Union
 
 import pandas as pd
-from data import create_file
-from data import sner_filepath
-from data import SNER_TEMP
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
 from nltk.tag import StanfordNERTagger
 from nltk.tokenize import word_tokenize
 from strictly_typed_pandas import DataSet
+
+from data import create_file
+from data import sner_filepath
+from data import SNER_TEMP
 from tooling.model import data_to_sentences
 from tooling.model import DataDF
 from tooling.model import ResultDF

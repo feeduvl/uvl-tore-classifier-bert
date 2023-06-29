@@ -6,12 +6,13 @@ from typing import Tuple
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from data import create_file
-from data import evaluation_filepath
-from data import EVALUATION_TEMP
 from sklearn import metrics
 from sklearn.model_selection import train_test_split
 from strictly_typed_pandas import DataSet
+
+from data import create_file
+from data import evaluation_filepath
+from data import EVALUATION_TEMP
 from tooling.model import Label
 from tooling.model import ResultDF
 
