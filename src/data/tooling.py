@@ -27,7 +27,7 @@ FORUM = DATASETS[:2]
 PROLIFIC = DATASETS[2:]
 
 
-def return_dataset(name: str) -> List[tuple[str, Path]]:
+def get_dataset_information(name: str) -> List[tuple[str, Path]]:
     if name == "forum":
         return FORUM
     if name == "prolific":

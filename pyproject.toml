@@ -17,8 +17,10 @@ packages = [
     "classifiers",
     "data",
     "tests",
-    "tooling"
+    "tooling",
+    "pipelines"
 ]
+
 
 
 [[tool.mypy.overrides]]

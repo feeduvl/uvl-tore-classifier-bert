@@ -21,10 +21,10 @@ from tooling.model import create_datadf
 from tooling.model import DataDF
 
 DataTrain = Literal["data_train"]
-DATA_TRAIN = "data_train"
+DATA_TRAIN: DataTrain = "data_train"
 
 DataTest = Literal["data_test"]
-DATA_TEST = "data_test"
+DATA_TEST: DataTest = "data_test"
 
 
 FILES = (
