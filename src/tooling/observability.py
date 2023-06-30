@@ -34,7 +34,7 @@ def log_config(cfg: DictConfig) -> None:
 
 
 def config_mlflow(cfg: DictConfig) -> str:
-    mlflow.set_tracking_uri(cfg.mlflow.tracking_uri)
+    mlflow.set_tracking_uri(cfg.meta.mlflow_tracking_uri)
     mlflow.set_experiment(cfg.experiment.name)
     mlflow.autolog()
     log_config(cfg)

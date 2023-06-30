@@ -40,6 +40,19 @@ module="mlflow.*"
 ignore_missing_imports = "True"
 
 [[tool.mypy.overrides]]
+module="gensim.*"
+ignore_missing_imports = "True"
+
+[[tool.mypy.overrides]]
+module="tensorflow.*"
+ignore_missing_imports = "True"
+
+[[tool.mypy.overrides]]
+module="keras.*"
+ignore_missing_imports = "True"
+
+
+[[tool.mypy.overrides]]
 module="strictly_typed_pandas.*"
 implicit_reexport = "True"
 

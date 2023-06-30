@@ -1,14 +1,21 @@
 experiment:
-    name: SNER Solo
+    name: BiLSTM Solo
     folds: 5
     random_state: 125
     average: "macro"
+    dataset: forum
 
-dataset:
-    name: forum
+transformation: all
 
-mlflow:
-    tracking_uri: "http://127.0.0.1:5000"
+bilstm:
+    sentence_length:
+    batch_size: 32
+    number_epochs: 50
+    validation_split: 0.1
+    verbose: 1
+
+meta:
+    mlflow_tracking_uri: "http://127.0.0.1:5000"
 
 defaults:
     - _self_
@@ -23,5 +30,5 @@ hydra:
         n_jobs: 4
     sweeper:
         params:
-            dataset.name: forum,prolific,all
+            experiment.dataset: forum,prolific,all
             transformation: "glob(*)"

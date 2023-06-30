@@ -3,12 +3,14 @@ import itertools
 import typing
 import uuid
 from collections import Counter
+from collections.abc import Sequence
 from datetime import datetime
 from typing import cast
 from typing import get_args
 from typing import List
 from typing import Literal
 from typing import Optional
+from typing import Tuple
 from typing import TypeAlias
 from typing import Union
 
@@ -37,7 +39,7 @@ DomainLevelLabel = Literal[
     "Stakeholder",
 ]
 
-DOMAIN_LEVEL_LABELS: tuple[DomainLevelLabel] = cast(
+DOMAIN_LEVEL_LABELS: Tuple[DomainLevelLabel, ...] = cast(
     tuple[DomainLevelLabel], typing.get_args(DomainLevelLabel)
 )
 
@@ -54,7 +56,7 @@ InteractionLevelLabel = Literal[
     "Interaction_Data",
     "Workspace",
 ]
-INTERACTION_LEVEL_LABELS: tuple[InteractionLevelLabel] = cast(
+INTERACTION_LEVEL_LABELS: Tuple[InteractionLevelLabel, ...] = cast(
     tuple[InteractionLevelLabel], typing.get_args(InteractionLevelLabel)
 )
 
@@ -68,12 +70,12 @@ SystemLevelLabel = Literal[
     "Internal_Action",
     "Internal_Data",
 ]
-SYSTEM_LEVEL_LABELS: tuple[SystemLevelLabel] = cast(
+SYSTEM_LEVEL_LABELS: Tuple[SystemLevelLabel, ...] = cast(
     tuple[SystemLevelLabel], typing.get_args(SystemLevelLabel)
 )
 
 AdditionalLabel = Literal["Relationship"]
-ADDITIONAL_LABEL: tuple[AdditionalLabel] = cast(
+ADDITIONAL_LABEL: Tuple[AdditionalLabel, ...] = cast(
     tuple[AdditionalLabel], typing.get_args(AdditionalLabel)
 )
 
@@ -86,7 +88,6 @@ TORE_LABELS = (
     DOMAIN_LEVEL_LABELS + INTERACTION_LEVEL_LABELS + SYSTEM_LEVEL_LABELS
 )
 
-TORE_LABELS_0 = TORE_LABELS + ("0",)
 
 DomainLevel = Literal["Domain_Level"]
 DOMAIN_LEVEL: DomainLevel = typing.get_args(DomainLevel)[0]
@@ -100,9 +101,11 @@ SYSTEM_LEVEL: SystemLevel = typing.get_args(SystemLevel)[0]
 ToreLevel = Literal[DomainLevel, InteractionLevel, SystemLevel]
 TORE_LEVEL = [DOMAIN_LEVEL, INTERACTION_LEVEL, SYSTEM_LEVEL]
 
-Domain: TypeAlias = tuple[DomainLevel, tuple[DomainLevelLabel]]
-Interaction: TypeAlias = tuple[InteractionLevel, tuple[InteractionLevelLabel]]
-System: TypeAlias = tuple[SystemLevel, tuple[SystemLevelLabel]]
+Domain: TypeAlias = Tuple[DomainLevel, Tuple[DomainLevelLabel, ...]]
+Interaction: TypeAlias = Tuple[
+    InteractionLevel, Tuple[InteractionLevelLabel, ...]
+]
+System: TypeAlias = Tuple[SystemLevel, Tuple[SystemLevelLabel, ...]]
 
 DOMAIN: Domain = (DOMAIN_LEVEL, DOMAIN_LEVEL_LABELS)
 INTERACTION: Interaction = (INTERACTION_LEVEL, INTERACTION_LEVEL_LABELS)
@@ -116,6 +119,8 @@ TORE: Tore = (
 )
 
 Label = ToreLabel | ToreLevel | Literal["0"]
+
+TORE_LABELS_0: Tuple[Label, ...] = TORE_LABELS + ("0",)
 
 
 class ImportDoc(BaseModel):
@@ -172,6 +177,17 @@ class DataDF:
     tore_label: Optional[Label]
 
 
+class SentencesDF:
+    id: int
+    sentences_id: uuid.UUID
+
+
+class ResultDF:
+    id: int
+    string: str
+    tore_label: Optional[Label]
+
+
 def create_datadf(data: pd.DataFrame) -> DataSet[DataDF]:
     datadf = data[["sentence_id", "sentence_idx", "string", "tore_label"]]
     return cast(DataSet[DataDF], data)
@@ -213,23 +229,12 @@ def data_to_list_of_label_lists(
     return sentences
 
 
-def tokenlist_to_datadf(tokens: List[Token]) -> DataSet[DataDF]:
-    dataframe = pd.DataFrame(tokens)
-    return cast(DataSet[DataDF], dataframe)
-
-
-class SentencesDF:
-    id: int
-    sentences_id: uuid.UUID
-
-
-class ResultDF:
-    id: int
-    string: str
-    tore_label: Optional[Label]
-
-
 def get_labels(
     dataset: DataSet[ResultDF] | DataSet[DataDF],
 ) -> List[Label]:
     return cast(List[Label], dataset["tore_label"].unique().tolist())
+
+
+def tokenlist_to_datadf(tokens: List[Token]) -> DataSet[DataDF]:
+    dataframe = pd.DataFrame(tokens)
+    return cast(DataSet[DataDF], dataframe)

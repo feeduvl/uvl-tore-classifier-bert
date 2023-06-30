@@ -31,14 +31,14 @@ from tooling.sampling import split_dataset_k_fold
 from tooling.transformation import transform_dataset
 
 
-@hydra.main(version_base=None, config_path="conf", config_name="config")
+@hydra.main(version_base=None, config_path="conf", config_name="config_sner")
 def main(cfg: DictConfig) -> None:
     # Setup experiment
     print(OmegaConf.to_yaml(cfg))
     run_name = config_mlflow(cfg)
 
     # Import Dataset
-    dataset_information = get_dataset_information(cfg.dataset.name)
+    dataset_information = get_dataset_information(cfg.experiment.dataset)
     imported_dataset_path = import_dataset(
         name=run_name, ds_spec=dataset_information
     )

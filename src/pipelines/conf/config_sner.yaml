@@ -1,0 +1,27 @@
+experiment:
+    name: SNER Solo
+    folds: 5
+    random_state: 125
+    average: "macro"
+    dataset: forum
+
+transformation: all
+
+meta:
+    mlflow_tracking_uri: "http://127.0.0.1:5000"
+
+defaults:
+    - _self_
+    - transformation: all
+
+    - override hydra/launcher: joblib
+    - override hydra/job_logging: colorlog
+    - override hydra/hydra_logging: colorlog
+
+hydra:
+    launcher:
+        n_jobs: 4
+    sweeper:
+        params:
+            experiment.dataset: forum,prolific,all
+            transformation: "glob(*)"
