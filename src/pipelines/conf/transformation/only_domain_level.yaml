@@ -1,4 +1,5 @@
-description: Only Domain Level
+description: Domain Level / None
+type: Binary Level
 
 task: Domain_Level
 goals: Domain_Level

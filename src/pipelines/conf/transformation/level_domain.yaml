@@ -1,4 +1,6 @@
-description: Domain_Level
+description: Domain Level Labels
+type: Reduced
+
 task: Task
 goals: Goals
 domain_data: Domain_Data

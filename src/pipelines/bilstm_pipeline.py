@@ -22,7 +22,10 @@ from tooling.loading import import_dataset
 from tooling.loading import load_dataset
 from tooling.model import data_to_list_of_token_lists
 from tooling.model import get_labels
+from tooling.model import Label_Pad
+from tooling.model import PAD
 from tooling.model import ResultDF
+from tooling.model import TORE_LABELS_0_PAD
 from tooling.observability import config_mlflow
 from tooling.observability import end_tracing
 from tooling.observability import log_artifacts
@@ -37,7 +40,7 @@ from tooling.transformation import transform_dataset
 tf.config.set_visible_devices([], "GPU")
 
 
-@hydra.main(version_base=None, config_path="conf", config_name="config_bilstm")
+@hydra.main(version_base=None, config_path="conf", config_name="epoch_sweep")
 def main(cfg: DictConfig) -> None:
     # Setup experiment
     print(OmegaConf.to_yaml(cfg))
@@ -69,6 +72,7 @@ def main(cfg: DictConfig) -> None:
         )
 
     labels = get_labels(dataset=transformed_d)
+    padded_labels: List[Label_Pad] = labels + [PAD]
 
     iteration_tracking: List[evaluation.IterationResult] = []
 
@@ -87,7 +91,9 @@ def main(cfg: DictConfig) -> None:
         )
 
         one_hot = get_one_hot_encoding(
-            dataset=data_train, sentence_length=sentence_length, labels=labels
+            dataset=data_train,
+            sentence_length=sentence_length,
+            labels=padded_labels,
         )
 
         embeddings = get_word_embeddings(
@@ -98,13 +104,13 @@ def main(cfg: DictConfig) -> None:
 
         # Configure Model
         model = construct_model(
-            n_tags=len(labels), sentence_length=sentence_length
+            n_tags=len(padded_labels), sentence_length=sentence_length
         )
 
         model.compile(
             optimizer=tf.keras.optimizers.legacy.Adam(),
             loss="categorical_crossentropy",
-            metrics=["accuracy"],
+            metrics=["accuracy", tf.keras.metrics.MeanSquaredError()],
         )
 
         # Train
@@ -117,9 +123,7 @@ def main(cfg: DictConfig) -> None:
             verbose=cfg.bilstm.verbose,
         )
 
-        model.save(
-            model_path(name=run_name, iteration=iteration), save_format="tf"
-        )
+        model.save(model_path(name=run_name, iteration=iteration))
         model.summary()
 
         # Classify
@@ -134,7 +138,8 @@ def main(cfg: DictConfig) -> None:
         )
 
         trained_model = tf.keras.models.load_model(
-            model_path(name=run_name, iteration=iteration)
+            model_path(name=run_name, iteration=iteration),
+            compile=False,  # https://github.com/tensorflow/tensorflow/issues/31850#issuecomment-578566637
         )
         predictions_one_hot = trained_model.predict(embeddings_test)
 

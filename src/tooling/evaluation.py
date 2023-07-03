@@ -158,6 +158,8 @@ class IterationResult:
 
     confusion_matrix: Path = Path()
 
+    label_count: int = 0
+
 
 def evaluate_iteration(
     run_name: str,
@@ -170,6 +172,7 @@ def evaluate_iteration(
 
     # all should-be-contained-labels
     solution_labels = get_labels(solution)
+    res.label_count = len(solution_labels)
 
     res.precision = score_precision(
         solution=solution,
@@ -214,6 +217,8 @@ def evaluate_iteration(
 
 @dataclass
 class ExperimentResult:
+    label_count: int = 0
+
     min_precision: float = 0.0
     min_recall: float = 0.0
     mean_precision: float = 0.0
@@ -233,6 +238,8 @@ def evaluate_experiment(
 ) -> ExperimentResult:
     res = ExperimentResult()
     results_df = pd.DataFrame(iteration_results)
+
+    res.label_count = results_df["label_count"].max()
 
     res.min_precision = results_df["precision"].min()
     res.mean_precision = results_df["precision"].mean()

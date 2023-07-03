@@ -45,6 +45,7 @@ def transform_dataset(
         raise ValueError("No config passed")
 
     del dict_cfg["description"]
+    del dict_cfg["type"]
 
     labels: List[Union[ToreLevel, ToreLabel, Literal["0"]]] = []
 

@@ -50,6 +50,10 @@ def end_tracing() -> None:
 
 
 def log_iteration_result(result: IterationResult) -> None:
+    mlflow.log_metric(
+        "iteration_label_count", result.label_count, step=result.step
+    )
+
     mlflow.log_metric("precision", result.precision, step=result.step)
     mlflow.log_metric("recall", result.recall, step=result.step)
 
@@ -68,6 +72,8 @@ def log_iteration_result(result: IterationResult) -> None:
 
 
 def log_experiment_result(result: ExperimentResult) -> None:
+    mlflow.log_metric("label_count", result.label_count)
+
     mlflow.log_metric("min_precision", result.min_precision)
     mlflow.log_metric("max_precision", result.max_precision)
     mlflow.log_metric("mean_precision", result.mean_precision)

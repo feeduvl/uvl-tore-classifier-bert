@@ -119,8 +119,11 @@ TORE: Tore = (
 )
 
 Label = ToreLabel | ToreLevel | Literal["0"]
+Label_Pad = Label | Literal["_"]
 
+PAD: Literal["_"] = "_"
 TORE_LABELS_0: Tuple[Label, ...] = TORE_LABELS + ("0",)
+TORE_LABELS_0_PAD: Tuple[Label_Pad, ...] = TORE_LABELS_0 + (PAD,)
 
 
 class ImportDoc(BaseModel):

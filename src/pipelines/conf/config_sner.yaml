@@ -5,14 +5,14 @@ experiment:
     average: "macro"
     dataset: forum
 
-transformation: all
+transformation: None
 
 meta:
-    mlflow_tracking_uri: "http://127.0.0.1:5000"
+    mlflow_tracking_uri: "https://bockstaller.cc"
 
 defaults:
     - _self_
-    - transformation: all
+    - transformation: None
 
     - override hydra/launcher: joblib
     - override hydra/job_logging: colorlog

@@ -1,4 +1,6 @@
-description: System_Level
+description: System Level Labels
+type: Reduced
+
 software: Software
 internal_action: Internal_Action
 internal_data: Internal_Data

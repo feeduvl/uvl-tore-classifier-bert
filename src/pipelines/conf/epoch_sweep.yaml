@@ -1,5 +1,5 @@
 experiment:
-    name: BiLSTM Solo
+    name: BiLSTM Parameter Sweep
     folds: 5
     random_state: 125
     average: "macro"
@@ -30,5 +30,9 @@ hydra:
         n_jobs: 8
     sweeper:
         params:
-            experiment.dataset: forum,prolific,all
-            transformation: "glob(*)"
+            experiment.dataset: prolific
+            bilstm.batch_size: 8,16,24,32,64
+            bilstm.number_epochs: 10,20,30,40,50
+            transformation: "none"
+            experiment.folds: 5
+            bilstm.validation_split: 0.01,0.05,0.1

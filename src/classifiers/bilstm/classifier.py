@@ -20,6 +20,8 @@ from tooling.model import data_to_list_of_token_lists
 from tooling.model import DataDF
 from tooling.model import get_labels
 from tooling.model import Label
+from tooling.model import Label_Pad
+from tooling.model import PAD
 from tooling.model import ResultDF
 
 
@@ -54,7 +56,7 @@ def get_glove_model() -> pd.DataFrame:
 
 def get_one_hot_encoding(
     dataset: DataSet[DataDF],
-    labels: Sequence[Label],
+    labels: Sequence[Label_Pad],
     sentence_length: int,
 ) -> npt.NDArray[np.int32]:
     sentences_label_list = data_to_list_of_label_lists(data=dataset)

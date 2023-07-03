@@ -1,4 +1,5 @@
-description: Only Interaction
+description: Interaction Level / None
+type: Binary Level
 
 system_function: Interaction_Level
 interaction: Interaction_Level
