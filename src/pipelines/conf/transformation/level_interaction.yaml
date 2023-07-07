@@ -3,5 +3,5 @@ type: Reduced
 
 system_function: System_Function
 interaction: Interaction
-interaction_Data: Interaction_Data
+interaction_data: Interaction_Data
 workspace: Workspace

@@ -1,12 +1,10 @@
-import itertools
 from typing import cast
 from typing import List
 
 import hydra
 import numpy as np
-import pandas as pd
 import tensorflow as tf
-from omegaconf import DictConfig
+from hydra.core.config_store import ConfigStore
 from omegaconf import OmegaConf
 from strictly_typed_pandas import DataSet
 
@@ -18,6 +16,7 @@ from classifiers.bilstm import reverse_one_hot_encoding
 from classifiers.bilstm.files import model_path
 from data import get_dataset_information
 from tooling import evaluation
+from tooling.config import BiLSTMConfig
 from tooling.loading import import_dataset
 from tooling.loading import load_dataset
 from tooling.model import data_to_list_of_token_lists
@@ -25,7 +24,6 @@ from tooling.model import get_labels
 from tooling.model import Label_Pad
 from tooling.model import PAD
 from tooling.model import ResultDF
-from tooling.model import TORE_LABELS_0_PAD
 from tooling.observability import config_mlflow
 from tooling.observability import end_tracing
 from tooling.observability import log_artifacts
@@ -40,8 +38,12 @@ from tooling.transformation import transform_dataset
 tf.config.set_visible_devices([], "GPU")
 
 
+cs = ConfigStore.instance()
+cs.store(name="base_config", node=BiLSTMConfig)
+
+
 @hydra.main(version_base=None, config_path="conf", config_name="epoch_sweep")
-def main(cfg: DictConfig) -> None:
+def main(cfg: BiLSTMConfig) -> None:
     # Setup experiment
     print(OmegaConf.to_yaml(cfg))
     run_name = config_mlflow(cfg)

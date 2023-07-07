@@ -1,11 +1,8 @@
-from typing import cast
 from typing import List
 
 import hydra
-import pandas as pd
-from omegaconf import DictConfig
+from hydra.core.config_store import ConfigStore
 from omegaconf import OmegaConf
-from strictly_typed_pandas import DataSet
 
 from classifiers.sner import classify_sentences
 from classifiers.sner import create_config_file
@@ -16,9 +13,10 @@ from classifiers.sner.files import load_result
 from classifiers.sner.files import load_solution
 from data import get_dataset_information
 from tooling import evaluation
+from tooling.config import SNERConfig
+from tooling.config import Transformation
 from tooling.loading import import_dataset
 from tooling.loading import load_dataset
-from tooling.model import ResultDF
 from tooling.observability import config_mlflow
 from tooling.observability import end_tracing
 from tooling.observability import log_artifacts
@@ -31,8 +29,15 @@ from tooling.sampling import split_dataset_k_fold
 from tooling.transformation import transform_dataset
 
 
+cs = ConfigStore.instance()
+cs.store(name="base_config", node=SNERConfig)
+cs.store(
+    group="transformation", name="base_label_activity", node=Transformation
+)
+
+
 @hydra.main(version_base=None, config_path="conf", config_name="config_sner")
-def main(cfg: DictConfig) -> None:
+def main(cfg: SNERConfig) -> None:
     # Setup experiment
     print(OmegaConf.to_yaml(cfg))
     run_name = config_mlflow(cfg)

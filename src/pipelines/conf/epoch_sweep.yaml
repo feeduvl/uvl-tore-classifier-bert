@@ -1,29 +1,16 @@
-experiment:
-    name: BiLSTM Parameter Sweep
-    folds: 5
-    random_state: 125
-    average: "macro"
-    dataset: prolific
-
-transformation: None
-
-bilstm:
-    sentence_length:
-    batch_size: 32
-    number_epochs: 10
-    validation_split: 0.1
-    verbose: 1
-
-meta:
-    mlflow_tracking_uri: "https://bockstaller.cc"
-
 defaults:
-    - _self_
-    - transformation: levels
+    - base_config
+    - transformation: none
 
     - override hydra/launcher: joblib
     - override hydra/job_logging: colorlog
     - override hydra/hydra_logging: colorlog
+
+    - _self_
+
+experiment:
+    name: BiLSTM Test
+    dataset: prolific
 
 hydra:
     launcher:
@@ -33,6 +20,4 @@ hydra:
             experiment.dataset: prolific
             bilstm.batch_size: 8,16,24,32,64
             bilstm.number_epochs: 10,20,30,40,50
-            transformation: "none"
-            experiment.folds: 5
             bilstm.validation_split: 0.01,0.05,0.1

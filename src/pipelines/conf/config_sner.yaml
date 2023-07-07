@@ -1,22 +1,16 @@
-experiment:
-    name: SNER Solo
-    folds: 5
-    random_state: 125
-    average: "macro"
-    dataset: forum
-
-transformation: None
-
-meta:
-    mlflow_tracking_uri: "https://bockstaller.cc"
-
 defaults:
-    - _self_
-    - transformation: None
+    - base_config
+    - transformation: none
 
     - override hydra/launcher: joblib
     - override hydra/job_logging: colorlog
     - override hydra/hydra_logging: colorlog
+
+    - _self_
+
+experiment:
+    name: SNER Test
+    dataset: forum
 
 hydra:
     launcher:

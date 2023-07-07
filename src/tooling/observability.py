@@ -1,11 +1,18 @@
+import collections
 import statistics
 from collections.abc import (
     Iterable,
 )
+from collections.abc import MutableMapping
+from dataclasses import asdict
 from pathlib import Path
+from typing import Any
 from typing import cast
 from typing import Dict
 from typing import List
+from typing import Never
+from typing import Optional
+from typing import Tuple
 from typing import Union
 
 import mlflow
@@ -13,6 +20,7 @@ import pandas as pd
 from omegaconf import DictConfig
 from omegaconf import OmegaConf
 
+from tooling.config import Config
 from tooling.evaluation import ExperimentResult
 from tooling.evaluation import IterationResult
 from tooling.model import Label
@@ -26,14 +34,42 @@ def log_artifacts(artifact_paths: Union[Path, Iterable[Path]]) -> None:
         mlflow.log_artifact(artifact_paths)
 
 
-def log_config(cfg: DictConfig) -> None:
-    df = pd.json_normalize(
-        cast(Dict[str, str], OmegaConf.to_object(cfg)), sep="."
+def flatten(
+    dictionary: MutableMapping[str, Any],
+    parent_key: Optional[str] = None,
+    separator: str = "_",
+) -> Dict[str, Any]:
+    """
+    Turn a nested dictionary into a flattened dictionary
+    :param dictionary: The dictionary to flatten
+    :param parent_key: The string to prepend to dictionary's keys
+    :param separator: The string used to separate flattened keys
+    :return: A flattened dictionary
+    """
+
+    items: List[Tuple[str, Any]] = []
+    for key, value in dictionary.items():
+        new_key = str(parent_key) + separator + key if parent_key else key
+        if isinstance(value, collections.abc.MutableMapping):
+            items.extend(flatten(value, new_key, separator).items())
+        elif isinstance(value, list):
+            for k, v in enumerate(value):
+                items.extend(flatten({str(k): v}, new_key).items())
+        else:
+            items.append((new_key, value))
+    return dict(items)
+
+
+def log_config(cfg: Config) -> None:
+    config = flatten(
+        cast(Dict[str, str], OmegaConf.to_container(cfg, resolve=True)),
+        separator=".",
     )
-    mlflow.log_params(params=df.to_dict(orient="records")[0])
+
+    mlflow.log_params(config)
 
 
-def config_mlflow(cfg: DictConfig) -> str:
+def config_mlflow(cfg: Config) -> str:
     mlflow.set_tracking_uri(cfg.meta.mlflow_tracking_uri)
     mlflow.set_experiment(cfg.experiment.name)
     mlflow.autolog()

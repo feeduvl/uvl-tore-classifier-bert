@@ -9,6 +9,7 @@ import omegaconf
 import pandas as pd
 from strictly_typed_pandas import DataSet
 
+from tooling.config import Transformation
 from tooling.model import DataDF
 from tooling.model import Token
 from tooling.model import TORE_LABELS
@@ -37,7 +38,7 @@ def transform_token_label(
 
 
 def transform_dataset(
-    dataset: DataSet[DataDF], cfg: omegaconf.DictConfig
+    dataset: DataSet[DataDF], cfg: Transformation
 ) -> Tuple[List[Union[ToreLevel, ToreLabel, Literal["0"]]], DataSet[DataDF]]:
     dict_cfg = omegaconf.OmegaConf.to_container(cfg)
 
@@ -50,13 +51,13 @@ def transform_dataset(
     labels: List[Union[ToreLevel, ToreLabel, Literal["0"]]] = []
 
     for new_value in dict_cfg.values():
-        if new_value in TORE_LABELS:
+        if new_value is None:
+            continue
+        elif new_value in TORE_LABELS:
             labels.append(new_value)
             continue
         elif new_value in TORE_LEVEL:
             labels.append(new_value)
-            continue
-        elif new_value is None:
             continue
         else:
             raise ValueError(

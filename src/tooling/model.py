@@ -99,7 +99,11 @@ SystemLevel = Literal["System_Level"]
 SYSTEM_LEVEL: SystemLevel = typing.get_args(SystemLevel)[0]
 
 ToreLevel = Literal[DomainLevel, InteractionLevel, SystemLevel]
-TORE_LEVEL = [DOMAIN_LEVEL, INTERACTION_LEVEL, SYSTEM_LEVEL]
+TORE_LEVEL: Tuple[ToreLevel, ...] = (
+    DOMAIN_LEVEL,
+    INTERACTION_LEVEL,
+    SYSTEM_LEVEL,
+)
 
 Domain: TypeAlias = Tuple[DomainLevel, Tuple[DomainLevelLabel, ...]]
 Interaction: TypeAlias = Tuple[
@@ -118,12 +122,16 @@ TORE: Tore = (
     SYSTEM,
 )
 
-Label = ToreLabel | ToreLevel | Literal["0"]
+Label = Literal[ToreLabel, ToreLevel, Literal["0"]]
 Label_Pad = Label | Literal["_"]
 
 PAD: Literal["_"] = "_"
+
 TORE_LABELS_0: Tuple[Label, ...] = TORE_LABELS + ("0",)
 TORE_LABELS_0_PAD: Tuple[Label_Pad, ...] = TORE_LABELS_0 + (PAD,)
+
+LABELS_0: Tuple[Label, ...] = TORE_LABELS + TORE_LEVEL + ("0",)
+LABELS_0_PAD: Tuple[Label_Pad, ...] = TORE_LABELS_0 + TORE_LEVEL + (PAD,)
 
 
 class ImportDoc(BaseModel):
