@@ -84,9 +84,6 @@ ImportToreLabel = Literal[
     ImportSystemLevelLabel, ImportInteractionLevelLabel, ImportDomainLevelLabel
 ]
 ToreLabel = Literal[SystemLevelLabel, InteractionLevelLabel, DomainLevelLabel]
-TORE_LABELS = (
-    DOMAIN_LEVEL_LABELS + INTERACTION_LEVEL_LABELS + SYSTEM_LEVEL_LABELS
-)
 
 
 DomainLevel = Literal["Domain_Level"]
@@ -122,16 +119,44 @@ TORE: Tore = (
     SYSTEM,
 )
 
-Label = Literal[ToreLabel, ToreLevel, Literal["0"]]
-Label_Pad = Label | Literal["_"]
+NoneLabel = Literal["0"]
+Pad = Literal["_"]
 
-PAD: Literal["_"] = "_"
+ZERO: NoneLabel = "0"
+PAD: Pad = "_"
 
-TORE_LABELS_0: Tuple[Label, ...] = TORE_LABELS + ("0",)
-TORE_LABELS_0_PAD: Tuple[Label_Pad, ...] = TORE_LABELS_0 + (PAD,)
+Label = Literal[ToreLabel, ToreLevel]
+Label_None = Literal[ToreLabel, ToreLevel, NoneLabel]
+Label_None_Pad = Label_None | Literal["_"]
 
-LABELS_0: Tuple[Label, ...] = TORE_LABELS + TORE_LEVEL + ("0",)
-LABELS_0_PAD: Tuple[Label_Pad, ...] = TORE_LABELS_0 + TORE_LEVEL + (PAD,)
+TORE_LABELS = (
+    DOMAIN_LEVEL_LABELS + INTERACTION_LEVEL_LABELS + SYSTEM_LEVEL_LABELS
+)
+TORE_LABELS_NONE: Tuple[Label_None, ...] = (ZERO,) + TORE_LABELS
+TORE_LABELS_NONE_PAD: Tuple[Label_None_Pad, ...] = TORE_LABELS_NONE + (PAD,)
+
+LABELS: Tuple[Label, ...] = TORE_LABELS + TORE_LEVEL
+LABELS_NONE: Tuple[Label_None, ...] = (ZERO,) + TORE_LABELS + TORE_LEVEL
+LABELS_NONE_PAD: Tuple[Label_None_Pad, ...] = (
+    (ZERO,) + TORE_LABELS + TORE_LEVEL + (PAD,)
+)
+
+
+def label_to_id(label: Label_None_Pad) -> int:
+    try:
+        return LABELS_NONE.index(label)
+    except ValueError as e:
+        if label == PAD:
+            return -1
+        else:
+            raise e
+
+
+def id_to_label(label_id: int) -> Label_None_Pad:
+    if label_id == -1:
+        return PAD
+
+    return LABELS_NONE[label_id]
 
 
 class ImportDoc(BaseModel):
@@ -177,7 +202,7 @@ class Token:
 
     source: str
 
-    tore_label: Optional[Label]
+    tore_label: Optional[Label | Pad | NoneLabel]
 
 
 class DataDF:
@@ -201,7 +226,7 @@ class ResultDF:
 
 def create_datadf(data: pd.DataFrame) -> DataSet[DataDF]:
     datadf = data[["sentence_id", "sentence_idx", "string", "tore_label"]]
-    return cast(DataSet[DataDF], data)
+    return cast(DataSet[DataDF], datadf)
 
 
 def data_to_sentences(data: DataSet[DataDF]) -> List[str]:

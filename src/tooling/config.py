@@ -10,8 +10,7 @@ import hydra
 from hydra.core.config_store import ConfigStore
 from omegaconf import MISSING
 
-from tooling.model import Label
-from tooling.model import LABELS_0
+from tooling.model import LABELS_NONE
 
 
 @dataclass
@@ -23,7 +22,7 @@ class Experiment:
     dataset: str = "prolific"
 
 
-enum_dict: Dict[str, str] = {k: k for k in LABELS_0}
+enum_dict: Dict[str, str] = {k: k for k in LABELS_NONE}
 
 
 LABELS_ENUM = Enum("", enum_dict)  # type: ignore[misc]

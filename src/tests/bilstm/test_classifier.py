@@ -13,15 +13,15 @@ from classifiers.bilstm import get_one_hot_encoding
 from classifiers.bilstm import reverse_one_hot_encoding
 from tooling.model import DataDF
 from tooling.model import get_labels
-from tooling.model import Label
+from tooling.model import Label_None_Pad
 from tooling.model import Token
 from tooling.model import tokenlist_to_datadf
-from tooling.model import TORE_LABELS_0
+from tooling.model import TORE_LABELS_NONE_PAD
 
 
 def test_one_hot_encoding() -> None:
     sentences = []
-    label_selection: Sequence[Label] = TORE_LABELS_0
+    label_selection: Sequence[Label_None_Pad] = TORE_LABELS_NONE_PAD
     generation_sentence_length = 10
 
     dfs = []

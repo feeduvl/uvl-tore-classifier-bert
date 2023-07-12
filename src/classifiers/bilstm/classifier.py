@@ -1,9 +1,6 @@
-import itertools
-from collections.abc import Iterable
 from collections.abc import Sequence
 from typing import Any
 from typing import cast
-from typing import Dict
 from typing import List
 
 import gensim.downloader as api
@@ -18,10 +15,7 @@ from strictly_typed_pandas import DataSet
 from tooling.model import data_to_list_of_label_lists
 from tooling.model import data_to_list_of_token_lists
 from tooling.model import DataDF
-from tooling.model import get_labels
-from tooling.model import Label
-from tooling.model import Label_Pad
-from tooling.model import PAD
+from tooling.model import Label_None_Pad
 from tooling.model import ResultDF
 
 
@@ -56,7 +50,7 @@ def get_glove_model() -> pd.DataFrame:
 
 def get_one_hot_encoding(
     dataset: DataSet[DataDF],
-    labels: Sequence[Label_Pad],
+    labels: Sequence[Label_None_Pad],
     sentence_length: int,
 ) -> npt.NDArray[np.int32]:
     sentences_label_list = data_to_list_of_label_lists(data=dataset)
@@ -83,16 +77,16 @@ def get_one_hot_encoding(
 
 def reverse_sentence_one_hot_encoding(
     categorical_data: npt.NDArray[np.int32] | npt.NDArray[np.float32],
-    labels: Sequence[Label],
+    labels: Sequence[Label_None_Pad],
     sentence_length: int,
-) -> List[Label]:
+) -> List[Label_None_Pad]:
     padded_label_id_list: npt.NDArray[np.int32] = np.argmax(
         categorical_data, axis=-1
     )
 
     label_id_list = padded_label_id_list[:sentence_length]
 
-    label_list: List[Label] = []
+    label_list: List[Label_None_Pad] = []
     for label_id in label_id_list:
         label_list.append(labels[label_id])
 
@@ -102,9 +96,9 @@ def reverse_sentence_one_hot_encoding(
 def reverse_one_hot_encoding(
     dataset: DataSet[DataDF],
     categorical_data: npt.NDArray[np.int32] | npt.NDArray[np.float32],
-    labels: Sequence[Label],
+    labels: Sequence[Label_None_Pad],
 ) -> DataSet[ResultDF]:
-    label_list: List[Label] = []
+    label_list: List[Label_None_Pad] = []
 
     actual_sentence_lengths = [
         len(token_list) for token_list in data_to_list_of_token_lists(dataset)

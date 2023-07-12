@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 from typing import cast
 from typing import List
 
@@ -21,7 +22,7 @@ from tooling.loading import import_dataset
 from tooling.loading import load_dataset
 from tooling.model import data_to_list_of_token_lists
 from tooling.model import get_labels
-from tooling.model import Label_Pad
+from tooling.model import Label_None_Pad
 from tooling.model import PAD
 from tooling.model import ResultDF
 from tooling.observability import config_mlflow
@@ -74,7 +75,7 @@ def main(cfg: BiLSTMConfig) -> None:
         )
 
     labels = get_labels(dataset=transformed_d)
-    padded_labels: List[Label_Pad] = labels + [PAD]
+    padded_labels: Sequence[Label_None_Pad] = labels + [PAD]
 
     iteration_tracking: List[evaluation.IterationResult] = []
 
