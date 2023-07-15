@@ -1,7 +1,9 @@
 -e .
+accelerate
 black[jupyter]
 dvc
 dvclive
+evaluate
 gensim
 hydra-core
 hydra-joblib-launcher
@@ -20,5 +22,8 @@ pydantic
 pytest
 rich
 scikit-learn
+seqeval[gpu]
 strictly-typed-pandas
 tensorflow
+torch
+transformers

@@ -10,7 +10,9 @@ from omegaconf import OmegaConf
 from strictly_typed_pandas import DataSet
 
 from classifiers.bilstm import construct_model
+from classifiers.bilstm import get_embeddings_and_categorical
 from classifiers.bilstm import get_glove_model
+from classifiers.bilstm import get_model
 from classifiers.bilstm import get_one_hot_encoding
 from classifiers.bilstm import get_word_embeddings
 from classifiers.bilstm import reverse_one_hot_encoding
@@ -43,7 +45,7 @@ cs = ConfigStore.instance()
 cs.store(name="base_config", node=BiLSTMConfig)
 
 
-@hydra.main(version_base=None, config_path="conf", config_name="epoch_sweep")
+@hydra.main(version_base=None, config_path="conf", config_name="config_bilstm")
 def main(cfg: BiLSTMConfig) -> None:
     # Setup experiment
     print(OmegaConf.to_yaml(cfg))
@@ -93,33 +95,22 @@ def main(cfg: BiLSTMConfig) -> None:
             name=run_name, filename=DATA_TRAIN, iteration=iteration
         )
 
-        one_hot = get_one_hot_encoding(
+        categorical, embeddings = get_embeddings_and_categorical(
             dataset=data_train,
             sentence_length=sentence_length,
             labels=padded_labels,
-        )
-
-        embeddings = get_word_embeddings(
-            dataset=data_train,
             glove_model=glove_model,
-            sentence_length=sentence_length,
         )
 
-        # Configure Model
-        model = construct_model(
+        # Get Model
+        model = get_model(
             n_tags=len(padded_labels), sentence_length=sentence_length
         )
 
-        model.compile(
-            optimizer=tf.keras.optimizers.legacy.Adam(),
-            loss="categorical_crossentropy",
-            metrics=["accuracy", tf.keras.metrics.MeanSquaredError()],
-        )
-
         # Train
-        history = model.fit(
+        model.fit(
             np.array(embeddings),
-            np.array(one_hot),
+            np.array(categorical),
             batch_size=cfg.bilstm.batch_size,
             epochs=cfg.bilstm.number_epochs,
             validation_split=cfg.bilstm.validation_split,
@@ -127,35 +118,35 @@ def main(cfg: BiLSTMConfig) -> None:
         )
 
         model.save(model_path(name=run_name, iteration=iteration))
-        model.summary()
 
         # Classify
         data_test = load_split_dataset(
             name=run_name, filename=DATA_TEST, iteration=iteration
         )
 
-        embeddings_test = get_word_embeddings(
+        categorical_test, embeddings_test = get_embeddings_and_categorical(
             dataset=data_test,
-            glove_model=glove_model,
             sentence_length=sentence_length,
+            labels=padded_labels,
+            glove_model=glove_model,
         )
 
         trained_model = tf.keras.models.load_model(
             model_path(name=run_name, iteration=iteration),
             compile=False,  # https://github.com/tensorflow/tensorflow/issues/31850#issuecomment-578566637
         )
-        predictions_one_hot = trained_model.predict(embeddings_test)
-
-        result = reverse_one_hot_encoding(
-            dataset=data_test,
-            categorical_data=predictions_one_hot,
-            labels=labels,
-        )
+        categorical_predictions = trained_model.predict(embeddings_test)
 
         # Create Solution
         solution = cast(DataSet[ResultDF], data_test[["string", "tore_label"]])
 
         # Evaluate Iteration
+        result = reverse_one_hot_encoding(
+            dataset=data_test,
+            categorical_data=categorical_predictions,
+            labels=labels,
+        )
+
         iteration_result = evaluation.evaluate_iteration(
             run_name=run_name,
             iteration=iteration,

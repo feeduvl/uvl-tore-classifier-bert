@@ -2,6 +2,7 @@ from collections.abc import Sequence
 from typing import Any
 from typing import cast
 from typing import List
+from typing import Tuple
 
 import gensim.downloader as api
 import numpy as np
@@ -15,7 +16,10 @@ from strictly_typed_pandas import DataSet
 from tooling.model import data_to_list_of_label_lists
 from tooling.model import data_to_list_of_token_lists
 from tooling.model import DataDF
+from tooling.model import id_to_label
 from tooling.model import Label_None_Pad
+from tooling.model import label_to_id
+from tooling.model import PAD
 from tooling.model import ResultDF
 
 
@@ -44,6 +48,20 @@ def construct_model(n_tags: int, sentence_length: int) -> tf.keras.Model:
     return tf.keras.Model(input, out)
 
 
+def compile_model(model: tf.keras.Model) -> None:
+    model.compile(
+        optimizer=tf.keras.optimizers.legacy.Adam(),
+        loss="categorical_crossentropy",
+        metrics=["accuracy", tf.keras.metrics.MeanSquaredError()],
+    )
+
+
+def get_model(n_tags: int, sentence_length: int) -> tf.keras.Model:
+    model = construct_model(n_tags=n_tags, sentence_length=sentence_length)
+    compile_model(model)
+    return model
+
+
 def get_glove_model() -> pd.DataFrame:
     return cast(pd.DataFrame, api.load("glove-twitter-100"))
 
@@ -59,14 +77,14 @@ def get_one_hot_encoding(
     for sentence_tl in sentences_label_list:
         sentence_token_id_list: List[int] = []
         for token_tore_label in sentence_tl:
-            sentence_token_id_list.append(labels.index(token_tore_label))
+            sentence_token_id_list.append(label_to_id(token_tore_label))
         sentences_label_id_list.append(sentence_token_id_list)
 
     padded_sent_label_id_list = pad_sequences(
         sequences=sentences_label_id_list,
         maxlen=sentence_length,
         padding="post",
-        value=labels.index("0"),
+        value=label_to_id(PAD),
     )
 
     return cast(
@@ -88,7 +106,7 @@ def reverse_sentence_one_hot_encoding(
 
     label_list: List[Label_None_Pad] = []
     for label_id in label_id_list:
-        label_list.append(labels[label_id])
+        label_list.append(id_to_label(label_id))
 
     return label_list
 
@@ -159,3 +177,24 @@ def get_word_embeddings(
     ]
 
     return sized_word_embeddings
+
+
+def get_embeddings_and_categorical(
+    dataset: DataSet[DataDF],
+    sentence_length: int,
+    labels: Sequence[Label_None_Pad],
+    glove_model: pd.DataFrame,
+) -> Tuple[npt.NDArray[np.int32], List[List[Any]]]:
+    one_hot = get_one_hot_encoding(
+        dataset=dataset,
+        sentence_length=sentence_length,
+        labels=labels,
+    )
+
+    embeddings = get_word_embeddings(
+        dataset=dataset,
+        glove_model=glove_model,
+        sentence_length=sentence_length,
+    )
+
+    return (one_hot, embeddings)

@@ -6,10 +6,12 @@ from collections import Counter
 from collections.abc import Sequence
 from datetime import datetime
 from typing import cast
+from typing import Dict
 from typing import get_args
 from typing import List
 from typing import Literal
 from typing import Optional
+from typing import overload
 from typing import Tuple
 from typing import TypeAlias
 from typing import Union
@@ -159,6 +161,14 @@ def id_to_label(label_id: int) -> Label_None_Pad:
     return LABELS_NONE[label_id]
 
 
+def get_label2id(labels: Sequence[Label_None_Pad]) -> Dict[str, int]:
+    return {label: label_to_id(label) for label in labels}
+
+
+def get_id2label(labels: Sequence[Label_None_Pad]) -> Dict[int, str]:
+    return {label_to_id(label): label for label in labels}
+
+
 class ImportDoc(BaseModel):
     name: str
     begin_index: int
@@ -205,6 +215,7 @@ class Token:
     tore_label: Optional[Label | Pad | NoneLabel]
 
 
+@dataclass
 class DataDF:
     id: int
     sentence_id: uuid.UUID
@@ -213,13 +224,17 @@ class DataDF:
     tore_label: Optional[Label]
 
 
+TokenizedDataDF = typing.NewType("TokenizedDataDF", DataDF)
+
+
 class SentencesDF:
     id: int
     sentences_id: uuid.UUID
 
 
+@dataclass
 class ResultDF:
-    id: int
+    id: Optional[int]
     string: str
     tore_label: Optional[Label]
 
@@ -227,6 +242,11 @@ class ResultDF:
 def create_datadf(data: pd.DataFrame) -> DataSet[DataDF]:
     datadf = data[["sentence_id", "sentence_idx", "string", "tore_label"]]
     return cast(DataSet[DataDF], datadf)
+
+
+def create_resultdf(data: pd.DataFrame) -> DataSet[ResultDF]:
+    datadf = data[["string", "tore_label"]]
+    return cast(DataSet[ResultDF], datadf)
 
 
 def data_to_sentences(data: DataSet[DataDF]) -> List[str]:
@@ -251,18 +271,40 @@ def data_to_list_of_token_lists(
     return sentences
 
 
+@overload
 def data_to_list_of_label_lists(
-    data: DataSet[DataDF],
-) -> List[List[Label]]:
-    sentences: List[List[Label]] = []
+    data: DataSet[DataDF], use_label_ids: Literal[False]
+) -> List[List[Label_None_Pad]]:
+    ...
 
-    for sentence_idx, grouped_data in data.groupby("sentence_id"):
-        sentence = [
-            cast(Label, string) for string in grouped_data["tore_label"]
-        ]
-        sentences.append(sentence)
 
-    return sentences
+@overload
+def data_to_list_of_label_lists(
+    data: DataSet[DataDF], use_label_ids: Literal[True]
+) -> List[List[int]]:
+    ...
+
+
+def data_to_list_of_label_lists(
+    data: DataSet[DataDF], use_label_ids: bool = False
+) -> Union[List[List[Label_None_Pad]], List[List[int]]]:
+    if use_label_ids:
+        id_sentences = []
+        for sentence_idx, grouped_data in data.groupby("sentence_id"):
+            sentence_id = [
+                label_to_id(string) for string in grouped_data["tore_label"]
+            ]
+            id_sentences.append(sentence_id)
+        return id_sentences
+    else:
+        label_sentences = []
+        for sentence_idx, grouped_data in data.groupby("sentence_id"):
+            sentence_label = [
+                cast(Label_None_Pad, string)
+                for string in grouped_data["tore_label"]
+            ]
+            label_sentences.append(sentence_label)
+        return label_sentences
 
 
 def get_labels(

@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import cast
 from typing import Dict
 from typing import List
+from typing import Optional
 from typing import overload
 from typing import Tuple
 
@@ -156,7 +157,7 @@ class IterationResult:
     pl_precision: Dict[Label, float] = field(default_factory=dict)
     pl_recall: Dict[Label, float] = field(default_factory=dict)
 
-    confusion_matrix: Path = Path()
+    confusion_matrix: Optional[Path] = None
 
     label_count: int = 0
 
@@ -167,6 +168,7 @@ def evaluate_iteration(
     average: str,
     solution: DataSet[ResultDF],
     result: DataSet[ResultDF],
+    create_confusion_matrix: bool = True,
 ) -> IterationResult:
     res = IterationResult(step=iteration, result=result, solution=solution)
 
@@ -205,12 +207,13 @@ def evaluate_iteration(
 
     res.pl_recall = dict(zip(solution_labels, pl_recall, strict=True))
 
-    res.confusion_matrix = confusion_matrix(
-        name=run_name,
-        iteration=iteration,
-        solution=solution,
-        results=result,
-    )
+    if create_confusion_matrix:
+        res.confusion_matrix = confusion_matrix(
+            name=run_name,
+            iteration=iteration,
+            solution=solution,
+            results=result,
+        )
 
     return res
 

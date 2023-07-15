@@ -48,6 +48,7 @@ SAMPLING_TEMP = TEMP.joinpath(Path("sampling"))
 SNER_TEMP = TEMP.joinpath(Path("sner"))
 
 BILSTM_TEMP = TEMP.joinpath(Path("bilstm"))
+BERT_TEMP = TEMP.joinpath(Path("bert"))
 
 EVALUATION_TEMP = TEMP.joinpath(Path("evaluation"))
 
@@ -62,6 +63,7 @@ loading_filepath = partial(filename, basepath=LOADING_TEMP)
 sampling_filepath = partial(filename, basepath=SAMPLING_TEMP)
 sner_filepath = partial(filename, basepath=SNER_TEMP)
 bilstm_filepath = partial(filename, basepath=BILSTM_TEMP)
+bert_filepath = partial(filename, basepath=BERT_TEMP)
 
 evaluation_filepath = partial(filename, basepath=EVALUATION_TEMP)
 
