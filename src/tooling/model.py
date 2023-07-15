@@ -162,11 +162,15 @@ def id_to_label(label_id: int) -> Label_None_Pad:
 
 
 def get_label2id(labels: Sequence[Label_None_Pad]) -> Dict[str, int]:
-    return {label: label_to_id(label) for label in labels}
+    sorted_labels = list(labels)
+    sorted_labels.sort(key=lambda x: LABELS_NONE.index(x))
+    return {label: idx for idx, label in enumerate(sorted_labels)}
 
 
 def get_id2label(labels: Sequence[Label_None_Pad]) -> Dict[int, str]:
-    return {label_to_id(label): label for label in labels}
+    sorted_labels = list(labels)
+    sorted_labels.sort(key=lambda x: LABELS_NONE.index(x))
+    return {idx: label for idx, label in enumerate(sorted_labels)}
 
 
 class ImportDoc(BaseModel):
@@ -273,26 +277,26 @@ def data_to_list_of_token_lists(
 
 @overload
 def data_to_list_of_label_lists(
-    data: DataSet[DataDF], use_label_ids: Literal[False]
+    data: DataSet[DataDF], label2id: None
 ) -> List[List[Label_None_Pad]]:
     ...
 
 
 @overload
 def data_to_list_of_label_lists(
-    data: DataSet[DataDF], use_label_ids: Literal[True]
+    data: DataSet[DataDF], label2id: Dict[str, int]
 ) -> List[List[int]]:
     ...
 
 
 def data_to_list_of_label_lists(
-    data: DataSet[DataDF], use_label_ids: bool = False
+    data: DataSet[DataDF], label2id: Optional[Dict[str, int]] = None
 ) -> Union[List[List[Label_None_Pad]], List[List[int]]]:
-    if use_label_ids:
+    if label2id:
         id_sentences = []
         for sentence_idx, grouped_data in data.groupby("sentence_id"):
             sentence_id = [
-                label_to_id(string) for string in grouped_data["tore_label"]
+                label2id[string] for string in grouped_data["tore_label"]
             ]
             id_sentences.append(sentence_id)
         return id_sentences

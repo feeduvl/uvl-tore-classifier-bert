@@ -3,6 +3,7 @@ from typing import cast
 from typing import List
 
 import hydra
+import mlflow
 import numpy as np
 import tensorflow as tf
 import torch
@@ -29,11 +30,12 @@ from classifiers.bert.classifier import get_compute_metrics
 from classifiers.bert.classifier import get_tokenize_and_align_labels
 from classifiers.bert.classifier import prepare_data
 from classifiers.bert.classifier import tokenize_and_align_labels
+from classifiers.bert.files import logging_path
 from classifiers.bert.files import model_path
 from classifiers.bert.files import output_path
 from data import get_dataset_information
 from tooling import evaluation
-from tooling.config import BiLSTMConfig
+from tooling.config import BERTConfig
 from tooling.loading import import_dataset
 from tooling.loading import load_dataset
 from tooling.model import data_to_list_of_token_lists
@@ -57,19 +59,14 @@ from tooling.transformation import transform_dataset
 
 
 cs = ConfigStore.instance()
-cs.store(name="base_config", node=BiLSTMConfig)
+cs.store(name="base_config", node=BERTConfig)
 
-MAX_LEN = 128
-TRAIN_BATCH_SIZE = 4
-VALID_BATCH_SIZE = 2
-EPOCHS = 1
-LEARNING_RATE = 1e-05
-MAX_GRAD_NORM = 10
+
 TOKENIZER = BertTokenizerFast.from_pretrained("bert-base-uncased")
 
 
 @hydra.main(version_base=None, config_path="conf", config_name="config_bert")
-def main(cfg: BiLSTMConfig) -> None:
+def main(cfg: BERTConfig) -> None:
     # Setup experiment
     print(OmegaConf.to_yaml(cfg))
     run_name = config_mlflow(cfg)
@@ -85,20 +82,43 @@ def main(cfg: BiLSTMConfig) -> None:
 
     # Transform Dataset
     d = load_dataset(name=run_name)
+
     dataset_labels, transformed_d = transform_dataset(
         dataset=d, cfg=cfg.transformation
     )
-
     transformed_d.fillna(ZERO, inplace=True)
 
-    sentence_length = cfg.bilstm.sentence_length
-    if sentence_length is None:
-        sentences_token_list = data_to_list_of_token_lists(data=transformed_d)
-        sentence_length = max(
-            [len(sentence_tl) for sentence_tl in sentences_token_list]
+    id2label = get_id2label(dataset_labels)
+    label2id = get_label2id(dataset_labels)
+
+    if cfg.bert.max_len is None:
+        t_a_a_l_test = get_tokenize_and_align_labels(
+            tokenizer=TOKENIZER, max_len=None, truncation=False
+        )
+        test_data = create_tore_dataset(data=transformed_d, label2id=label2id)
+        test_data = test_data.map(
+            t_a_a_l_test,
+            batched=True,
+        )
+        test_data = test_data.rename_columns(
+            {"string": "text", "tore_label_id": "labels"}
         )
 
+        max_len = max([len(s) for s in test_data["text"]])
+    else:
+        max_len = cfg.bert.max_len
+
+    print(f"max_len: {max_len}")
+
+    mlflow.log_param("dataset_labels", dataset_labels)
+
     iteration_tracking: List[evaluation.IterationResult] = []
+    compute_iteration_metrics = get_compute_metrics(
+        iteration_tracking=iteration_tracking,
+        average=cfg.experiment.average,
+        run_name=run_name,
+        id2label=id2label,
+    )
 
     # Start kfold
     for iteration, dataset_paths in split_dataset_k_fold(
@@ -110,14 +130,14 @@ def main(cfg: BiLSTMConfig) -> None:
         log_artifacts(dataset_paths)
 
         t_a_a_l = get_tokenize_and_align_labels(
-            max_len=MAX_LEN, tokenizer=TOKENIZER
+            tokenizer=TOKENIZER, max_len=max_len, truncation=True
         )
 
         # Load training data and create a training file
         data_train = load_split_dataset(
             name=run_name, filename=DATA_TRAIN, iteration=iteration
         )
-        train_data = create_tore_dataset(data=data_train)
+        train_data = create_tore_dataset(data=data_train, label2id=label2id)
         train_data = train_data.map(t_a_a_l, batched=True)
         train_data = train_data.rename_columns(
             {"string": "text", "tore_label_id": "labels"}
@@ -128,7 +148,7 @@ def main(cfg: BiLSTMConfig) -> None:
             name=run_name, filename=DATA_TEST, iteration=iteration
         )
 
-        test_data = create_tore_dataset(data=data_test)
+        test_data = create_tore_dataset(data=data_test, label2id=label2id)
         test_data = test_data.map(t_a_a_l, batched=True)
         test_data = test_data.rename_columns(
             {"string": "text", "tore_label_id": "labels"}
@@ -139,36 +159,42 @@ def main(cfg: BiLSTMConfig) -> None:
         model = BertForTokenClassification.from_pretrained(
             "bert-base-uncased",
             num_labels=len(dataset_labels),
-            id2label=get_id2label(dataset_labels),
-            label2id=get_label2id(dataset_labels),
+            id2label=id2label,
+            label2id=label2id,
         )
         model.to(device)
 
         # Train
-        data_collator = DataCollatorForTokenClassification(tokenizer=TOKENIZER)
-
-        compute_metrics = get_compute_metrics(
-            iteration_tracking=iteration_tracking,
-            average=cfg.experiment.average,
-            run_name=run_name,
+        data_collator = DataCollatorForTokenClassification(
+            tokenizer=TOKENIZER,
+            padding="max_length",
+            max_length=max_len,
         )
 
-        model_dir = str(
-            model_path(name=run_name, iteration=iteration)
-        )  # pin iteration to avoid relogging parameter
+        compute_metrics = get_compute_metrics(
+            iteration_tracking=[],
+            average=cfg.experiment.average,
+            run_name=run_name,
+            id2label=id2label,
+        )
+
+        model_dir = str(model_path(name=run_name, iteration=iteration))
 
         output_dir = str(
-            output_path(name=run_name, iteration=iteration)
+            output_path(name=run_name, clean=True)
         )  # pin iteration to avoid relogging parameter
+
+        logging_dir = str(output_path(name=run_name, clean=True))
 
         training_args = TrainingArguments(
             output_dir=output_dir,
+            logging_dir=logging_dir,
             run_name=run_name,
-            learning_rate=2e-5,
-            per_device_train_batch_size=16,
-            per_device_eval_batch_size=16,
-            num_train_epochs=1,
-            weight_decay=0.01,
+            learning_rate=cfg.bert.learning_rate,
+            per_device_train_batch_size=cfg.bert.train_batch_size,
+            per_device_eval_batch_size=cfg.bert.validation_batch_size,
+            num_train_epochs=cfg.bert.number_epochs,
+            weight_decay=cfg.bert.weight_decay,
             evaluation_strategy="epoch",
             save_strategy="epoch",
             load_best_model_at_end=True,
@@ -190,31 +216,10 @@ def main(cfg: BiLSTMConfig) -> None:
         trainer.train()
         trainer.save_model(output_dir=model_dir)
 
-        model = BertForTokenClassification.from_pretrained(
-            model_dir,
-            num_labels=len(dataset_labels),
-            id2label=get_id2label(dataset_labels),
-            label2id=get_label2id(dataset_labels),
-        )
-
-        test_args = TrainingArguments(
-            output_dir=output_dir,
-            do_train=False,
-            do_predict=True,
-            per_device_eval_batch_size=16,
-            dataloader_drop_last=False,
-        )
-
-        trainer = Trainer(
-            model=model,
-            args=test_args,
-            compute_metrics=compute_metrics,
-            tokenizer=TOKENIZER,
-        )
-
         test_results = trainer.predict(test_data)
 
-        print(test_results)
+        compute_iteration_metrics((test_results[0], test_results[1]))
+        log_iteration_result(result=iteration_tracking[-1])
 
     # Evaluate Run
 

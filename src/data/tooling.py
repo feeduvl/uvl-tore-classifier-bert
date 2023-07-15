@@ -1,3 +1,4 @@
+import shutil
 from collections.abc import Iterator
 from contextlib import contextmanager
 from functools import partial
@@ -53,9 +54,16 @@ BERT_TEMP = TEMP.joinpath(Path("bert"))
 EVALUATION_TEMP = TEMP.joinpath(Path("evaluation"))
 
 
-def filename(basepath: Path, name: str, filename: str) -> Path:
+def filename(
+    basepath: Path, name: str, filename: str, clean: bool = False
+) -> Path:
     path = basepath.joinpath(Path(name)).joinpath(Path(filename))
+
+    if clean:
+        shutil.rmtree(path=path, ignore_errors=True)
+
     path.parent.mkdir(parents=True, exist_ok=True)
+
     return path
 
 

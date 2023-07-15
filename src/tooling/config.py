@@ -70,6 +70,17 @@ class BiLSTM:
 
 
 @dataclass
+class BERT:
+    type: str = "BERT"
+    max_len: Optional[int] = 106
+    train_batch_size: int = 32
+    validation_batch_size: int = 32
+    number_epochs: int = 32
+    learning_rate: float = 2e-05
+    weight_decay: float = 0.01
+
+
+@dataclass
 class SNERConfig:
     sner: SNER = field(default_factory=SNER)
     meta: Meta = field(default_factory=Meta)
@@ -85,4 +96,12 @@ class BiLSTMConfig:
     transformation: Transformation = field(default_factory=Transformation)
 
 
-Config = SNERConfig | BiLSTMConfig
+@dataclass
+class BERTConfig:
+    bert: BERT = field(default_factory=BERT)
+    meta: Meta = field(default_factory=Meta)
+    experiment: Experiment = field(default_factory=Experiment)
+    transformation: Transformation = field(default_factory=Transformation)
+
+
+Config = SNERConfig | BiLSTMConfig | BERTConfig

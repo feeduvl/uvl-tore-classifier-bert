@@ -1,6 +1,6 @@
 defaults:
     - base_config
-    - transformation: none
+    - transformation: label_activity
 
     - override hydra/launcher: joblib
     - override hydra/job_logging: colorlog
@@ -10,19 +10,21 @@ defaults:
 
 experiment:
     name: BERT Test
-    dataset: prolific
+    dataset: forum
 
-bilstm:
-    sentence_length:
-    batch_size: 32
-    number_epochs: 10
-    validation_split: 0.1
-    verbose: 1
+bert:
+    max_len:
+    train_batch_size: 32
+    validation_batch_size: 8
+    number_epochs: 5
+    learning_rate: 2e-05
+    weight_decay: 0.01
 
 hydra:
     launcher:
-        n_jobs: 8
+        n_jobs: 1
     sweeper:
         params:
+            experiment.name: BERT Solo
             experiment.dataset: forum,prolific,all
             transformation: "glob(*)"

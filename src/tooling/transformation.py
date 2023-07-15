@@ -48,7 +48,7 @@ def transform_dataset(
     del dict_cfg["description"]
     del dict_cfg["type"]
 
-    labels: List[Union[ToreLevel, ToreLabel, Literal["0"]]] = []
+    labels: List[Union[ToreLevel, ToreLabel, Literal["0"]]] = ["0"]
 
     for new_value in dict_cfg.values():
         if new_value is None:

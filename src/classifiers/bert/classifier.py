@@ -6,6 +6,7 @@ from typing import Any
 from typing import cast
 from typing import Dict
 from typing import List
+from typing import Optional
 from typing import Tuple
 from typing import TypedDict
 
@@ -50,14 +51,16 @@ class BertDatas(TypedDict):
     tore_label_id: List[List[int]]
 
 
-def prepare_data(dataframe: DataSet[DataDF]) -> List[BertData]:
+def prepare_data(
+    dataframe: DataSet[DataDF], label2id: Optional[Dict[str, int]] = None
+) -> List[BertData]:
     token_lists_list = data_to_list_of_token_lists(dataframe)
     label_lists_list = data_to_list_of_label_lists(
-        data=dataframe, use_label_ids=True
+        data=dataframe, label2id=label2id
     )
 
     data = [
-        BertData(id=id, string=data[0], tore_label_id=data[1])
+        {"id": id, "string": data[0], "tore_label_id": data[1]}
         for id, data in enumerate(zip(token_lists_list, label_lists_list))
     ]
 
@@ -65,11 +68,15 @@ def prepare_data(dataframe: DataSet[DataDF]) -> List[BertData]:
 
 
 def tokenize_and_align_labels(
-    data: BertDatas, tokenizer: BertTokenizerFast, max_len: int
+    data: BertDatas,
+    tokenizer: BertTokenizerFast,
+    max_len: Optional[int],
+    truncation: bool = True,
 ) -> BatchEncoding:
     tokenized_inputs = tokenizer(
         data["string"],
-        truncation=True,
+        truncation=truncation,
+        max_length=max_len,
         is_split_into_words=True,
     )
     labels = []
@@ -97,16 +104,21 @@ def tokenize_and_align_labels(
 
 
 def get_tokenize_and_align_labels(
-    tokenizer: BertTokenizerFast, max_len: int
+    tokenizer: BertTokenizerFast,
+    max_len: Optional[int],
+    truncation: bool = True,
 ) -> partial[BatchEncoding]:
     func = partial(
-        tokenize_and_align_labels, tokenizer=tokenizer, max_len=max_len
+        tokenize_and_align_labels,
+        tokenizer=tokenizer,
+        max_len=max_len,
+        truncation=truncation,
     )
     return func
 
 
 def compute_prediction_and_solution(
-    p: EvalPrediction,
+    p: EvalPrediction, id2label: Dict[int, str]
 ) -> Tuple[DataSet[ResultDF], DataSet[ResultDF]]:
     predictions, labels = p
     predictions = np.argmax(predictions, axis=2)
@@ -114,11 +126,7 @@ def compute_prediction_and_solution(
     predictions_list = list(
         itertools.chain.from_iterable(
             [
-                [
-                    id_to_label(p)
-                    for (p, l) in zip(prediction, label)
-                    if l != -100
-                ]
+                [id2label[p] for (p, l) in zip(prediction, label) if l != -100]
                 for prediction, label in zip(predictions, labels)
             ]
         )
@@ -131,7 +139,7 @@ def compute_prediction_and_solution(
         itertools.chain.from_iterable(
             [
                 [
-                    id_to_label(cast(int, l))
+                    id2label[cast(int, l)]
                     for (p, l) in zip(prediction, label)
                     if l != -100
                 ]
@@ -151,8 +159,11 @@ def compute_metrics(
     iteration_tracking: List[IterationResult],
     average: str,
     run_name: str,
+    id2label: Dict[int, str],
 ) -> Dict[str, float]:
-    prediction, solution = compute_prediction_and_solution(p)
+    prediction, solution = compute_prediction_and_solution(
+        p, id2label=id2label
+    )
 
     iteration = len(iteration_tracking)
 
@@ -163,6 +174,8 @@ def compute_metrics(
         solution=solution,
         result=prediction,
     )
+
+    iteration_tracking.append(iteration_result)
 
     report_result = deepcopy(asdict(iteration_result))
 
@@ -179,16 +192,20 @@ def get_compute_metrics(
     iteration_tracking: List[IterationResult],
     average: str,
     run_name: str,
+    id2label: Dict[int, str],
 ) -> partial[Dict[str, float]]:
     return partial(
         compute_metrics,
         iteration_tracking=iteration_tracking,
         average=average,
         run_name=run_name,
+        id2label=id2label,
     )
 
 
-def create_tore_dataset(data: DataSet[DataDF]) -> Dataset:
-    prepared_data = prepare_data(data)
+def create_tore_dataset(
+    data: DataSet[DataDF], label2id: Dict[str, int]
+) -> Dataset:
+    prepared_data = prepare_data(data, label2id=label2id)
     prepared_data_df = pd.DataFrame.from_records(prepared_data)
     return Dataset.from_pandas(df=prepared_data_df)
