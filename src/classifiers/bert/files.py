@@ -1,12 +1,6 @@
-import pickle
-import shutil
 from pathlib import Path
-from typing import cast
-
-from strictly_typed_pandas import DataSet
 
 from data import bert_filepath
-from tooling.model import ResultDF
 
 MODEL_FILENAME = "bert"
 OUTPUT_FILENAME = "output"

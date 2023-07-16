@@ -290,7 +290,7 @@ def data_to_list_of_label_lists(
 
 
 def data_to_list_of_label_lists(
-    data: DataSet[DataDF], label2id: Optional[Dict[str, int]] = None
+    data: DataSet[DataDF], label2id: Dict[str, int] | None
 ) -> Union[List[List[Label_None_Pad]], List[List[int]]]:
     if label2id:
         id_sentences = []

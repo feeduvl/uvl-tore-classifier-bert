@@ -2,7 +2,6 @@ import itertools
 from copy import deepcopy
 from dataclasses import asdict
 from functools import partial
-from typing import Any
 from typing import cast
 from typing import Dict
 from typing import List
@@ -10,17 +9,11 @@ from typing import Optional
 from typing import Tuple
 from typing import TypedDict
 
-import evaluate
 import numpy as np
 import pandas as pd
-import torch
 from datasets import Dataset
-from sklearn.metrics import accuracy_score
 from strictly_typed_pandas import DataSet
-from torch.optim import Optimizer
-from transformers import AutoTokenizer
 from transformers import BatchEncoding
-from transformers import BertForTokenClassification
 from transformers import BertTokenizerFast
 from transformers.trainer_utils import EvalPrediction
 
@@ -30,13 +23,7 @@ from tooling.model import create_resultdf
 from tooling.model import data_to_list_of_label_lists
 from tooling.model import data_to_list_of_token_lists
 from tooling.model import DataDF
-from tooling.model import id_to_label
-from tooling.model import Label_None_Pad
-from tooling.model import label_to_id
 from tooling.model import ResultDF
-from tooling.model import TokenizedDataDF
-from tooling.model import ZERO
-from tooling.observability import log_iteration_result
 
 
 class BertData(TypedDict):
@@ -52,14 +39,14 @@ class BertDatas(TypedDict):
 
 
 def prepare_data(
-    dataframe: DataSet[DataDF], label2id: Optional[Dict[str, int]] = None
+    dataframe: DataSet[DataDF], label2id: Dict[str, int]
 ) -> List[BertData]:
     token_lists_list = data_to_list_of_token_lists(dataframe)
     label_lists_list = data_to_list_of_label_lists(
         data=dataframe, label2id=label2id
     )
 
-    data = [
+    data: List[BertData] = [
         {"id": id, "string": data[0], "tore_label_id": data[1]}
         for id, data in enumerate(zip(token_lists_list, label_lists_list))
     ]

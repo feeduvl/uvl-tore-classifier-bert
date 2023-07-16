@@ -71,7 +71,9 @@ def get_one_hot_encoding(
     labels: Sequence[Label_None_Pad],
     sentence_length: int,
 ) -> npt.NDArray[np.int32]:
-    sentences_label_list = data_to_list_of_label_lists(data=dataset)
+    sentences_label_list = data_to_list_of_label_lists(
+        data=dataset, label2id=None
+    )
 
     sentences_label_id_list: List[List[int]] = []
     for sentence_tl in sentences_label_list:

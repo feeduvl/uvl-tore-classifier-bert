@@ -56,6 +56,17 @@ ignore_missing_imports = "True"
 module="strictly_typed_pandas.*"
 implicit_reexport = "True"
 
+[[tool.mypy.overrides]]
+module="datasets.*"
+ignore_missing_imports = "True"
+
+[[tool.mypy.overrides]]
+module="transformers.*"
+ignore_missing_imports = "True"
+
+[[tool.mypy.overrides]]
+module="evaluate.*"
+ignore_missing_imports = "True"
 
 [tool.black]
 exclude = '(\.eggs|\.git|\.hg|\.mypy_cache|\.nox|\.tox|.pickle|.gz|.png|.txt|.json|.prop|.jar|\.venv|_build|buck-out|build|dist|__pycache__|.egg-info)'

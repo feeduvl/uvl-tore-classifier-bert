@@ -1,36 +1,19 @@
-from collections.abc import Sequence
-from typing import cast
 from typing import List
 
 import hydra
 import mlflow
-import numpy as np
-import tensorflow as tf
 import torch
 from hydra.core.config_store import ConfigStore
 from omegaconf import OmegaConf
-from rich.logging import RichHandler
-from strictly_typed_pandas import DataSet
-from torch.utils.data import DataLoader
-from torch.utils.data import Dataset
-from transformers import AutoModelForTokenClassification
-from transformers import AutoTokenizer
-from transformers import BertConfig
 from transformers import BertForTokenClassification
-from transformers import BertTokenizer
 from transformers import BertTokenizerFast
 from transformers import DataCollatorForTokenClassification
-from transformers import DataCollatorWithPadding
 from transformers import Trainer
 from transformers import TrainingArguments
-from transformers.utils import logging
 
 from classifiers.bert.classifier import create_tore_dataset
 from classifiers.bert.classifier import get_compute_metrics
 from classifiers.bert.classifier import get_tokenize_and_align_labels
-from classifiers.bert.classifier import prepare_data
-from classifiers.bert.classifier import tokenize_and_align_labels
-from classifiers.bert.files import logging_path
 from classifiers.bert.files import model_path
 from classifiers.bert.files import output_path
 from data import get_dataset_information
@@ -38,13 +21,8 @@ from tooling import evaluation
 from tooling.config import BERTConfig
 from tooling.loading import import_dataset
 from tooling.loading import load_dataset
-from tooling.model import data_to_list_of_token_lists
 from tooling.model import get_id2label
 from tooling.model import get_label2id
-from tooling.model import get_labels
-from tooling.model import Label_None_Pad
-from tooling.model import PAD
-from tooling.model import ResultDF
 from tooling.model import ZERO
 from tooling.observability import config_mlflow
 from tooling.observability import end_tracing
@@ -178,7 +156,7 @@ def main(cfg: BERTConfig) -> None:
             id2label=id2label,
         )
 
-        model_dir = str(model_path(name=run_name, iteration=iteration))
+        model_dir = model_path(name=run_name, iteration=iteration)
 
         output_dir = str(
             output_path(name=run_name, clean=True)
@@ -214,7 +192,8 @@ def main(cfg: BERTConfig) -> None:
         )
 
         trainer.train()
-        trainer.save_model(output_dir=model_dir)
+        trainer.save_model(output_dir=str(model_dir))
+        log_artifacts(model_dir)
 
         test_results = trainer.predict(test_data)
 
