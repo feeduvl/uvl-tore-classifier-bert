@@ -1,3 +1,4 @@
+from functools import partial
 from typing import cast
 from typing import List
 from typing import Literal
@@ -11,6 +12,8 @@ from strictly_typed_pandas import DataSet
 
 from tooling.config import Transformation
 from tooling.model import DataDF
+from tooling.model import Label_None_Pad
+from tooling.model import NoneLabel
 from tooling.model import Token
 from tooling.model import TORE_LABELS
 from tooling.model import TORE_LEVEL
@@ -19,13 +22,14 @@ from tooling.model import ToreLevel
 
 
 def transform_token_label(
-    token_label: ToreLabel | None, cfg: dict[str, str]
-) -> Optional[ToreLabel | ToreLevel]:
+    token_label: Label_None_Pad, cfg: dict[str, str]
+) -> Optional[Label_None_Pad]:
     if token_label is None:
         return None
 
     new_value = cast(
-        Union[ToreLevel, ToreLabel, None], cfg.get(token_label.lower(), None)
+        Union[ToreLevel, ToreLabel, None, NoneLabel],
+        cfg.get(token_label.lower(), None),
     )
 
     if new_value is None:

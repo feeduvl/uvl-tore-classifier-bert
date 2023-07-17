@@ -161,14 +161,18 @@ def id_to_label(label_id: int) -> Label_None_Pad:
     return LABELS_NONE[label_id]
 
 
-def get_label2id(labels: Sequence[Label_None_Pad]) -> Dict[str, int]:
-    sorted_labels = list(labels)
+def get_label2id(
+    labels: Sequence[Label_None_Pad],
+) -> Dict[Label_None_Pad, int]:
+    sorted_labels = list(set(labels))
     sorted_labels.sort(key=lambda x: LABELS_NONE.index(x))
     return {label: idx for idx, label in enumerate(sorted_labels)}
 
 
-def get_id2label(labels: Sequence[Label_None_Pad]) -> Dict[int, str]:
-    sorted_labels = list(labels)
+def get_id2label(
+    labels: Sequence[Label_None_Pad],
+) -> Dict[int, Label_None_Pad]:
+    sorted_labels = list(set(labels))
     sorted_labels.sort(key=lambda x: LABELS_NONE.index(x))
     return {idx: label for idx, label in enumerate(sorted_labels)}
 
@@ -284,13 +288,13 @@ def data_to_list_of_label_lists(
 
 @overload
 def data_to_list_of_label_lists(
-    data: DataSet[DataDF], label2id: Dict[str, int]
+    data: DataSet[DataDF], label2id: Dict[Label_None_Pad, int]
 ) -> List[List[int]]:
     ...
 
 
 def data_to_list_of_label_lists(
-    data: DataSet[DataDF], label2id: Dict[str, int] | None
+    data: DataSet[DataDF], label2id: Dict[Label_None_Pad, int] | None
 ) -> Union[List[List[Label_None_Pad]], List[List[int]]]:
     if label2id:
         id_sentences = []

@@ -5,16 +5,21 @@ from functools import partial
 from typing import cast
 from typing import Dict
 from typing import List
+from typing import Literal
 from typing import Optional
+from typing import overload
 from typing import Tuple
 from typing import TypedDict
 
 import numpy as np
 import pandas as pd
+import torch
 from datasets import Dataset
 from strictly_typed_pandas import DataSet
+from torch import nn
 from transformers import BatchEncoding
 from transformers import BertTokenizerFast
+from transformers import Trainer
 from transformers.trainer_utils import EvalPrediction
 
 from tooling import evaluation
@@ -23,6 +28,7 @@ from tooling.model import create_resultdf
 from tooling.model import data_to_list_of_label_lists
 from tooling.model import data_to_list_of_token_lists
 from tooling.model import DataDF
+from tooling.model import Label_None_Pad
 from tooling.model import ResultDF
 
 
@@ -38,8 +44,15 @@ class BertDatas(TypedDict):
     tore_label_id: List[List[int]]
 
 
+class StagedBertDatas(TypedDict):
+    id: List[int]
+    string: List[List[str]]
+    tore_label_id: List[List[int]]
+    hint_label_id: List[List[int]]
+
+
 def prepare_data(
-    dataframe: DataSet[DataDF], label2id: Dict[str, int]
+    dataframe: DataSet[DataDF], label2id: Dict[Label_None_Pad, int]
 ) -> List[BertData]:
     token_lists_list = data_to_list_of_token_lists(dataframe)
     label_lists_list = data_to_list_of_label_lists(
@@ -55,7 +68,7 @@ def prepare_data(
 
 
 def tokenize_and_align_labels(
-    data: BertDatas,
+    data: BertDatas | StagedBertDatas,
     tokenizer: BertTokenizerFast,
     max_len: Optional[int],
     truncation: bool = True,
@@ -65,28 +78,36 @@ def tokenize_and_align_labels(
         truncation=truncation,
         max_length=max_len,
         is_split_into_words=True,
+        padding="max_length",
     )
-    labels = []
 
-    for i, label in enumerate(data["tore_label_id"]):
-        word_ids = tokenized_inputs.word_ids(
-            batch_index=i
-        )  # Map tokens to their respective word.
-        previous_word_idx = None
-        label_ids = []
-        for word_idx in word_ids:  # Set the special tokens to -100.
-            if word_idx is None:
-                label_ids.append(-100)
-            elif (
-                word_idx != previous_word_idx
-            ):  # Only label the first token of a given word.
-                label_ids.append(label[word_idx])
-            else:
-                label_ids.append(-100)
-            previous_word_idx = word_idx
-        labels.append(label_ids)
+    columns = list(data.keys())
+    columns.remove("id")
+    columns.remove("string")
 
-    tokenized_inputs["tore_label_id"] = labels
+    for column in columns:
+        labels = []
+
+        for i, label in enumerate(data[column]):  # type:ignore
+            word_ids = tokenized_inputs.word_ids(
+                batch_index=i
+            )  # Map tokens to their respective word.
+            previous_word_idx = None
+            label_ids = []
+            for word_idx in word_ids:  # Set the special tokens to -100.
+                if word_idx is None:
+                    label_ids.append(-100)
+                elif (
+                    word_idx != previous_word_idx
+                ):  # Only label the first token of a given word.
+                    label_ids.append(label[word_idx])
+                else:
+                    label_ids.append(-100)
+                previous_word_idx = word_idx
+            labels.append(label_ids)
+
+        tokenized_inputs[column] = labels
+
     return tokenized_inputs
 
 
@@ -179,7 +200,7 @@ def get_compute_metrics(
     iteration_tracking: List[IterationResult],
     average: str,
     run_name: str,
-    id2label: Dict[int, str],
+    id2label: Dict[int, Label_None_Pad],
 ) -> partial[Dict[str, float]]:
     return partial(
         compute_metrics,
@@ -191,8 +212,24 @@ def get_compute_metrics(
 
 
 def create_tore_dataset(
-    data: DataSet[DataDF], label2id: Dict[str, int]
+    data: DataSet[DataDF], label2id: Dict[Label_None_Pad, int]
 ) -> Dataset:
     prepared_data = prepare_data(data, label2id=label2id)
     prepared_data_df = pd.DataFrame.from_records(prepared_data)
     return Dataset.from_pandas(df=prepared_data_df)
+
+
+class CustomTrainer(Trainer):  # type: ignore
+    def compute_loss(self, model, inputs, return_outputs=False):  # type: ignore
+        labels = inputs.get("labels")
+        # forward pass
+        outputs = model(**inputs)
+        logits = outputs.get("logits")
+        # compute custom loss (suppose one has 3 labels with different weights)
+        loss_fct = nn.CrossEntropyLoss(
+            weight=torch.tensor([1.0, 2.0, 3.0], device=model.device)
+        )
+        loss = loss_fct(
+            logits.view(-1, self.model.config.num_labels), labels.view(-1)
+        )
+        return (loss, outputs) if return_outputs else loss

@@ -1,0 +1,17 @@
+description: Levels
+type: Reduced
+
+task: Domain_Level
+goals: Domain_Level
+domain_data: Domain_Level
+activity: Domain_Level
+stakeholder: Domain_Level
+
+system_function: Interaction_Level
+interaction: Interaction_Level
+interaction_data: Interaction_Level
+workspace: Interaction_Level
+
+software: System_Level
+internal_action: System_Level
+internal_data: System_Level

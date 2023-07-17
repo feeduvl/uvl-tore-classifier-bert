@@ -1,0 +1,31 @@
+defaults:
+    - base_config
+    - transformation: none
+    - hint_transformation: levels
+
+    - override hydra/launcher: joblib
+    - override hydra/job_logging: colorlog
+    - override hydra/hydra_logging: colorlog
+
+    - _self_
+
+experiment:
+    name: StagedBERT Test
+    dataset: prolific
+
+bert:
+    max_len:
+    train_batch_size: 32
+    validation_batch_size: 8
+    number_epochs: 5
+    learning_rate: 2e-05
+    weight_decay: 0.01
+
+hydra:
+    launcher:
+        n_jobs: 1
+    sweeper:
+        params:
+            experiment.name: StagedBERT Solo
+            experiment.dataset: forum,prolific,all
+            transformation: "glob(*)"

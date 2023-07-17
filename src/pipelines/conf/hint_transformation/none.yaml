@@ -1,0 +1,17 @@
+description: No Transformation
+type: Default
+
+task: Task
+goals: Goals
+domain_data: Domain_Data
+activity: Activity
+stakeholder: Stakeholder
+
+system_function: System_Function
+interaction: Interaction
+interaction_data: Interaction_Data
+workspace: Workspace
+
+software: Software
+internal_action: Internal_Action
+internal_data: Internal_Data

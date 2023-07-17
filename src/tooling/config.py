@@ -104,4 +104,13 @@ class BERTConfig:
     transformation: Transformation = field(default_factory=Transformation)
 
 
-Config = SNERConfig | BiLSTMConfig | BERTConfig
+@dataclass
+class StagedBERTConfig:
+    bert: BERT = field(default_factory=BERT)
+    meta: Meta = field(default_factory=Meta)
+    experiment: Experiment = field(default_factory=Experiment)
+    transformation: Transformation = field(default_factory=Transformation)
+    hint_transformation: Transformation = field(default_factory=Transformation)
+
+
+Config = SNERConfig | BiLSTMConfig | BERTConfig | StagedBERTConfig
