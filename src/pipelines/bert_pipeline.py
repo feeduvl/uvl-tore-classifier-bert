@@ -35,6 +35,7 @@ from tooling.sampling import DATA_TRAIN
 from tooling.sampling import load_split_dataset
 from tooling.sampling import split_dataset_k_fold
 from tooling.transformation import get_class_weights
+from tooling.transformation import lower_case_token
 from tooling.transformation import transform_dataset
 
 
@@ -42,14 +43,13 @@ cs = ConfigStore.instance()
 cs.store(name="base_config", node=BERTConfig)
 
 
-TOKENIZER = BertTokenizerFast.from_pretrained("bert-base-uncased")
-
-
 @hydra.main(version_base=None, config_path="conf", config_name="config_bert")
 def main(cfg: BERTConfig) -> None:
     # Setup experiment
     print(OmegaConf.to_yaml(cfg))
     run_name = config_mlflow(cfg)
+
+    TOKENIZER = BertTokenizerFast.from_pretrained(cfg.bert.model)
 
     device = "mps" if torch.backends.mps.is_available() else "cpu"
 
@@ -67,6 +67,9 @@ def main(cfg: BERTConfig) -> None:
         dataset=d, cfg=cfg.transformation
     )
     transformed_d.fillna(ZERO, inplace=True)
+
+    if cfg.experiment.lower_case:
+        lower_case_token(transformed_d)
 
     selected_trainer = Trainer
 
@@ -146,7 +149,7 @@ def main(cfg: BERTConfig) -> None:
         # Get Model
 
         model = BertForTokenClassification.from_pretrained(
-            "bert-base-uncased",
+            cfg.bert.model,
             num_labels=len(dataset_labels),
             id2label=id2label,
             label2id=label2id,
@@ -184,8 +187,10 @@ def main(cfg: BERTConfig) -> None:
             per_device_eval_batch_size=cfg.bert.validation_batch_size,
             num_train_epochs=cfg.bert.number_epochs,
             weight_decay=cfg.bert.weight_decay,
-            evaluation_strategy="epoch",
-            save_strategy="epoch",
+            evaluation_strategy="steps",
+            eval_steps=1,
+            save_strategy="steps",
+            save_total_limit=3,
             load_best_model_at_end=True,
             optim="adamw_torch",
             push_to_hub=False,

@@ -37,6 +37,7 @@ def output_confusion_matrix(
     )
     plt.ioff()
     plt.savefig(fig_path, bbox_inches="tight")
+    plt.close()
 
 
 def confusion_matrix(

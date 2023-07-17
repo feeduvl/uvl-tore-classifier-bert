@@ -40,6 +40,10 @@ def get_class_weights(
     ).to(torch.float32)
 
 
+def lower_case_token(data: DataSet[DataDF]):
+    data["string"] = data["string"].apply(str.lower)
+
+
 def transform_token_label(
     token_label: Label_None_Pad, cfg: dict[str, str]
 ) -> Optional[Label_None_Pad]:

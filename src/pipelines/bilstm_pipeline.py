@@ -36,6 +36,7 @@ from tooling.sampling import DATA_TEST
 from tooling.sampling import DATA_TRAIN
 from tooling.sampling import load_split_dataset
 from tooling.sampling import split_dataset_k_fold
+from tooling.transformation import lower_case_token
 from tooling.transformation import transform_dataset
 
 tf.config.set_visible_devices([], "GPU")
@@ -68,6 +69,9 @@ def main(cfg: BiLSTMConfig) -> None:
     )
 
     transformed_d.fillna("0", inplace=True)
+
+    if cfg.experiment.lower_case:
+        lower_case_token(transformed_d)
 
     sentence_length = cfg.bilstm.sentence_length
     if sentence_length is None:

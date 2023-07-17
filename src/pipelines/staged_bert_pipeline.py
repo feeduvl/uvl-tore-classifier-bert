@@ -39,16 +39,13 @@ from tooling.sampling import DATA_TRAIN
 from tooling.sampling import load_split_dataset
 from tooling.sampling import split_dataset_k_fold
 from tooling.transformation import get_class_weights
+from tooling.transformation import lower_case_token
 from tooling.transformation import transform_dataset
 from tooling.transformation import transform_token_label
 
 
 cs = ConfigStore.instance()
 cs.store(name="base_config", node=StagedBERTConfig)
-
-
-TOKENIZER = BertTokenizerFast.from_pretrained("bert-base-uncased")
-TOKENIZER.model_input_names.append("hint_input_ids")
 
 
 @hydra.main(
@@ -60,6 +57,9 @@ def main(cfg: StagedBERTConfig) -> None:
     run_name = config_mlflow(cfg)
 
     device = "mps" if torch.backends.mps.is_available() else "cpu"
+
+    TOKENIZER = BertTokenizerFast.from_pretrained(cfg.bert.model)
+    TOKENIZER.model_input_names.append("hint_input_ids")
 
     # Import Dataset
     dataset_information = get_dataset_information(cfg.experiment.dataset)
@@ -75,6 +75,9 @@ def main(cfg: StagedBERTConfig) -> None:
         dataset=d, cfg=cfg.transformation
     )
     transformed_d.fillna(ZERO, inplace=True)
+
+    if cfg.experiment.lower_case:
+        lower_case_token(transformed_d)
 
     selected_trainer = Trainer
 
@@ -181,7 +184,7 @@ def main(cfg: StagedBERTConfig) -> None:
         # Get Model
 
         model = StagedBertForTokenClassification.from_pretrained(
-            "bert-base-uncased",
+            cfg.bert.model,
             num_hint_labels=len(hint_labels),
             num_labels=len(dataset_labels),
             id2label=id2label,
@@ -230,7 +233,7 @@ def main(cfg: StagedBERTConfig) -> None:
             use_mps_device=True,
         )
 
-        trainer = Trainer(
+        trainer = selected_trainer(
             model=model,
             args=training_args,
             train_dataset=train_data,
@@ -239,16 +242,14 @@ def main(cfg: StagedBERTConfig) -> None:
             # data_collator=data_collator,
             compute_metrics=compute_metrics,
         )
-
         trainer.train()
         trainer.save_model(output_dir=str(model_dir))
-        log_artifacts(model_dir)
 
         test_results = trainer.predict(test_data)
 
         compute_iteration_metrics((test_results[0], test_results[1]))
         log_iteration_result(result=iteration_tracking[-1])
-
+        log_artifacts(model_dir)
     # Evaluate Run
 
     experiment_result = evaluation.evaluate_experiment(

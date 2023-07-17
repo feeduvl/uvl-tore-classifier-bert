@@ -20,6 +20,7 @@ class Experiment:
     folds: int = 5
     average: str = "macro"
     dataset: str = "prolific"
+    lower_case: bool = False
 
 
 enum_dict: Dict[str, str] = {k: k for k in LABELS_NONE}
@@ -71,6 +72,7 @@ class BiLSTM:
 
 @dataclass
 class BERT:
+    model: str = "bert-base-cased"
     type: str = "BERT"
     max_len: Optional[int] = 106
     train_batch_size: int = 32

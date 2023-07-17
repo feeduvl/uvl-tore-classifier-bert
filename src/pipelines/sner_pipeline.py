@@ -26,6 +26,7 @@ from tooling.sampling import DATA_TEST
 from tooling.sampling import DATA_TRAIN
 from tooling.sampling import load_split_dataset
 from tooling.sampling import split_dataset_k_fold
+from tooling.transformation import lower_case_token
 from tooling.transformation import transform_dataset
 
 
@@ -54,6 +55,9 @@ def main(cfg: SNERConfig) -> None:
     dataset_labels, transformed_d = transform_dataset(
         dataset=d, cfg=cfg.transformation
     )
+
+    if cfg.experiment.lower_case:
+        lower_case_token(transformed_d)
 
     iteration_tracking: List[evaluation.IterationResult] = []
 
