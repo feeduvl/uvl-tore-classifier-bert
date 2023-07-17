@@ -6,19 +6,38 @@ from typing import Optional
 from typing import Tuple
 from typing import Union
 
+import numpy as np
 import omegaconf
 import pandas as pd
+import torch
+from sklearn.utils.class_weight import compute_class_weight
 from strictly_typed_pandas import DataSet
 
 from tooling.config import Transformation
 from tooling.model import DataDF
 from tooling.model import Label_None_Pad
+from tooling.model import LABELS_NONE
 from tooling.model import NoneLabel
 from tooling.model import Token
 from tooling.model import TORE_LABELS
 from tooling.model import TORE_LEVEL
 from tooling.model import ToreLabel
 from tooling.model import ToreLevel
+
+
+def get_class_weights(
+    data: DataSet[DataDF],
+) -> torch.Tensor:
+    labels = np.array(data["tore_label"])
+    unique_labels = np.unique(labels).tolist()
+    unique_labels.sort(key=lambda x: LABELS_NONE.index(x))
+    np_unique_labels = np.array(unique_labels)
+
+    return torch.from_numpy(
+        compute_class_weight(
+            class_weight="balanced", classes=np_unique_labels, y=labels
+        )
+    ).to(torch.float32)
 
 
 def transform_token_label(

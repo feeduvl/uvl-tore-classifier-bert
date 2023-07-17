@@ -14,6 +14,7 @@ from transformers import TrainingArguments
 from classifiers.bert.classifier import create_tore_dataset
 from classifiers.bert.classifier import get_compute_metrics
 from classifiers.bert.classifier import get_tokenize_and_align_labels
+from classifiers.bert.classifier import WeightedTrainer
 from classifiers.bert.files import model_path
 from classifiers.bert.files import output_path
 from data import get_dataset_information
@@ -33,6 +34,7 @@ from tooling.sampling import DATA_TEST
 from tooling.sampling import DATA_TRAIN
 from tooling.sampling import load_split_dataset
 from tooling.sampling import split_dataset_k_fold
+from tooling.transformation import get_class_weights
 from tooling.transformation import transform_dataset
 
 
@@ -65,6 +67,15 @@ def main(cfg: BERTConfig) -> None:
         dataset=d, cfg=cfg.transformation
     )
     transformed_d.fillna(ZERO, inplace=True)
+
+    selected_trainer = Trainer
+
+    if cfg.bert.weighted_classes:
+        class_weights = get_class_weights(transformed_d).to(device=device)
+
+        selected_trainer = WeightedTrainer
+        selected_trainer.class_weights = class_weights
+        selected_trainer.class_weights.to(device=device)
 
     id2label = get_id2label(dataset_labels)
     label2id = get_label2id(dataset_labels)
@@ -140,7 +151,7 @@ def main(cfg: BERTConfig) -> None:
             id2label=id2label,
             label2id=label2id,
         )
-        model.to(device)
+        model.to(device=device)
 
         # Train
         data_collator = DataCollatorForTokenClassification(
@@ -181,7 +192,7 @@ def main(cfg: BERTConfig) -> None:
             use_mps_device=True,
         )
 
-        trainer = Trainer(
+        trainer = selected_trainer(
             model=model,
             args=training_args,
             train_dataset=train_data,
@@ -191,14 +202,18 @@ def main(cfg: BERTConfig) -> None:
             compute_metrics=compute_metrics,
         )
 
+        # if cfg.bert.weighted_classes:
+        # trainer.class_weights = class_weights
+        # trainer.class_weights.to(device)
+
         trainer.train()
         trainer.save_model(output_dir=str(model_dir))
-        log_artifacts(model_dir)
 
         test_results = trainer.predict(test_data)
 
         compute_iteration_metrics((test_results[0], test_results[1]))
         log_iteration_result(result=iteration_tracking[-1])
+        log_artifacts(model_dir)
 
     # Evaluate Run
 

@@ -219,16 +219,19 @@ def create_tore_dataset(
     return Dataset.from_pandas(df=prepared_data_df)
 
 
-class CustomTrainer(Trainer):  # type: ignore
+class WeightedTrainer(Trainer):  # type: ignore
     def compute_loss(self, model, inputs, return_outputs=False):  # type: ignore
         labels = inputs.get("labels")
         # forward pass
         outputs = model(**inputs)
         logits = outputs.get("logits")
         # compute custom loss (suppose one has 3 labels with different weights)
-        loss_fct = nn.CrossEntropyLoss(
-            weight=torch.tensor([1.0, 2.0, 3.0], device=model.device)
-        )
+
+        weights = self.class_weights
+        weights.to("mps")
+
+        loss_fct = nn.CrossEntropyLoss(weight=weights)
+
         loss = loss_fct(
             logits.view(-1, self.model.config.num_labels), labels.view(-1)
         )

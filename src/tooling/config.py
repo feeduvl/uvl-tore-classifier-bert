@@ -78,6 +78,7 @@ class BERT:
     number_epochs: int = 32
     learning_rate: float = 2e-05
     weight_decay: float = 0.01
+    weighted_classes: bool = False
 
 
 @dataclass

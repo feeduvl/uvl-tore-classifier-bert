@@ -13,6 +13,7 @@ from transformers import TrainingArguments
 from classifiers.bert.classifier import create_tore_dataset
 from classifiers.bert.classifier import get_compute_metrics
 from classifiers.bert.classifier import get_tokenize_and_align_labels
+from classifiers.bert.classifier import WeightedTrainer
 from classifiers.bert.files import model_path
 from classifiers.bert.files import output_path
 from classifiers.staged_bert.classifier import generate_hint_data
@@ -37,6 +38,7 @@ from tooling.sampling import DATA_TEST
 from tooling.sampling import DATA_TRAIN
 from tooling.sampling import load_split_dataset
 from tooling.sampling import split_dataset_k_fold
+from tooling.transformation import get_class_weights
 from tooling.transformation import transform_dataset
 from tooling.transformation import transform_token_label
 
@@ -73,6 +75,15 @@ def main(cfg: StagedBERTConfig) -> None:
         dataset=d, cfg=cfg.transformation
     )
     transformed_d.fillna(ZERO, inplace=True)
+
+    selected_trainer = Trainer
+
+    if cfg.bert.weighted_classes:
+        class_weights = get_class_weights(transformed_d).to(device=device)
+
+        selected_trainer = WeightedTrainer
+        selected_trainer.class_weights = class_weights
+        selected_trainer.class_weights.to(device=device)
 
     id2label = get_id2label(dataset_labels)
     label2id = get_label2id(dataset_labels)
@@ -111,7 +122,7 @@ def main(cfg: StagedBERTConfig) -> None:
         id2label=id2label,
     )
 
-    # Start kfold
+    # Start kfold®
     for iteration, dataset_paths in split_dataset_k_fold(
         name=run_name,
         dataset=transformed_d,

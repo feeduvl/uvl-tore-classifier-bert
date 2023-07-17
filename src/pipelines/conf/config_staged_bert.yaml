@@ -20,6 +20,7 @@ bert:
     number_epochs: 5
     learning_rate: 2e-05
     weight_decay: 0.01
+    weighted_classes: True
 
 hydra:
     launcher:
