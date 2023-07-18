@@ -21,7 +21,7 @@ from transformers.tokenization_utils_base import PreTrainedTokenizerBase
 from transformers.utils import PaddingStrategy
 
 
-class StagedBertForTokenClassification(BertPreTrainedModel):  # type: ignore
+class StagedBertForTokenClassification(BertPreTrainedModel):
     config_class = BertConfig
 
     def __init__(self, config: BertConfig, num_hint_labels: int):

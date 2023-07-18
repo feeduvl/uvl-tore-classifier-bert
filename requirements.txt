@@ -4,6 +4,7 @@ black[jupyter]
 dvc
 dvclive
 evaluate
+flake8-pyproject
 gensim
 hydra-core
 hydra-joblib-launcher

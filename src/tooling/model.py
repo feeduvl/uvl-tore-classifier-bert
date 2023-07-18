@@ -19,7 +19,7 @@ from pydantic import BaseModel
 from pydantic.dataclasses import (
     dataclass,
 )
-from strictly_typed_pandas import DataSet
+from strictly_typed_pandas.dataset import DataSet
 
 Pos = Literal["v", "n", "a", "r", ""]
 

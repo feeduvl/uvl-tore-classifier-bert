@@ -2,7 +2,6 @@ from collections.abc import Sequence
 from typing import Any
 from typing import cast
 from typing import List
-from typing import Tuple
 from typing import TypedDict
 
 import gensim.downloader as api

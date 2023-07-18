@@ -12,7 +12,7 @@ from jinja2 import Environment
 from jinja2 import FileSystemLoader
 from nltk.tag import StanfordNERTagger
 from nltk.tokenize import word_tokenize
-from strictly_typed_pandas import DataSet
+from strictly_typed_pandas.dataset import DataSet
 
 from .files import configfile
 from .files import modelfile

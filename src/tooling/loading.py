@@ -11,7 +11,7 @@ from typing import TypedDict
 
 import pandas as pd
 from pydantic import ValidationError
-from strictly_typed_pandas import DataSet
+from strictly_typed_pandas.dataset import DataSet
 
 from .model import DataDF
 from .model import ImportCode
@@ -124,7 +124,7 @@ def denormalize_dataset(
 
                         tokenindex_codes[token_id].append(code)
                 except ValidationError as e:
-                    logging.error(f"Validiation error {e}")
+                    logging.error(f"Validation error {e}")
             else:
                 for token_id in imported_code.tokens:
                     code_skip_set.add(token_id)

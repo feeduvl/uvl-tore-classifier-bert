@@ -5,9 +5,7 @@ from functools import partial
 from typing import cast
 from typing import Dict
 from typing import List
-from typing import Literal
 from typing import Optional
-from typing import overload
 from typing import Tuple
 from typing import TypedDict
 
@@ -257,12 +255,21 @@ def create_bert_dataset(
     return data
 
 
-class WeightedTrainer(Trainer):  # type: ignore
-    def __init__(self, class_weights, device, *args, **kwargs):  # type: ignore
+# mypy: allow-untyped-defs
+class WeightedTrainer(Trainer):
+    # mypy: allow-untyped-defs
+    def __init__(
+        self,
+        class_weights,
+        device,
+        *args,
+        **kwargs,
+    ):
         super().__init__(*args, **kwargs)
         self.class_weights = class_weights.to(device=device)
 
-    def compute_loss(self, model, inputs, return_outputs=False):  # type: ignore
+    # mypy: allow-untyped-defs
+    def compute_loss(self, model, inputs, return_outputs=False):
         labels = inputs.get("labels")
         # forward pass
         outputs = model(**inputs)

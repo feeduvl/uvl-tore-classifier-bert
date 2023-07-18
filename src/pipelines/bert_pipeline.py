@@ -141,6 +141,7 @@ def main(cfg: BERTConfig) -> None:
             use_mps_device=True,
         )
 
+        # mypy: allow-untyped-call
         trainer = WeightedTrainer(  # type: ignore
             model=model,
             args=training_args,

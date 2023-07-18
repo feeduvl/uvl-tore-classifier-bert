@@ -1,13 +1,8 @@
 from functools import partial
-from typing import Callable
-from typing import cast
 from typing import Dict
 from typing import List
-from typing import Literal
 from typing import Optional
-from typing import Tuple
 from typing import TypedDict
-from typing import Union
 
 import mlflow
 import omegaconf
@@ -19,11 +14,6 @@ from tooling.logging import logging_setup
 from tooling.model import get_label2id
 from tooling.model import Label_None_Pad
 from tooling.model import LABELS_NONE
-from tooling.model import TORE_LABELS
-from tooling.model import TORE_LABELS_NONE
-from tooling.model import TORE_LEVEL
-from tooling.model import ToreLabel
-from tooling.model import ToreLevel
 from tooling.model import ZERO
 from tooling.transformation import transform_token_label
 

@@ -6,7 +6,7 @@ import hydra
 import numpy as np
 import tensorflow as tf
 from hydra.core.config_store import ConfigStore
-from strictly_typed_pandas import DataSet
+from strictly_typed_pandas.dataset import DataSet
 
 from classifiers.bilstm import get_embeddings_and_categorical
 from classifiers.bilstm import get_glove_model
@@ -86,31 +86,8 @@ def main(cfg: BiLSTMConfig) -> None:
             glove_model=glove_model,
         )
 
-        # Get Model
-        model = get_model(
-            n_tags=len(padded_labels), sentence_length=sentence_length
-        )
-
-        # Train
-        model.fit(
-            np.array(processed_data["embeddings"]),
-            np.array(processed_data["onehot_encoded"]),
-            batch_size=cfg.bilstm.batch_size,
-            epochs=cfg.bilstm.number_epochs,
-            validation_split=cfg.bilstm.validation_split,
-            verbose=cfg.bilstm.verbose,
-        )
-
-        model.save(model_path(name=run_name, iteration=iteration))
-
-        # Classify
         data_test = load_split_dataset(
             name=run_name, filename=DATA_TEST, iteration=iteration
-        )
-
-        trained_model = tf.keras.models.load_model(
-            model_path(name=run_name, iteration=iteration),
-            compile=False,  # https://github.com/tensorflow/tensorflow/issues/31850#issuecomment-578566637
         )
 
         processed_data_test = get_embeddings_and_categorical(
@@ -118,6 +95,33 @@ def main(cfg: BiLSTMConfig) -> None:
             sentence_length=sentence_length,
             labels=padded_labels,
             glove_model=glove_model,
+        )
+
+        # Get Model
+        model = get_model(
+            n_tags=len(padded_labels), sentence_length=sentence_length
+        )
+
+        # Train
+        model.fit(
+            x=np.array(processed_data["embeddings"]),
+            y=np.array(processed_data["onehot_encoded"]),
+            batch_size=cfg.bilstm.batch_size,
+            epochs=cfg.bilstm.number_epochs,
+            validation_data=(
+                np.array(processed_data_test["embeddings"]),
+                np.array(processed_data_test["onehot_encoded"]),
+            ),
+            verbose=cfg.bilstm.verbose,
+        )
+
+        model.save(model_path(name=run_name, iteration=iteration))
+
+        # Classify
+
+        trained_model = tf.keras.models.load_model(
+            model_path(name=run_name, iteration=iteration),
+            compile=False,  # https://github.com/tensorflow/tensorflow/issues/31850#issuecomment-578566637
         )
 
         categorical_predictions = trained_model.predict(

@@ -1,5 +1,3 @@
-from dataclasses import dataclass
-from dataclasses import field
 from pathlib import Path
 from typing import cast
 from typing import Dict
@@ -10,7 +8,7 @@ from typing import overload
 import matplotlib.pyplot as plt
 import pandas as pd
 from sklearn import metrics
-from strictly_typed_pandas import DataSet
+from strictly_typed_pandas.dataset import DataSet
 
 from data import evaluation_filepath
 from tooling.logging import logging_setup

@@ -11,6 +11,7 @@ package-dir = {"" = "src"}
 [tool.mypy]
 warn_return_any = "True"
 warn_unused_configs = "True"
+disallow_subclassing_any = "False"
 mypy_path="src"
 strict="True"
 packages = [
@@ -21,6 +22,7 @@ packages = [
     "pipelines",
 
 ]
+
 
 
 
@@ -80,3 +82,7 @@ include = '''
 
 )
 '''
+
+[tool.flake8]
+max-line-length = 88
+extend-ignore = "E203"
