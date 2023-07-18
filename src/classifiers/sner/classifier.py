@@ -33,7 +33,7 @@ from tooling.model import ResultDF
 from tooling.model import ToreLabel
 from tooling.observability import log_artifacts
 
-logging = logging_setup()
+logging = logging_setup(__name__)
 
 
 @dataclass(frozen=True)
@@ -123,10 +123,19 @@ def train_sner(name: str, iteration: int) -> Path:
         universal_newlines=True,
         bufsize=1,
     ) as process:
+        modulo = 10
+
+        logging.info(f"Starting training, only printing every {modulo}. line.")
+        line_counter = 0
         while process.poll() is None:
             if process.stdout:
                 output = process.stdout.readline()
-                print(output, end="")
+                line_counter += 1
+
+                if line_counter % modulo == 0:
+                    logging.info(output)
+                else:
+                    logging.debug(output)
 
     filepath = modelfile(name=name, iteration=iteration)
 

@@ -9,7 +9,7 @@ from omegaconf import MISSING
 from tooling.logging import logging_setup
 from tooling.model import LABELS_NONE
 
-logging = logging_setup()
+logging = logging_setup(__name__)
 
 enum_dict: Dict[str, str] = {k: k for k in LABELS_NONE}
 LABELS_ENUM = Enum("", enum_dict)  # type: ignore[misc]

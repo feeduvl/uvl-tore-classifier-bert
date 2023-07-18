@@ -27,7 +27,7 @@ from tooling.model import ToreLevel
 from tooling.model import ZERO
 from tooling.transformation import transform_token_label
 
-logging = logging_setup()
+logging = logging_setup(__name__)
 
 
 def generate_hint_data(

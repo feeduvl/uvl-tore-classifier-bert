@@ -10,18 +10,19 @@ from typing import Dict
 from typing import List
 from typing import Optional
 from typing import Tuple
+from typing import TYPE_CHECKING
 from typing import Union
 
 import mlflow
 from omegaconf import OmegaConf
 
 from tooling.config import Config
-from tooling.evaluation import ExperimentResult
-from tooling.evaluation import IterationResult
 from tooling.logging import logging_setup
+from tooling.types import ExperimentResult
+from tooling.types import IterationResult
 
 
-logging = logging_setup()
+logging = logging_setup(__name__)
 
 
 def log_artifacts(

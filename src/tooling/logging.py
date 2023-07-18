@@ -4,7 +4,7 @@ from rich.logging import RichHandler
 from transformers import utils
 
 
-def logging_setup() -> logging.Logger:
+def logging_setup(name: str) -> logging.Logger:
     boto_logger = logging.getLogger("botocore.credentials")
     boto_logger.setLevel(logging.WARNING)
 
@@ -14,5 +14,6 @@ def logging_setup() -> logging.Logger:
     logging.basicConfig(
         level="NOTSET", format=FORMAT, datefmt="[%X]", handlers=[RichHandler()]
     )
-    logger = logging.getLogger("pipeline")
+    logger = logging.getLogger(name)
+
     return logger

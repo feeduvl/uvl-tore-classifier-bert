@@ -23,11 +23,14 @@ from data import create_file
 from data import get_dataset_information
 from data import loading_filepath
 from tooling.config import Config
+from tooling.logging import logging_setup
 from tooling.model import tokenlist_to_datadf
 from tooling.observability import log_artifacts
 
 IMPORTED_DATASET_FILENAME_CSV = "imported_dataset.csv"
 IMPORTED_DATASET_FILENAME_PICKLE = "imported_dataset.pickle"
+
+logging = logging_setup(__name__)
 
 
 def split_tokenlist_into_sentences(tokens: List[Token]) -> List[Token]:
@@ -121,7 +124,7 @@ def denormalize_dataset(
 
                         tokenindex_codes[token_id].append(code)
                 except ValidationError as e:
-                    print(e)
+                    logging.error(f"Validiation error {e}")
             else:
                 for token_id in imported_code.tokens:
                     code_skip_set.add(token_id)
@@ -143,7 +146,7 @@ def denormalize_dataset(
                     if imported_token.num_tore_codes == 0:
                         tore_codes = []
                     else:
-                        print(imported_token)
+                        logging.error(f"Key error caused by {imported_token}")
                         raise e
                 finally:
                     token_str = clean_token(imported_token.name)
@@ -177,7 +180,7 @@ def denormalize_dataset(
 
 def __import_dataset(dataset_info: Tuple[str, Path]) -> DataSet[DataDF]:
     dataset_source, import_path = dataset_info
-    print(f"Importing dataset: {dataset_source} from {import_path}")
+    logging.info(f"Importing dataset: {dataset_source} from {import_path}")
 
     imported_ds = ImportDataSet.parse_file(import_path.resolve())
     denormalized_ds = denormalize_dataset(

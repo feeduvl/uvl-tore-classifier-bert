@@ -28,11 +28,12 @@ from tooling.sampling import DATA_TRAIN
 from tooling.sampling import load_split_dataset
 from tooling.sampling import split_dataset_k_fold
 from tooling.transformation import transform_dataset
+from tooling.types import IterationResult
 
 # hide GPU because it is a lot slower than running without it
 tf.config.set_visible_devices([], "GPU")
 
-logging = logging_setup()
+logging = logging_setup(__name__)
 
 cs = ConfigStore.instance()
 cs.store(name="base_config", node=BiLSTMConfig)
@@ -64,7 +65,7 @@ def main(cfg: BiLSTMConfig) -> None:
     glove_model = get_glove_model()
 
     # Prepare evaluation tracking
-    iteration_tracking: List[evaluation.IterationResult] = []
+    iteration_tracking: List[IterationResult] = []
 
     # Start kfold
     for iteration, dataset_paths in split_dataset_k_fold(

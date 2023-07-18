@@ -18,7 +18,7 @@ from tooling.model import create_datadf
 from tooling.model import DataDF
 from tooling.observability import log_artifacts
 
-logging = logging_setup()
+logging = logging_setup(__name__)
 
 DataTrain = Literal["data_train"]
 DATA_TRAIN: DataTrain = "data_train"

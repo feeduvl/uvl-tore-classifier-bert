@@ -28,11 +28,12 @@ from tooling.sampling import DATA_TRAIN
 from tooling.sampling import load_split_dataset
 from tooling.sampling import split_dataset_k_fold
 from tooling.transformation import transform_dataset
+from tooling.types import IterationResult
 
 cs = ConfigStore.instance()
 cs.store(name="base_config", node=BERTConfig)
 
-logging = logging_setup()
+logging = logging_setup(__name__)
 
 
 @hydra.main(version_base=None, config_path="conf", config_name="config_bert")
@@ -53,7 +54,7 @@ def main(cfg: BERTConfig) -> None:
 
     # Get model constants
     class_weights = get_class_weights(
-        bert_cfg=cfg.bert, data=transformed_dataset["dataset"], device=device
+        bert_cfg=cfg.bert, data=transformed_dataset["dataset"]
     )
 
     id2label = get_id2label(transformed_dataset["labels"])
@@ -67,7 +68,7 @@ def main(cfg: BERTConfig) -> None:
     )
 
     # Prepare evaluation tracking
-    iteration_tracking: List[evaluation.IterationResult] = []
+    iteration_tracking: List[IterationResult] = []
     compute_iteration_metrics = get_compute_metrics(
         iteration_tracking=iteration_tracking,
         average=cfg.experiment.average,
@@ -153,6 +154,7 @@ def main(cfg: BERTConfig) -> None:
                 id2label=id2label,
             ),
             class_weights=class_weights,
+            device=device,
         )
         trainer.train()
         trainer.save_model(

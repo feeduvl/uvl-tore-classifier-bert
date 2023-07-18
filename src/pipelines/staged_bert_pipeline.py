@@ -32,9 +32,10 @@ from tooling.sampling import DATA_TRAIN
 from tooling.sampling import load_split_dataset
 from tooling.sampling import split_dataset_k_fold
 from tooling.transformation import transform_dataset
+from tooling.types import IterationResult
 
 
-logging = logging_setup()
+logging = logging_setup(__name__)
 
 cs = ConfigStore.instance()
 cs.store(name="base_config", node=StagedBERTConfig)
@@ -61,7 +62,7 @@ def main(cfg: StagedBERTConfig) -> None:
 
     # Get model constants
     class_weights = get_class_weights(
-        bert_cfg=cfg.bert, data=transformed_dataset["dataset"], device=device
+        bert_cfg=cfg.bert, data=transformed_dataset["dataset"]
     )
     id2label = get_id2label(transformed_dataset["labels"])
     label2id = get_label2id(transformed_dataset["labels"])
@@ -77,7 +78,7 @@ def main(cfg: StagedBERTConfig) -> None:
     hint_modifier = get_hint_modifier(id2label=id2label, hints=hints)
 
     # Prepare evaluation tracking
-    iteration_tracking: List[evaluation.IterationResult] = []
+    iteration_tracking: List[IterationResult] = []
     compute_iteration_metrics = get_compute_metrics(
         iteration_tracking=iteration_tracking,
         average=cfg.experiment.average,
@@ -164,6 +165,7 @@ def main(cfg: StagedBERTConfig) -> None:
                 id2label=id2label,
             ),
             class_weights=class_weights,
+            device=device,
         )
         trainer.train()
         trainer.save_model(

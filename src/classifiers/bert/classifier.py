@@ -26,7 +26,6 @@ from transformers.trainer_utils import EvalPrediction
 
 from tooling import evaluation
 from tooling.config import BERT
-from tooling.evaluation import IterationResult
 from tooling.logging import logging_setup
 from tooling.model import create_resultdf
 from tooling.model import data_to_list_of_label_lists
@@ -35,8 +34,9 @@ from tooling.model import DataDF
 from tooling.model import Label_None_Pad
 from tooling.model import LABELS_NONE
 from tooling.model import ResultDF
+from tooling.types import IterationResult
 
-logging = logging_setup()
+logging = logging_setup(__name__)
 
 
 class BertData(TypedDict):
@@ -247,7 +247,7 @@ def create_bert_dataset(
     if modifiers:
         for modifier in modifiers:
             data = data.add_column(
-                modifier["column_name"], modifier["modifier"]
+                modifier["column_name"], modifier["modifier"](dataset=data)
             )
 
     data = data.map(tokenizer_and_aligner, batched=True)
@@ -258,9 +258,9 @@ def create_bert_dataset(
 
 
 class WeightedTrainer(Trainer):  # type: ignore
-    def __init__(self, *args, **kwargs):  # type: ignore
+    def __init__(self, class_weights, device, *args, **kwargs):  # type: ignore
         super().__init__(*args, **kwargs)
-        self.class_weights = kwargs["class_weights"]
+        self.class_weights = class_weights.to(device=device)
 
     def compute_loss(self, model, inputs, return_outputs=False):  # type: ignore
         labels = inputs.get("labels")
@@ -287,7 +287,8 @@ def setup_device() -> str:
 
 
 def get_class_weights(
-    bert_cfg: BERT, data: DataSet[DataDF], device: str
+    bert_cfg: BERT,
+    data: DataSet[DataDF],
 ) -> torch.Tensor:
     labels = np.array(data["tore_label"])
     unique_labels = np.unique(labels).tolist()
@@ -306,7 +307,6 @@ def get_class_weights(
 
     logging.info(f"Class weights: {dict(zip(unique_labels, class_weights))}")
 
-    class_weights.to(device=device)
     return class_weights
 
 

@@ -19,8 +19,10 @@ from tooling.model import Label
 from tooling.model import ResultDF
 from tooling.observability import log_experiment_result
 from tooling.observability import log_iteration_result
+from tooling.types import ExperimentResult
+from tooling.types import IterationResult
 
-logging = logging_setup()
+logging = logging_setup(__name__)
 
 
 def output_confusion_matrix(
@@ -146,23 +148,6 @@ def score_recall(
     return recall
 
 
-@dataclass
-class IterationResult:
-    step: int
-    result: DataSet[ResultDF]
-    solution: DataSet[ResultDF]
-
-    precision: float = 0.0
-    recall: float = 0.0
-
-    pl_precision: Dict[Label, float] = field(default_factory=dict)
-    pl_recall: Dict[Label, float] = field(default_factory=dict)
-
-    confusion_matrix: Optional[Path] = None
-
-    label_count: int = 0
-
-
 def evaluate_iteration(
     run_name: str,
     iteration: int,
@@ -220,26 +205,9 @@ def evaluate_iteration(
     iteration_tracking.append(res)
 
     log_iteration_result(res)
-    logging.info(f"Logged iteration result {res=}")
+    logging.info(f"Logged iteration result {res.precision=} {res.recall=}")
 
     return res
-
-
-@dataclass
-class ExperimentResult:
-    label_count: int = 0
-
-    min_precision: float = 0.0
-    min_recall: float = 0.0
-    mean_precision: float = 0.0
-    mean_recall: float = 0.0
-    max_precision: float = 0.0
-    max_recall: float = 0.0
-
-    pl_mean_precision: Dict[Label, float] = field(default_factory=dict)
-    pl_mean_recall: Dict[Label, float] = field(default_factory=dict)
-
-    confusion_matrix: Path = Path()
 
 
 def evaluate_experiment(
@@ -280,6 +248,8 @@ def evaluate_experiment(
     )
 
     log_experiment_result(result=res)
-    logging.info(f"Logged experiment result {res=}")
+    logging.info(
+        f"Logged experiment result {res.mean_precision=} {res.mean_recall=}"
+    )
 
     return res

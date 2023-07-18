@@ -26,7 +26,7 @@ from tooling.model import label_to_id
 from tooling.model import PAD
 from tooling.model import ResultDF
 
-logging = logging_setup()
+logging = logging_setup(__name__)
 
 
 def construct_model(n_tags: int, sentence_length: int) -> tf.keras.Model:

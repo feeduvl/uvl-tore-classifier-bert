@@ -3,11 +3,11 @@ from typing import List
 import hydra
 from hydra.core.config_store import ConfigStore
 
-from classifiers.sner import classify_sentences
-from classifiers.sner import create_config_file
-from classifiers.sner import create_solution
-from classifiers.sner import create_train_file
-from classifiers.sner import train_sner
+from classifiers.sner.classifier import classify_sentences
+from classifiers.sner.classifier import create_config_file
+from classifiers.sner.classifier import create_solution
+from classifiers.sner.classifier import create_train_file
+from classifiers.sner.classifier import train_sner
 from classifiers.sner.files import load_result
 from classifiers.sner.files import load_solution
 from tooling import evaluation
@@ -22,6 +22,7 @@ from tooling.sampling import DATA_TRAIN
 from tooling.sampling import load_split_dataset
 from tooling.sampling import split_dataset_k_fold
 from tooling.transformation import transform_dataset
+from tooling.types import IterationResult
 
 cs = ConfigStore.instance()
 cs.store(name="base_config", node=SNERConfig)
@@ -29,7 +30,7 @@ cs.store(
     group="transformation", name="base_label_activity", node=Transformation
 )
 
-logging = logging_setup()
+logging = logging_setup(__name__)
 
 
 @hydra.main(version_base=None, config_path="conf", config_name="config_sner")
@@ -46,7 +47,7 @@ def main(cfg: SNERConfig) -> None:
     )
 
     # Prepare evaluation tracking
-    iteration_tracking: List[evaluation.IterationResult] = []
+    iteration_tracking: List[IterationResult] = []
 
     # Start kfold
     for iteration, dataset_paths in split_dataset_k_fold(

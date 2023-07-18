@@ -23,7 +23,7 @@ from tooling.model import ToreLabel
 from tooling.model import ToreLevel
 from tooling.model import ZERO
 
-logging = logging_setup()
+logging = logging_setup(__name__)
 
 
 def lower_case_token(data: DataSet[DataDF]) -> None:
