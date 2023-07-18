@@ -4,17 +4,21 @@ from typing import List
 from typing import Literal
 from typing import Optional
 from typing import Tuple
+from typing import TypedDict
 from typing import Union
 
+import mlflow
 import numpy as np
 import omegaconf
 import pandas as pd
 import torch
-from sklearn.utils.class_weight import compute_class_weight
 from strictly_typed_pandas import DataSet
 
+from tooling.config import Config
 from tooling.config import Transformation
+from tooling.loading import load_dataset
 from tooling.model import DataDF
+from tooling.model import Label_None
 from tooling.model import Label_None_Pad
 from tooling.model import LABELS_NONE
 from tooling.model import NoneLabel
@@ -23,24 +27,12 @@ from tooling.model import TORE_LABELS
 from tooling.model import TORE_LEVEL
 from tooling.model import ToreLabel
 from tooling.model import ToreLevel
+from tooling.model import ZERO
+
+logging = logging_setup()
 
 
-def get_class_weights(
-    data: DataSet[DataDF],
-) -> torch.Tensor:
-    labels = np.array(data["tore_label"])
-    unique_labels = np.unique(labels).tolist()
-    unique_labels.sort(key=lambda x: LABELS_NONE.index(x))
-    np_unique_labels = np.array(unique_labels)
-
-    return torch.from_numpy(
-        compute_class_weight(
-            class_weight="balanced", classes=np_unique_labels, y=labels
-        )
-    ).to(torch.float32)
-
-
-def lower_case_token(data: DataSet[DataDF]):
+def lower_case_token(data: DataSet[DataDF]) -> None:
     data["string"] = data["string"].apply(str.lower)
 
 
@@ -64,9 +56,14 @@ def transform_token_label(
     return new_value
 
 
-def transform_dataset(
+class TransformedDataset(TypedDict):
+    labels: List[Label_None]
+    dataset: DataSet[DataDF]
+
+
+def _transform_dataset(
     dataset: DataSet[DataDF], cfg: Transformation
-) -> Tuple[List[Union[ToreLevel, ToreLabel, Literal["0"]]], DataSet[DataDF]]:
+) -> TransformedDataset:
     dict_cfg = omegaconf.OmegaConf.to_container(cfg)
 
     if not isinstance(dict_cfg, dict):
@@ -97,4 +94,23 @@ def transform_dataset(
 
     labels = list(set(labels))
 
-    return labels, dataset
+    return TransformedDataset(labels=labels, dataset=dataset)
+
+
+def transform_dataset(
+    cfg: Config, run_name: str, fill_with_zeros: bool
+) -> TransformedDataset:
+    d = load_dataset(name=run_name)
+
+    transformed_dataset = _transform_dataset(dataset=d, cfg=cfg.transformation)
+
+    if fill_with_zeros:
+        transformed_dataset["dataset"].fillna(ZERO, inplace=True)
+
+    if cfg.experiment.lower_case:
+        lower_case_token(transformed_dataset["dataset"])
+
+    logging.info(f"Dataset Labels: {transformed_dataset['labels']=}")
+    mlflow.log_param("dataset_labels", transformed_dataset["labels"])
+
+    return transformed_dataset

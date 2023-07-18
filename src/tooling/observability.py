@@ -1,33 +1,38 @@
 import collections
-import statistics
 from collections.abc import (
     Iterable,
 )
 from collections.abc import MutableMapping
-from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 from typing import cast
 from typing import Dict
 from typing import List
-from typing import Never
 from typing import Optional
 from typing import Tuple
+from typing import TypedDict
 from typing import Union
 
 import mlflow
-import pandas as pd
-from omegaconf import DictConfig
 from omegaconf import OmegaConf
 
 from tooling.config import Config
 from tooling.evaluation import ExperimentResult
 from tooling.evaluation import IterationResult
-from tooling.model import Label
+from tooling.logging import logging_setup
 
 
-def log_artifacts(artifact_paths: Union[Path, Iterable[Path]]) -> None:
-    if isinstance(artifact_paths, Iterable):
+logging = logging_setup()
+
+
+def log_artifacts(
+    artifact_paths: Union[Path, Iterable[Path], Dict[str, Any]]
+) -> None:
+    if isinstance(artifact_paths, Dict):
+        for value in artifact_paths.values():
+            if isinstance(value, Path):
+                mlflow.log_artifact(value)
+    elif isinstance(artifact_paths, Iterable):
         for path in artifact_paths:
             mlflow.log_artifact(path)
     else:
@@ -72,8 +77,9 @@ def log_config(cfg: Config) -> None:
 def config_mlflow(cfg: Config) -> str:
     mlflow.set_tracking_uri(cfg.meta.mlflow_tracking_uri)
     mlflow.set_experiment(cfg.experiment.name)
-    mlflow.autolog()
+    mlflow.autolog(silent=True)
     log_config(cfg)
+    logging.info("\n" + OmegaConf.to_yaml(cfg))
 
     run_name = mlflow.active_run().info.run_name
     if run_name is None:

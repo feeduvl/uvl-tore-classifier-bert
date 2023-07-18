@@ -6,11 +6,15 @@ from typing import List
 from typing import Literal
 from typing import Optional
 from typing import Tuple
+from typing import TypedDict
 from typing import Union
 
+import mlflow
 import omegaconf
 
 from tooling.config import Transformation
+from tooling.logging import logging_setup
+from tooling.model import get_label2id
 from tooling.model import Label_None_Pad
 from tooling.model import LABELS_NONE
 from tooling.model import TORE_LABELS
@@ -20,6 +24,9 @@ from tooling.model import ToreLabel
 from tooling.model import ToreLevel
 from tooling.model import ZERO
 from tooling.transformation import transform_token_label
+
+
+logging = logging_setup()
 
 
 def generate_hint_data(
@@ -49,10 +56,15 @@ def generate_hint_data(
     return hints
 
 
+class Hints(TypedDict):
+    transformation_function: partial[Optional[Label_None_Pad]]
+    label2id: Dict[Label_None_Pad, int]
+
+
 def get_hint_transformation(
-    cfg: Transformation,
-) -> Tuple[partial[Optional[Label_None_Pad]], List[Label_None_Pad]]:
-    dict_cfg = omegaconf.OmegaConf.to_container(cfg)
+    transformation_cfg: Transformation,
+) -> Hints:
+    dict_cfg = omegaconf.OmegaConf.to_container(transformation_cfg)
 
     if not isinstance(dict_cfg, dict):
         raise ValueError("No config passed")
@@ -73,4 +85,14 @@ def get_hint_transformation(
                 f"Transformation value '{new_value}' isn't valid TORE_LABEL"
             )
 
-    return partial(transform_token_label, cfg=dict_cfg), list(set(hint_labels))
+    hint_label2id = get_label2id(list(set(hint_labels)))
+    transformation_function = partial(
+        transform_token_label, cfg=transformation_cfg
+    )
+
+    logging.info(f"Hint Label2Id: {hint_label2id=}")
+    mlflow.log_param("hint_label2id", hint_label2id)
+
+    return Hints(
+        transformation_function=transformation_function, label2id=hint_label2id
+    )

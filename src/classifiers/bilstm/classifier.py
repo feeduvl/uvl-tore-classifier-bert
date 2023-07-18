@@ -5,6 +5,7 @@ from typing import List
 from typing import Tuple
 
 import gensim.downloader as api
+import mlflow
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
@@ -13,6 +14,8 @@ from keras.preprocessing.sequence import pad_sequences
 from keras.utils import to_categorical
 from strictly_typed_pandas import DataSet
 
+from tooling.config import BiLSTM
+from tooling.logging import logging
 from tooling.model import data_to_list_of_label_lists
 from tooling.model import data_to_list_of_token_lists
 from tooling.model import DataDF
@@ -21,6 +24,8 @@ from tooling.model import Label_None_Pad
 from tooling.model import label_to_id
 from tooling.model import PAD
 from tooling.model import ResultDF
+
+logging = logging_setup()
 
 
 def construct_model(n_tags: int, sentence_length: int) -> tf.keras.Model:
@@ -200,3 +205,21 @@ def get_embeddings_and_categorical(
     )
 
     return (one_hot, embeddings)
+
+
+def get_sentence_length(bilstm_config: BiLSTM, data: DataSet[DataDF]) -> int:
+    if bilstm_config.sentence_length is None:
+        sentences_token_list = data_to_list_of_token_lists(data=data)
+        sentence_length = max(
+            [len(sentence_tl) for sentence_tl in sentences_token_list]
+        )
+        mlflow.log_param("computed_sentence_length", sentence_length)
+        logging.info(f"Computed maximal sentence length: {sentence_length = }")
+    else:
+        sentence_length = bilstm_config.sentence_length
+        mlflow.log_param("sentence_length", sentence_length)
+        logging.info(
+            f"Configured maximal sentence length: {sentence_length = }"
+        )
+
+    return sentence_length

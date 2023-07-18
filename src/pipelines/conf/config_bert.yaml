@@ -5,6 +5,8 @@ defaults:
     - override hydra/launcher: joblib
     - override hydra/job_logging: colorlog
     - override hydra/hydra_logging: colorlog
+    - override hydra/job_logging: none
+    - override hydra/hydra_logging: none
 
     - _self_
 

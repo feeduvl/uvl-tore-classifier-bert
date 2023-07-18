@@ -10,7 +10,13 @@ import hydra
 from hydra.core.config_store import ConfigStore
 from omegaconf import MISSING
 
+from tooling.logging import logging_setup
 from tooling.model import LABELS_NONE
+
+logging = logging_setup()
+
+enum_dict: Dict[str, str] = {k: k for k in LABELS_NONE}
+LABELS_ENUM = Enum("", enum_dict)  # type: ignore[misc]
 
 
 @dataclass
@@ -21,12 +27,6 @@ class Experiment:
     average: str = "macro"
     dataset: str = "prolific"
     lower_case: bool = False
-
-
-enum_dict: Dict[str, str] = {k: k for k in LABELS_NONE}
-
-
-LABELS_ENUM = Enum("", enum_dict)  # type: ignore[misc]
 
 
 @dataclass

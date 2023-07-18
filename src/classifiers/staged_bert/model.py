@@ -36,6 +36,18 @@ class StagedBertForTokenClassification(BertPreTrainedModel):  # type: ignore
             else config.hidden_dropout_prob
         )
         self.dropout = nn.Dropout(classifier_dropout)
+        self.c1 = nn.Linear(
+            config.hidden_size + num_hint_labels,
+            config.hidden_size + num_hint_labels,
+        )
+        self.c2 = nn.Linear(
+            config.hidden_size + num_hint_labels,
+            config.hidden_size + num_hint_labels,
+        )
+        self.c3 = nn.Linear(
+            config.hidden_size + num_hint_labels,
+            config.hidden_size + num_hint_labels,
+        )
         self.classifier = nn.Linear(
             config.hidden_size + num_hint_labels, config.num_labels
         )
@@ -91,7 +103,11 @@ class StagedBertForTokenClassification(BertPreTrainedModel):  # type: ignore
         # classifier
         classifier_input = torch.cat([sequence_output, hint_input_ids], dim=2)
 
-        logits = self.classifier(classifier_input)
+        c1 = self.c1(classifier_input)
+        c2 = self.c2(c1)
+        c3 = self.c3(c2)
+
+        logits = self.classifier(c3)
 
         loss = None
         if labels is not None:

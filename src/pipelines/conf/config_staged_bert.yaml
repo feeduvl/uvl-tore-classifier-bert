@@ -14,13 +14,13 @@ experiment:
     dataset: prolific
 
 bert:
-    model: bert-large-cased
+    model: bert-base-uncased
     max_len:
-    train_batch_size: 64
+    train_batch_size: 32
     validation_batch_size: 64
-    number_epochs: 5
-    learning_rate: 9e-05
-    weight_decay: 0.2
+    number_epochs: 32
+    learning_rate: 2e-05
+    weight_decay: 0
     weighted_classes: True
 
 hydra:

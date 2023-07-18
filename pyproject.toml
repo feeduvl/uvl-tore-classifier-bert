@@ -18,7 +18,8 @@ packages = [
     "data",
     "tests",
     "tooling",
-    "pipelines"
+    "pipelines",
+    "logging"
 ]
 
 

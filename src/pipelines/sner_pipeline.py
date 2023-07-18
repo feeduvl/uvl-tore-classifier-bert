@@ -17,6 +17,7 @@ from tooling.config import SNERConfig
 from tooling.config import Transformation
 from tooling.loading import import_dataset
 from tooling.loading import load_dataset
+from tooling.logging import logging_setup
 from tooling.observability import config_mlflow
 from tooling.observability import end_tracing
 from tooling.observability import log_artifacts
@@ -29,42 +30,35 @@ from tooling.sampling import split_dataset_k_fold
 from tooling.transformation import lower_case_token
 from tooling.transformation import transform_dataset
 
-
 cs = ConfigStore.instance()
 cs.store(name="base_config", node=SNERConfig)
 cs.store(
     group="transformation", name="base_label_activity", node=Transformation
 )
 
+logging = logging_setup()
+
 
 @hydra.main(version_base=None, config_path="conf", config_name="config_sner")
 def main(cfg: SNERConfig) -> None:
     # Setup experiment
-    print(OmegaConf.to_yaml(cfg))
     run_name = config_mlflow(cfg)
 
     # Import Dataset
-    dataset_information = get_dataset_information(cfg.experiment.dataset)
-    imported_dataset_path = import_dataset(
-        name=run_name, ds_spec=dataset_information
-    )
-    log_artifacts(imported_dataset_path)
+    import_dataset(cfg, run_name)
 
     # Transform Dataset
-    d = load_dataset(name=run_name)
-    dataset_labels, transformed_d = transform_dataset(
-        dataset=d, cfg=cfg.transformation
+    transformed_dataset = transform_dataset(
+        cfg, run_name, fill_with_zeros=False
     )
 
-    if cfg.experiment.lower_case:
-        lower_case_token(transformed_d)
-
+    # Prepare evaluation tracking
     iteration_tracking: List[evaluation.IterationResult] = []
 
     # Start kfold
     for iteration, dataset_paths in split_dataset_k_fold(
         name=run_name,
-        dataset=transformed_d,
+        dataset=transformed_dataset["dataset"],
         folds=cfg.experiment.folds,
         random_state=cfg.experiment.random_state,
     ):

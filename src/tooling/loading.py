@@ -7,6 +7,7 @@ from typing import get_args
 from typing import List
 from typing import Optional
 from typing import Tuple
+from typing import TypedDict
 
 import pandas as pd
 from pydantic import ValidationError
@@ -19,9 +20,11 @@ from .model import ImportToreLabel
 from .model import Token
 from .model import ToreLabel
 from data import create_file
+from data import get_dataset_information
 from data import loading_filepath
-from data import LOADING_TEMP
+from tooling.config import Config
 from tooling.model import tokenlist_to_datadf
+from tooling.observability import log_artifacts
 
 IMPORTED_DATASET_FILENAME_CSV = "imported_dataset.csv"
 IMPORTED_DATASET_FILENAME_PICKLE = "imported_dataset.pickle"
@@ -172,7 +175,7 @@ def denormalize_dataset(
     return tokenlist_to_datadf(dataset)
 
 
-def _import_dataset(dataset_info: Tuple[str, Path]) -> DataSet[DataDF]:
+def __import_dataset(dataset_info: Tuple[str, Path]) -> DataSet[DataDF]:
     dataset_source, import_path = dataset_info
     print(f"Importing dataset: {dataset_source} from {import_path}")
 
@@ -184,12 +187,17 @@ def _import_dataset(dataset_info: Tuple[str, Path]) -> DataSet[DataDF]:
     return denormalized_ds
 
 
-def import_dataset(
+class ImportDatasetPaths(TypedDict):
+    filepath_csv: Path
+    filepath_pickle: Path
+
+
+def _import_dataset(
     name: str, ds_spec: List[Tuple[str, Path]]
-) -> Tuple[Path, Path]:
+) -> ImportDatasetPaths:
     dataframes: List[DataSet[DataDF]] = []
     for d_spec in ds_spec:
-        dataframes.append(_import_dataset(d_spec))
+        dataframes.append(__import_dataset(d_spec))
 
     ds_df = pd.concat(dataframes, ignore_index=True)
 
@@ -217,7 +225,18 @@ def import_dataset(
     ) as f:
         ds_df.to_csv(f)
 
-    return filepath_pickle, filepath_csv
+    return ImportDatasetPaths(
+        filepath_csv=filepath_csv, filepath_pickle=filepath_pickle
+    )
+
+
+def import_dataset(cfg: Config, run_name: str) -> ImportDatasetPaths:
+    dataset_information = get_dataset_information(cfg.experiment.dataset)
+    imported_dataset_path = _import_dataset(
+        name=run_name, ds_spec=dataset_information
+    )
+    log_artifacts(dict(imported_dataset_path))
+    return imported_dataset_path
 
 
 def load_dataset(name: str) -> DataSet[DataDF]:

@@ -11,10 +11,12 @@ from typing import overload
 from typing import Tuple
 from typing import TypedDict
 
+import mlflow
 import numpy as np
 import pandas as pd
 import torch
 from datasets import Dataset
+from sklearn.utils.class_weight import compute_class_weight
 from strictly_typed_pandas import DataSet
 from torch import nn
 from transformers import BatchEncoding
@@ -23,13 +25,18 @@ from transformers import Trainer
 from transformers.trainer_utils import EvalPrediction
 
 from tooling import evaluation
+from tooling.config import BERT
 from tooling.evaluation import IterationResult
+from tooling.logging import logging_setup
 from tooling.model import create_resultdf
 from tooling.model import data_to_list_of_label_lists
 from tooling.model import data_to_list_of_token_lists
 from tooling.model import DataDF
 from tooling.model import Label_None_Pad
+from tooling.model import LABELS_NONE
 from tooling.model import ResultDF
+
+logging = logging_setup()
 
 
 class BertData(TypedDict):
@@ -220,6 +227,10 @@ def create_tore_dataset(
 
 
 class WeightedTrainer(Trainer):  # type: ignore
+    def __init__(self, *args, **kwargs):  # type: ignore
+        super().__init__(*args, **kwargs)
+        self.class_weights = kwargs["class_weights"]
+
     def compute_loss(self, model, inputs, return_outputs=False):  # type: ignore
         labels = inputs.get("labels")
         # forward pass
@@ -236,3 +247,63 @@ class WeightedTrainer(Trainer):  # type: ignore
             logits.view(-1, self.model.config.num_labels), labels.view(-1)
         )
         return (loss, outputs) if return_outputs else loss
+
+
+def setup_device() -> str:
+    device = "mps" if torch.backends.mps.is_available() else "cpu"
+    logging.info(f"Using device: {device}")
+    return device
+
+
+def get_class_weights(
+    bert_cfg: BERT, data: DataSet[DataDF], device: str
+) -> torch.Tensor:
+    labels = np.array(data["tore_label"])
+    unique_labels = np.unique(labels).tolist()
+    unique_labels.sort(key=lambda x: LABELS_NONE.index(x))
+
+    if bert_cfg.weighted_classes:
+        np_unique_labels = np.array(unique_labels)
+        class_weights = torch.from_numpy(
+            compute_class_weight(
+                class_weight="balanced", classes=np_unique_labels, y=labels
+            )
+        ).to(torch.float32)
+    else:
+        weights = [1.0 for label in unique_labels]
+        class_weights = torch.from_numpy(np.array(weights)).to(torch.float32)
+
+    logging.info(f"Class weights: {dict(zip(unique_labels, class_weights))}")
+
+    class_weights.to(device=device)
+    return class_weights
+
+
+def get_max_len(
+    bert_cfg: BERT,
+    data: DataSet[DataDF],
+    label2id: Dict[Label_None_Pad, int],
+    tokenizer: BertTokenizerFast,
+) -> int:
+    if bert_cfg.max_len:
+        max_len = bert_cfg.max_len
+        logging.info(f"Configured maximal token sequence length: {max_len = }")
+        mlflow.log_param("max_len", max_len)
+    else:
+        t_a_a_l_test = get_tokenize_and_align_labels(
+            tokenizer=tokenizer, max_len=None, truncation=False
+        )
+        test_data = create_tore_dataset(data=data, label2id=label2id)
+        test_data = test_data.map(
+            t_a_a_l_test,
+            batched=True,
+        )
+        test_data = test_data.rename_columns(
+            {"string": "text", "tore_label_id": "labels"}
+        )
+
+        max_len = max([len(s) for s in test_data["text"]])
+        logging.info(f"Computed maximal token sequence length: {max_len = }")
+        mlflow.log_param("computed_max_len", max_len)
+
+    return max_len

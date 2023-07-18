@@ -7,21 +7,23 @@ from hydra.core.config_store import ConfigStore
 from omegaconf import OmegaConf
 from transformers import BertForTokenClassification
 from transformers import BertTokenizerFast
-from transformers import DataCollatorForTokenClassification
 from transformers import Trainer
 from transformers import TrainingArguments
 
 from classifiers.bert.classifier import create_tore_dataset
+from classifiers.bert.classifier import get_class_weights
 from classifiers.bert.classifier import get_compute_metrics
+from classifiers.bert.classifier import get_max_len
 from classifiers.bert.classifier import get_tokenize_and_align_labels
+from classifiers.bert.classifier import setup_device
 from classifiers.bert.classifier import WeightedTrainer
 from classifiers.bert.files import model_path
 from classifiers.bert.files import output_path
-from data import get_dataset_information
 from tooling import evaluation
 from tooling.config import BERTConfig
+from tooling.config import Config
 from tooling.loading import import_dataset
-from tooling.loading import load_dataset
+from tooling.logging import logging_setup
 from tooling.model import get_id2label
 from tooling.model import get_label2id
 from tooling.model import ZERO
@@ -34,76 +36,46 @@ from tooling.sampling import DATA_TEST
 from tooling.sampling import DATA_TRAIN
 from tooling.sampling import load_split_dataset
 from tooling.sampling import split_dataset_k_fold
-from tooling.transformation import get_class_weights
-from tooling.transformation import lower_case_token
 from tooling.transformation import transform_dataset
-
 
 cs = ConfigStore.instance()
 cs.store(name="base_config", node=BERTConfig)
 
+logging = logging_setup()
+
 
 @hydra.main(version_base=None, config_path="conf", config_name="config_bert")
 def main(cfg: BERTConfig) -> None:
-    # Setup experiment
-    print(OmegaConf.to_yaml(cfg))
     run_name = config_mlflow(cfg)
-
-    TOKENIZER = BertTokenizerFast.from_pretrained(cfg.bert.model)
-
-    device = "mps" if torch.backends.mps.is_available() else "cpu"
+    device = setup_device()
 
     # Import Dataset
-    dataset_information = get_dataset_information(cfg.experiment.dataset)
-    imported_dataset_path = import_dataset(
-        name=run_name, ds_spec=dataset_information
-    )
-    log_artifacts(imported_dataset_path)
+    import_dataset(cfg, run_name)
+
+    # Setup Tokenizer
+    TOKENIZER = BertTokenizerFast.from_pretrained(cfg.bert.model)
 
     # Transform Dataset
-    d = load_dataset(name=run_name)
-
-    dataset_labels, transformed_d = transform_dataset(
-        dataset=d, cfg=cfg.transformation
+    transformed_dataset = transform_dataset(
+        cfg, run_name, fill_with_zeros=True
     )
-    transformed_d.fillna(ZERO, inplace=True)
 
-    if cfg.experiment.lower_case:
-        lower_case_token(transformed_d)
+    # Get model constants
+    class_weights = get_class_weights(
+        bert_cfg=cfg.bert, data=transformed_dataset["dataset"], device=device
+    )
 
-    selected_trainer = Trainer
+    id2label = get_id2label(transformed_dataset["labels"])
+    label2id = get_label2id(transformed_dataset["labels"])
 
-    if cfg.bert.weighted_classes:
-        class_weights = get_class_weights(transformed_d).to(device=device)
+    max_len = get_max_len(
+        bert_cfg=cfg.bert,
+        data=transformed_dataset["dataset"],
+        label2id=label2id,
+        tokenizer=TOKENIZER,
+    )
 
-        selected_trainer = WeightedTrainer
-        selected_trainer.class_weights = class_weights
-        selected_trainer.class_weights.to(device=device)
-
-    id2label = get_id2label(dataset_labels)
-    label2id = get_label2id(dataset_labels)
-
-    if cfg.bert.max_len is None:
-        t_a_a_l_test = get_tokenize_and_align_labels(
-            tokenizer=TOKENIZER, max_len=None, truncation=False
-        )
-        test_data = create_tore_dataset(data=transformed_d, label2id=label2id)
-        test_data = test_data.map(
-            t_a_a_l_test,
-            batched=True,
-        )
-        test_data = test_data.rename_columns(
-            {"string": "text", "tore_label_id": "labels"}
-        )
-
-        max_len = max([len(s) for s in test_data["text"]])
-    else:
-        max_len = cfg.bert.max_len
-
-    print(f"max_len: {max_len}")
-
-    mlflow.log_param("dataset_labels", dataset_labels)
-
+    # Prepare evaluation tracking
     iteration_tracking: List[evaluation.IterationResult] = []
     compute_iteration_metrics = get_compute_metrics(
         iteration_tracking=iteration_tracking,
@@ -115,7 +87,7 @@ def main(cfg: BERTConfig) -> None:
     # Start kfold
     for iteration, dataset_paths in split_dataset_k_fold(
         name=run_name,
-        dataset=transformed_d,
+        dataset=transformed_dataset["dataset"],
         folds=cfg.experiment.folds,
         random_state=cfg.experiment.random_state,
     ):
@@ -157,11 +129,6 @@ def main(cfg: BERTConfig) -> None:
         model.to(device=device)
 
         # Train
-        data_collator = DataCollatorForTokenClassification(
-            tokenizer=TOKENIZER,
-            padding="max_length",
-            max_length=max_len,
-        )
 
         compute_metrics = get_compute_metrics(
             iteration_tracking=[],
@@ -197,14 +164,14 @@ def main(cfg: BERTConfig) -> None:
             use_mps_device=True,
         )
 
-        trainer = selected_trainer(
+        trainer = WeightedTrainer(
             model=model,
             args=training_args,
             train_dataset=train_data,
             eval_dataset=test_data,
             tokenizer=TOKENIZER,
-            data_collator=data_collator,
             compute_metrics=compute_metrics,
+            class_weights=class_weights,
         )
 
         # if cfg.bert.weighted_classes:

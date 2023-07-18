@@ -14,6 +14,7 @@ from classifiers.bilstm import get_embeddings_and_categorical
 from classifiers.bilstm import get_glove_model
 from classifiers.bilstm import get_model
 from classifiers.bilstm import get_one_hot_encoding
+from classifiers.bilstm import get_sentence_length
 from classifiers.bilstm import get_word_embeddings
 from classifiers.bilstm import reverse_one_hot_encoding
 from classifiers.bilstm.files import model_path
@@ -39,6 +40,7 @@ from tooling.sampling import split_dataset_k_fold
 from tooling.transformation import lower_case_token
 from tooling.transformation import transform_dataset
 
+# hide GPU because it is a lot slower than running without it
 tf.config.set_visible_devices([], "GPU")
 
 
@@ -49,46 +51,35 @@ cs.store(name="base_config", node=BiLSTMConfig)
 @hydra.main(version_base=None, config_path="conf", config_name="config_bilstm")
 def main(cfg: BiLSTMConfig) -> None:
     # Setup experiment
-    print(OmegaConf.to_yaml(cfg))
     run_name = config_mlflow(cfg)
+
+    # Import Dataset
+    import_dataset(cfg, run_name)
+
+    # Transform Dataset
+    transformed_dataset = transform_dataset(
+        cfg, run_name, fill_with_zeros=True
+    )
+
+    # Get model constants
+    sentence_length = get_sentence_length(
+        cfg.bilstm, data=transformed_dataset["dataset"]
+    )
+
+    padded_labels: Sequence[Label_None_Pad] = transformed_dataset["labels"] + [
+        PAD
+    ]
 
     # Download Model
     glove_model = get_glove_model()
 
-    # Import Dataset
-    dataset_information = get_dataset_information(cfg.experiment.dataset)
-    imported_dataset_path = import_dataset(
-        name=run_name, ds_spec=dataset_information
-    )
-    log_artifacts(imported_dataset_path)
-
-    # Transform Dataset
-    d = load_dataset(name=run_name)
-    dataset_labels, transformed_d = transform_dataset(
-        dataset=d, cfg=cfg.transformation
-    )
-
-    transformed_d.fillna("0", inplace=True)
-
-    if cfg.experiment.lower_case:
-        lower_case_token(transformed_d)
-
-    sentence_length = cfg.bilstm.sentence_length
-    if sentence_length is None:
-        sentences_token_list = data_to_list_of_token_lists(data=transformed_d)
-        sentence_length = max(
-            [len(sentence_tl) for sentence_tl in sentences_token_list]
-        )
-
-    labels = get_labels(dataset=transformed_d)
-    padded_labels: Sequence[Label_None_Pad] = labels + [PAD]
-
+    # Prepare evaluation tracking
     iteration_tracking: List[evaluation.IterationResult] = []
 
     # Start kfold
     for iteration, dataset_paths in split_dataset_k_fold(
         name=run_name,
-        dataset=transformed_d,
+        dataset=transformed_dataset["dataset"],
         folds=cfg.experiment.folds,
         random_state=cfg.experiment.random_state,
     ):
