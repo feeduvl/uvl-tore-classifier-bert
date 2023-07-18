@@ -11,7 +11,9 @@ from typing import Union
 
 import mlflow
 import omegaconf
+from datasets import Dataset
 
+from classifiers.bert.classifier import Modification
 from tooling.config import Transformation
 from tooling.logging import logging_setup
 from tooling.model import get_label2id
@@ -25,17 +27,18 @@ from tooling.model import ToreLevel
 from tooling.model import ZERO
 from tooling.transformation import transform_token_label
 
-
 logging = logging_setup()
 
 
 def generate_hint_data(
-    tore_label_ids: List[List[int]],
+    dataset: Dataset,
+    column: str,
     id2label: Dict[int, Label_None_Pad],
     hint_transformation: partial[Optional[Label_None_Pad]],
     hint_label2id: Dict[Label_None_Pad, int],
 ) -> List[List[int]]:
     hints = []
+    tore_label_ids = dataset[column]
 
     for tore_label_list in tore_label_ids:
         hint_list = []
@@ -96,3 +99,17 @@ def get_hint_transformation(
     return Hints(
         transformation_function=transformation_function, label2id=hint_label2id
     )
+
+
+def get_hint_modifier(
+    id2label: Dict[int, Label_None_Pad], hints: Hints
+) -> Modification:
+    column_name = "hint_input_ids"
+    func = partial(
+        generate_hint_data,
+        column="tore_label_id",
+        id2label=id2label,
+        hint_transformation=hints["transformation_function"],
+        hint_label2id=hints["label2id"],
+    )
+    return Modification(column_name=column_name, modifier=func)

@@ -2,7 +2,6 @@ from typing import List
 
 import hydra
 from hydra.core.config_store import ConfigStore
-from omegaconf import OmegaConf
 
 from classifiers.sner import classify_sentences
 from classifiers.sner import create_config_file
@@ -11,23 +10,17 @@ from classifiers.sner import create_train_file
 from classifiers.sner import train_sner
 from classifiers.sner.files import load_result
 from classifiers.sner.files import load_solution
-from data import get_dataset_information
 from tooling import evaluation
 from tooling.config import SNERConfig
 from tooling.config import Transformation
 from tooling.loading import import_dataset
-from tooling.loading import load_dataset
 from tooling.logging import logging_setup
 from tooling.observability import config_mlflow
 from tooling.observability import end_tracing
-from tooling.observability import log_artifacts
-from tooling.observability import log_experiment_result
-from tooling.observability import log_iteration_result
 from tooling.sampling import DATA_TEST
 from tooling.sampling import DATA_TRAIN
 from tooling.sampling import load_split_dataset
 from tooling.sampling import split_dataset_k_fold
-from tooling.transformation import lower_case_token
 from tooling.transformation import transform_dataset
 
 cs = ConfigStore.instance()
@@ -59,62 +52,61 @@ def main(cfg: SNERConfig) -> None:
     for iteration, dataset_paths in split_dataset_k_fold(
         name=run_name,
         dataset=transformed_dataset["dataset"],
-        folds=cfg.experiment.folds,
-        random_state=cfg.experiment.random_state,
+        cfg_experiment=cfg.experiment,
     ):
-        log_artifacts(dataset_paths)
+        logging.info(f"Starting {iteration=}")
 
-        # Load training data and create a training file
+        # Load training data
         data_train = load_split_dataset(
             name=run_name, filename=DATA_TRAIN, iteration=iteration
         )
-        train_file = create_train_file(
+
+        create_train_file(
             name=run_name, iteration=iteration, data_train=data_train
         )
-        log_artifacts(train_file)
 
-        # Configure Training
-        config_path = create_config_file(name=run_name, iteration=iteration)
-        log_artifacts(config_path)
+        create_config_file(name=run_name, iteration=iteration)
 
         # Train
-        model_path = train_sner(name=run_name, iteration=iteration)
-        log_artifacts(model_path)
+        train_sner(name=run_name, iteration=iteration)
 
         # Classify
         data_test = load_split_dataset(
             name=run_name, iteration=iteration, filename=DATA_TEST
         )
-        classification_result_paths = classify_sentences(
+
+        classify_sentences(
             name=run_name, iteration=iteration, data_test=data_test
         )
-        log_artifacts(classification_result_paths)
 
         # Create Solution
-        solution_paths = create_solution(
+        create_solution(
             name=run_name, iteration=iteration, data_test=data_test
         )
-        log_artifacts(solution_paths)
 
         # Evaluate Iteration
-        result = load_result(name=run_name, iteration=iteration)
-        solution = load_solution(name=run_name, iteration=iteration)
-
-        iteration_result = evaluation.evaluate_iteration(
+        evaluation.evaluate_iteration(
             run_name=run_name,
             iteration=iteration,
             average=cfg.experiment.average,
-            solution=solution,
-            result=result,
+            solution=load_solution(name=run_name, iteration=iteration),
+            result=load_result(name=run_name, iteration=iteration),
+            iteration_tracking=iteration_tracking,
         )
-        iteration_tracking.append(iteration_result)
-        log_iteration_result(iteration_result)
+
+        logging.info(f"Finished {iteration=}")
+
+        # early break if configured
+        if iteration == cfg.experiment.iterations:
+            logging.info(
+                f"Breaking early after {iteration=} of {cfg.experiment.folds} folds"
+            )
+            break
 
     # Evaluate Run
-    experiment_result = evaluation.evaluate_experiment(
+    evaluation.evaluate_experiment(
         run_name=run_name, iteration_results=iteration_tracking
     )
-    log_experiment_result(result=experiment_result)
 
     end_tracing()
 

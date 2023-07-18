@@ -2,7 +2,6 @@ import itertools
 import subprocess
 from dataclasses import asdict
 from dataclasses import dataclass
-from dataclasses import field
 from pathlib import Path
 from typing import cast
 from typing import List
@@ -26,13 +25,15 @@ from .files import STANFORD_JAR_PATH
 from .files import TEMPLATE_FILENAME
 from .files import trainfile
 from data import create_file
+from data import PickleAndCSV
+from tooling.logging import logging_setup
 from tooling.model import data_to_sentences
 from tooling.model import DataDF
 from tooling.model import ResultDF
 from tooling.model import ToreLabel
+from tooling.observability import log_artifacts
 
-
-# Configure
+logging = logging_setup()
 
 
 @dataclass(frozen=True)
@@ -68,20 +69,22 @@ def create_train_file(
 
         tf.write(training_data)
         tf.flush()
+
+    log_artifacts(filepath)
+    logging.info(f"Created train file for {iteration=}, stored at {filepath=}")
+
     return filepath
 
 
 def create_config_file(name: str, iteration: int) -> Path:
-    paths: List[Path] = []
-
     config = SNERConfig(
         resultFile=modelfile(name=name, iteration=iteration),
         trainFile=trainfile(name=name, iteration=iteration),
     )
 
-    filename = configfile(name=name, iteration=iteration)
+    filepath = configfile(name=name, iteration=iteration)
 
-    with create_file(filename) as cf:
+    with create_file(filepath) as cf:
         template_dir = RESSOURCES_PATH
 
         environment = Environment(loader=FileSystemLoader(template_dir))
@@ -90,7 +93,13 @@ def create_config_file(name: str, iteration: int) -> Path:
 
         cf.write(content)
         cf.flush()
-    return filename
+
+    log_artifacts(filepath)
+    logging.info(
+        f"Created config file for {iteration=}, stored at {filepath=}"
+    )
+
+    return filepath
 
 
 # Train
@@ -119,7 +128,12 @@ def train_sner(name: str, iteration: int) -> Path:
                 output = process.stdout.readline()
                 print(output, end="")
 
-    return modelfile(name=name, iteration=iteration)
+    filepath = modelfile(name=name, iteration=iteration)
+
+    log_artifacts(filepath)
+    logging.info(f"Trained model for {iteration=}, stored at {filepath=}")
+
+    return filepath
 
 
 # Classify
@@ -151,7 +165,7 @@ def classify_sentence(
 
 def classify_sentences(
     name: str, iteration: int, data_test: DataSet[DataDF]
-) -> Tuple[Path, Path]:
+) -> PickleAndCSV:
     st = instantiate_tagger(name=name, iteration=iteration)
 
     sentences = data_to_sentences(data=data_test)
@@ -184,10 +198,13 @@ def classify_sentences(
     ) as f:
         classification_result.to_csv(f)
 
-    return (
-        pickle_path,
-        csv_path,
+    logging.info(
+        f"Logged classification results for iteration {iteration} at {pickle_path}, {csv_path}"
     )
+    log_artifacts(csv_path)
+    log_artifacts(pickle_path)
+
+    return PickleAndCSV(pickle_file=pickle_path, csv_file=csv_path)
 
 
 # Prepare solution
@@ -227,7 +244,7 @@ def match_tokenization(
 
 def create_solution(
     name: str, iteration: int, data_test: DataSet[DataDF]
-) -> Tuple[Path, Path]:
+) -> PickleAndCSV:
     aligned_tokens = match_tokenization(data_test=data_test)
 
     solution_df = pd.DataFrame(
@@ -236,28 +253,31 @@ def create_solution(
 
     solution_df.fillna("0", inplace=True)
 
-    csv_filepath = solutionfile_csv(name=name, iteration=iteration)
+    csv_path = solutionfile_csv(name=name, iteration=iteration)
     with create_file(
-        csv_filepath,
+        csv_path,
         mode="wb",
         encoding=None,
         buffering=-1,
     ) as f:
         solution_df.to_csv(f)
 
-    pickle_filepath = solutionfile_pickle(name=name, iteration=iteration)
+    pickle_path = solutionfile_pickle(name=name, iteration=iteration)
     with create_file(
-        pickle_filepath,
+        pickle_path,
         mode="wb",
         encoding=None,
         buffering=-1,
     ) as f:
         solution_df.to_pickle(f)
 
-    return (
-        csv_filepath,
-        pickle_filepath,
+    logging.info(
+        f"Logged solutions for iteration {iteration} at {pickle_path}, {csv_path}"
     )
+    log_artifacts(csv_path)
+    log_artifacts(pickle_path)
+
+    return PickleAndCSV(pickle_file=pickle_path, csv_file=csv_path)
 
 
 # Evaluation

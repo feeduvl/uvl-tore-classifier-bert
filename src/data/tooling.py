@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 from typing import IO
 from typing import List
+from typing import TypedDict
 
 DATA_ROOT = Path(__file__).parent
 
@@ -95,3 +96,8 @@ def create_file(
         yield f
     finally:
         f.close()
+
+
+class PickleAndCSV(TypedDict):
+    pickle_file: Path
+    csv_file: Path

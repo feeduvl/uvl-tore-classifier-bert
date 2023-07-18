@@ -6,43 +6,33 @@ import hydra
 import numpy as np
 import tensorflow as tf
 from hydra.core.config_store import ConfigStore
-from omegaconf import OmegaConf
 from strictly_typed_pandas import DataSet
 
-from classifiers.bilstm import construct_model
 from classifiers.bilstm import get_embeddings_and_categorical
 from classifiers.bilstm import get_glove_model
 from classifiers.bilstm import get_model
-from classifiers.bilstm import get_one_hot_encoding
 from classifiers.bilstm import get_sentence_length
-from classifiers.bilstm import get_word_embeddings
 from classifiers.bilstm import reverse_one_hot_encoding
 from classifiers.bilstm.files import model_path
-from data import get_dataset_information
 from tooling import evaluation
 from tooling.config import BiLSTMConfig
 from tooling.loading import import_dataset
-from tooling.loading import load_dataset
-from tooling.model import data_to_list_of_token_lists
-from tooling.model import get_labels
+from tooling.logging import logging_setup
 from tooling.model import Label_None_Pad
 from tooling.model import PAD
 from tooling.model import ResultDF
 from tooling.observability import config_mlflow
 from tooling.observability import end_tracing
-from tooling.observability import log_artifacts
-from tooling.observability import log_experiment_result
-from tooling.observability import log_iteration_result
 from tooling.sampling import DATA_TEST
 from tooling.sampling import DATA_TRAIN
 from tooling.sampling import load_split_dataset
 from tooling.sampling import split_dataset_k_fold
-from tooling.transformation import lower_case_token
 from tooling.transformation import transform_dataset
 
 # hide GPU because it is a lot slower than running without it
 tf.config.set_visible_devices([], "GPU")
 
+logging = logging_setup()
 
 cs = ConfigStore.instance()
 cs.store(name="base_config", node=BiLSTMConfig)
@@ -80,17 +70,15 @@ def main(cfg: BiLSTMConfig) -> None:
     for iteration, dataset_paths in split_dataset_k_fold(
         name=run_name,
         dataset=transformed_dataset["dataset"],
-        folds=cfg.experiment.folds,
-        random_state=cfg.experiment.random_state,
+        cfg_experiment=cfg.experiment,
     ):
-        log_artifacts(dataset_paths)
-
+        logging.info(f"Starting {iteration=}")
         # Load training data and create a training file
         data_train = load_split_dataset(
             name=run_name, filename=DATA_TRAIN, iteration=iteration
         )
 
-        categorical, embeddings = get_embeddings_and_categorical(
+        processed_data = get_embeddings_and_categorical(
             dataset=data_train,
             sentence_length=sentence_length,
             labels=padded_labels,
@@ -104,8 +92,8 @@ def main(cfg: BiLSTMConfig) -> None:
 
         # Train
         model.fit(
-            np.array(embeddings),
-            np.array(categorical),
+            np.array(processed_data["embeddings"]),
+            np.array(processed_data["onehot_encoded"]),
             batch_size=cfg.bilstm.batch_size,
             epochs=cfg.bilstm.number_epochs,
             validation_split=cfg.bilstm.validation_split,
@@ -119,18 +107,21 @@ def main(cfg: BiLSTMConfig) -> None:
             name=run_name, filename=DATA_TEST, iteration=iteration
         )
 
-        categorical_test, embeddings_test = get_embeddings_and_categorical(
+        trained_model = tf.keras.models.load_model(
+            model_path(name=run_name, iteration=iteration),
+            compile=False,  # https://github.com/tensorflow/tensorflow/issues/31850#issuecomment-578566637
+        )
+
+        processed_data_test = get_embeddings_and_categorical(
             dataset=data_test,
             sentence_length=sentence_length,
             labels=padded_labels,
             glove_model=glove_model,
         )
 
-        trained_model = tf.keras.models.load_model(
-            model_path(name=run_name, iteration=iteration),
-            compile=False,  # https://github.com/tensorflow/tensorflow/issues/31850#issuecomment-578566637
+        categorical_predictions = trained_model.predict(
+            processed_data_test["embeddings"]
         )
-        categorical_predictions = trained_model.predict(embeddings_test)
 
         # Create Solution
         solution = cast(DataSet[ResultDF], data_test[["string", "tore_label"]])
@@ -139,24 +130,31 @@ def main(cfg: BiLSTMConfig) -> None:
         result = reverse_one_hot_encoding(
             dataset=data_test,
             categorical_data=categorical_predictions,
-            labels=labels,
+            labels=padded_labels,
         )
 
-        iteration_result = evaluation.evaluate_iteration(
+        evaluation.evaluate_iteration(
             run_name=run_name,
             iteration=iteration,
             average=cfg.experiment.average,
             solution=solution,
             result=result,
+            iteration_tracking=iteration_tracking,
         )
-        iteration_tracking.append(iteration_result)
-        log_iteration_result(iteration_result)
+
+        logging.info(f"Finished {iteration=}")
+
+        # early break if configured
+        if iteration == cfg.experiment.iterations:
+            logging.info(
+                f"Breaking early after {iteration=} of {cfg.experiment.folds} folds"
+            )
+            break
 
     # Evaluate Run
-    experiment_result = evaluation.evaluate_experiment(
+    evaluation.evaluate_experiment(
         run_name=run_name, iteration_results=iteration_tracking
     )
-    log_experiment_result(result=experiment_result)
 
     end_tracing()
 

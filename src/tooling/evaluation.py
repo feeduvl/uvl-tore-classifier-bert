@@ -6,21 +6,21 @@ from typing import Dict
 from typing import List
 from typing import Optional
 from typing import overload
-from typing import Tuple
 
 import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 from sklearn import metrics
-from sklearn.model_selection import train_test_split
 from strictly_typed_pandas import DataSet
 
-from data import create_file
 from data import evaluation_filepath
-from data import EVALUATION_TEMP
+from tooling.logging import logging_setup
 from tooling.model import get_labels
 from tooling.model import Label
 from tooling.model import ResultDF
+from tooling.observability import log_experiment_result
+from tooling.observability import log_iteration_result
+
+logging = logging_setup()
 
 
 def output_confusion_matrix(
@@ -28,7 +28,7 @@ def output_confusion_matrix(
     solution: DataSet[ResultDF],
     results: DataSet[ResultDF],
 ) -> None:
-    conf = metrics.ConfusionMatrixDisplay.from_predictions(
+    metrics.ConfusionMatrixDisplay.from_predictions(
         y_true=solution["tore_label"],
         y_pred=results["tore_label"],
         xticks_rotation="vertical",
@@ -169,6 +169,7 @@ def evaluate_iteration(
     average: str,
     solution: DataSet[ResultDF],
     result: DataSet[ResultDF],
+    iteration_tracking: List[IterationResult],
     create_confusion_matrix: bool = True,
 ) -> IterationResult:
     res = IterationResult(step=iteration, result=result, solution=solution)
@@ -215,6 +216,11 @@ def evaluate_iteration(
             solution=solution,
             results=result,
         )
+
+    iteration_tracking.append(res)
+
+    log_iteration_result(res)
+    logging.info(f"Logged iteration result {res=}")
 
     return res
 
@@ -272,5 +278,8 @@ def evaluate_experiment(
         solution=all_solutions,
         results=all_results,
     )
+
+    log_experiment_result(result=res)
+    logging.info(f"Logged experiment result {res=}")
 
     return res

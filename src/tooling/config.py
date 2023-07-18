@@ -1,13 +1,9 @@
 from dataclasses import dataclass
 from dataclasses import field
 from enum import Enum
-from typing import Any
 from typing import Dict
-from typing import get_args
 from typing import Optional
 
-import hydra
-from hydra.core.config_store import ConfigStore
 from omegaconf import MISSING
 
 from tooling.logging import logging_setup
@@ -24,6 +20,7 @@ class Experiment:
     name: str = MISSING
     random_state: int = 125
     folds: int = 5
+    iterations: Optional[int] = None
     average: str = "macro"
     dataset: str = "prolific"
     lower_case: bool = False

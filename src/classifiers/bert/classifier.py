@@ -183,6 +183,7 @@ def compute_metrics(
     iteration = len(iteration_tracking)
 
     iteration_result = evaluation.evaluate_iteration(
+        iteration_tracking=iteration_tracking,
         run_name=run_name,
         iteration=iteration,
         average=average,
@@ -224,6 +225,36 @@ def create_tore_dataset(
     prepared_data = prepare_data(data, label2id=label2id)
     prepared_data_df = pd.DataFrame.from_records(prepared_data)
     return Dataset.from_pandas(df=prepared_data_df)
+
+
+class Modification(TypedDict):
+    column_name: str
+    modifier: partial[List[List[int]]]
+
+
+def create_bert_dataset(
+    input_data: DataSet[DataDF],
+    label2id: Dict[Label_None_Pad, int],
+    tokenizer: BertTokenizerFast,
+    max_len: int,
+    modifiers: List[Modification] = [],
+) -> Dataset:
+    tokenizer_and_aligner = get_tokenize_and_align_labels(
+        tokenizer=tokenizer, max_len=max_len, truncation=True
+    )
+    data = create_tore_dataset(data=input_data, label2id=label2id)
+
+    if modifiers:
+        for modifier in modifiers:
+            data = data.add_column(
+                modifier["column_name"], modifier["modifier"]
+            )
+
+    data = data.map(tokenizer_and_aligner, batched=True)
+
+    data = data.rename_columns({"string": "text", "tore_label_id": "labels"})
+
+    return data
 
 
 class WeightedTrainer(Trainer):  # type: ignore

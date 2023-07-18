@@ -3,6 +3,7 @@ from typing import Any
 from typing import cast
 from typing import List
 from typing import Tuple
+from typing import TypedDict
 
 import gensim.downloader as api
 import mlflow
@@ -15,7 +16,7 @@ from keras.utils import to_categorical
 from strictly_typed_pandas import DataSet
 
 from tooling.config import BiLSTM
-from tooling.logging import logging
+from tooling.logging import logging_setup
 from tooling.model import data_to_list_of_label_lists
 from tooling.model import data_to_list_of_token_lists
 from tooling.model import DataDF
@@ -186,12 +187,17 @@ def get_word_embeddings(
     return sized_word_embeddings
 
 
+class ProcessedData(TypedDict):
+    onehot_encoded: npt.NDArray[np.int32]
+    embeddings: List[List[Any]]
+
+
 def get_embeddings_and_categorical(
     dataset: DataSet[DataDF],
     sentence_length: int,
     labels: Sequence[Label_None_Pad],
     glove_model: pd.DataFrame,
-) -> Tuple[npt.NDArray[np.int32], List[List[Any]]]:
+) -> ProcessedData:
     one_hot = get_one_hot_encoding(
         dataset=dataset,
         sentence_length=sentence_length,
@@ -204,7 +210,7 @@ def get_embeddings_and_categorical(
         sentence_length=sentence_length,
     )
 
-    return (one_hot, embeddings)
+    return ProcessedData(onehot_encoded=one_hot, embeddings=embeddings)
 
 
 def get_sentence_length(bilstm_config: BiLSTM, data: DataSet[DataDF]) -> int:

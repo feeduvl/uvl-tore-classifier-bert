@@ -1,55 +1,43 @@
 from typing import List
 
 import hydra
-import mlflow
-import torch
 from hydra.core.config_store import ConfigStore
-from omegaconf import OmegaConf
 from transformers import BertTokenizerFast
-from transformers import DataCollatorForTokenClassification
-from transformers import Trainer
 from transformers import TrainingArguments
 
-from classifiers.bert.classifier import create_tore_dataset
+from classifiers.bert.classifier import create_bert_dataset
+from classifiers.bert.classifier import get_class_weights
 from classifiers.bert.classifier import get_compute_metrics
 from classifiers.bert.classifier import get_max_len
-from classifiers.bert.classifier import get_tokenize_and_align_labels
 from classifiers.bert.classifier import setup_device
 from classifiers.bert.classifier import WeightedTrainer
 from classifiers.bert.files import model_path
 from classifiers.bert.files import output_path
-from classifiers.staged_bert.classifier import generate_hint_data
+from classifiers.staged_bert.classifier import get_hint_modifier
 from classifiers.staged_bert.classifier import get_hint_transformation
 from classifiers.staged_bert.model import (
     StagedBertForTokenClassification,
 )
-from data import get_dataset_information
 from tooling import evaluation
 from tooling.config import StagedBERTConfig
 from tooling.loading import import_dataset
-from tooling.loading import load_dataset
 from tooling.logging import logging_setup
 from tooling.model import get_id2label
 from tooling.model import get_label2id
-from tooling.model import ZERO
 from tooling.observability import config_mlflow
 from tooling.observability import end_tracing
 from tooling.observability import log_artifacts
-from tooling.observability import log_experiment_result
-from tooling.observability import log_iteration_result
 from tooling.sampling import DATA_TEST
 from tooling.sampling import DATA_TRAIN
 from tooling.sampling import load_split_dataset
 from tooling.sampling import split_dataset_k_fold
-from tooling.transformation import get_class_weights
-from tooling.transformation import lower_case_token
 from tooling.transformation import transform_dataset
-from tooling.transformation import transform_token_label
+
+
+logging = logging_setup()
 
 cs = ConfigStore.instance()
 cs.store(name="base_config", node=StagedBERTConfig)
-
-logging = logging_setup()
 
 
 @hydra.main(
@@ -86,6 +74,7 @@ def main(cfg: StagedBERTConfig) -> None:
     )
 
     hints = get_hint_transformation(cfg.hint_transformation)
+    hint_modifier = get_hint_modifier(id2label=id2label, hints=hints)
 
     # Prepare evaluation tracking
     iteration_tracking: List[evaluation.IterationResult] = []
@@ -100,60 +89,33 @@ def main(cfg: StagedBERTConfig) -> None:
     for iteration, dataset_paths in split_dataset_k_fold(
         name=run_name,
         dataset=transformed_dataset["dataset"],
-        folds=cfg.experiment.folds,
-        random_state=cfg.experiment.random_state,
+        cfg_experiment=cfg.experiment,
     ):
-        log_artifacts(dataset_paths)
+        logging.info(f"Starting {iteration=}")
 
-        t_a_a_l = get_tokenize_and_align_labels(
-            tokenizer=TOKENIZER, max_len=max_len, truncation=True
-        )
-
-        # Load training data and create a training file
-        data_train = load_split_dataset(
-            name=run_name, filename=DATA_TRAIN, iteration=iteration
-        )
-        train_data = create_tore_dataset(data=data_train, label2id=label2id)
-        train_data = train_data.add_column(
-            "hint_input_ids",
-            generate_hint_data(
-                train_data["tore_label_id"],
-                id2label=id2label,
-                hint_transformation=hints["transformation_function"],
-                hint_label2id=hints["label2id"],
+        # Load training data
+        train_data = create_bert_dataset(
+            input_data=load_split_dataset(
+                name=run_name, filename=DATA_TRAIN, iteration=iteration
             ),
+            label2id=label2id,
+            tokenizer=TOKENIZER,
+            max_len=max_len,
+            modifiers=[hint_modifier],
         )
 
-        train_data = train_data.map(t_a_a_l, batched=True)
-
-        train_data = train_data.rename_columns(
-            {"string": "text", "tore_label_id": "labels"}
-        )
-
-        # Create Solution
-        data_test = load_split_dataset(
-            name=run_name, filename=DATA_TEST, iteration=iteration
-        )
-
-        test_data = create_tore_dataset(data=data_test, label2id=label2id)
-        test_data = test_data.add_column(
-            "hint_input_ids",
-            generate_hint_data(
-                test_data["tore_label_id"],
-                id2label=id2label,
-                hint_transformation=hints["transformation_function"],
-                hint_label2id=hints["label2id"],
+        # Load testing data
+        test_data = create_bert_dataset(
+            input_data=load_split_dataset(
+                name=run_name, filename=DATA_TEST, iteration=iteration
             ),
-        )
-
-        test_data = test_data.map(t_a_a_l, batched=True)
-
-        test_data = test_data.rename_columns(
-            {"string": "text", "tore_label_id": "labels"}
+            label2id=label2id,
+            tokenizer=TOKENIZER,
+            max_len=max_len,
+            modifiers=[hint_modifier],
         )
 
         # Get Model
-
         model = StagedBertForTokenClassification.from_pretrained(
             cfg.bert.model,
             num_hint_labels=len(hints["label2id"]),
@@ -164,26 +126,17 @@ def main(cfg: StagedBERTConfig) -> None:
         # for param in model.bert.parameters():
         #    param.requires_grad = False
 
-        model.to(device)
+        model.to(device=device)
 
-        compute_metrics = get_compute_metrics(
-            iteration_tracking=[],
-            average=cfg.experiment.average,
-            run_name=run_name,
-            id2label=id2label,
-        )
-
-        model_dir = model_path(name=run_name, iteration=iteration)
-
-        output_dir = str(
-            output_path(name=run_name, clean=True)
-        )  # pin iteration to avoid relogging parameter
-
-        logging_dir = str(output_path(name=run_name, clean=True))
+        # Train
 
         training_args = TrainingArguments(
-            output_dir=output_dir,
-            logging_dir=logging_dir,
+            output_dir=str(
+                output_path(name=run_name, clean=True)
+            ),  # pin iteration to avoid relogging parameter,
+            logging_dir=str(
+                output_path(name=run_name, clean=True)
+            ),  # pin iteration to avoid relogging parameter
             run_name=run_name,
             learning_rate=cfg.bert.learning_rate,
             per_device_train_batch_size=cfg.bert.train_batch_size,
@@ -198,29 +151,44 @@ def main(cfg: StagedBERTConfig) -> None:
             use_mps_device=True,
         )
 
-        trainer = WeightedTrainer(
+        trainer = WeightedTrainer(  # type: ignore
             model=model,
             args=training_args,
             train_dataset=train_data,
             eval_dataset=test_data,
             tokenizer=TOKENIZER,
-            compute_metrics=compute_metrics,
+            compute_metrics=get_compute_metrics(
+                iteration_tracking=[],
+                average=cfg.experiment.average,
+                run_name=run_name,
+                id2label=id2label,
+            ),
             class_weights=class_weights,
         )
         trainer.train()
-        trainer.save_model(output_dir=str(model_dir))
+        trainer.save_model(
+            output_dir=str(model_path(name=run_name, iteration=iteration))
+        )
 
         test_results = trainer.predict(test_data)
 
         compute_iteration_metrics((test_results[0], test_results[1]))
-        log_iteration_result(result=iteration_tracking[-1])
-        log_artifacts(model_dir)
+
+        logging.info(f"Finished {iteration=}")
+        logging.info("Logging model artifact (might take a while)")
+        log_artifacts(model_path(name=run_name, iteration=iteration))
+
+        # early break if configured
+        if iteration == cfg.experiment.iterations:
+            logging.info(
+                f"Breaking early after {iteration=} of {cfg.experiment.folds} folds"
+            )
+            break
     # Evaluate Run
 
-    experiment_result = evaluation.evaluate_experiment(
+    evaluation.evaluate_experiment(
         run_name=run_name, iteration_results=iteration_tracking
     )
-    log_experiment_result(result=experiment_result)
 
     end_tracing()
 
