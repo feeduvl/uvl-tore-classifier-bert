@@ -1,5 +1,5 @@
-description: System Level Labels
-type: Reduced
+description: System Level / None
+type: Binary
 
 software: System_Level
 internal_action: System_Level

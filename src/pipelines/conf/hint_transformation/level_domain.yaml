@@ -2,7 +2,6 @@ description: Domain Level Labels
 type: Reduced
 
 task: Task
-goals: Goals
 domain_data: Domain_Data
 activity: Activity
 stakeholder: Stakeholder

@@ -15,6 +15,7 @@ experiment:
     dataset: prolific
     folds: 5
     iterations: 1 # only run one experiment per config
+    force: False
 
 bert:
     model: bert-base-uncased

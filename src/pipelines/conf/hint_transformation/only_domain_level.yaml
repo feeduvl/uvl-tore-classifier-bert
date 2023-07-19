@@ -2,7 +2,6 @@ description: Domain Level / None
 type: Binary Level
 
 task: Domain_Level
-goals: Domain_Level
 domain_data: Domain_Level
 activity: Domain_Level
 stakeholder: Domain_Level
