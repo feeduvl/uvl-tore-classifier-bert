@@ -13,7 +13,7 @@ experiment:
     name: StagedBERT Test
     dataset: prolific
     iterations: 1
-    force: True
+    force: False
 
 bert:
     model: bert-base-uncased
@@ -35,7 +35,6 @@ hydra:
         n_jobs: 1
     sweeper:
         params:
-            experiment.name: StagedBERT Solo
-            experiment.dataset: forum,prolific,all
-            transformation: "glob(*)"
+            experiment.name: StagedBERT Test
+            experiment.dataset: prolific, all
             bert.layers: "[10,10],[10,11],[11,10]"

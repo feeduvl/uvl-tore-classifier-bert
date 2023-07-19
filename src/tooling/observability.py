@@ -1,4 +1,5 @@
 import collections
+import sys
 from collections.abc import (
     Iterable,
 )
@@ -80,7 +81,7 @@ def config_mlflow(cfg: Config) -> str:
 
     check_for_run(cfg)
 
-    experiment_id = mlflow.set_experiment(cfg.experiment.name)
+    mlflow.set_experiment(cfg.experiment.name)
     mlflow.autolog(silent=True)
     log_config(cfg)
 
@@ -107,6 +108,7 @@ def check_for_run(
         cast(Dict[str, str], OmegaConf.to_container(cfg, resolve=True)),
         separator="_",
     )
+    del config["experiment_force"]
 
     params_query_string = " and ".join(
         [f"params_{key} == '{value}'" for key, value in config.items()]
@@ -136,7 +138,7 @@ def check_for_run(
             logging.warn("Experiment was already run, continuing")
         else:
             logging.warn("Experiment was already run, aborting")
-            raise RerunException
+            sys.exit()
     else:
         logging.info("New experiment. Running")
 

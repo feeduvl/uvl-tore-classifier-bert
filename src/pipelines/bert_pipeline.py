@@ -198,8 +198,6 @@ if __name__ == "__main__":
     try:
         main()
 
-    except RerunException:
-        pass
     except KeyboardInterrupt:
         logging.info("Keyobard interrupt recieved")
         status = "FAILED"

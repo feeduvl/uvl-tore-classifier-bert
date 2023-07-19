@@ -29,7 +29,6 @@ from tooling.model import get_label2id
 from tooling.observability import config_mlflow
 from tooling.observability import end_tracing
 from tooling.observability import log_artifacts
-from tooling.observability import RerunException
 from tooling.sampling import DATA_TEST
 from tooling.sampling import DATA_TRAIN
 from tooling.sampling import load_split_dataset
@@ -37,6 +36,7 @@ from tooling.sampling import split_dataset_k_fold
 from tooling.transformation import get_class_weights
 from tooling.transformation import transform_dataset
 from tooling.types import IterationResult
+
 
 logging = logging_setup(__name__)
 
@@ -211,8 +211,6 @@ if __name__ == "__main__":
     try:
         main()
 
-    except RerunException:
-        pass
     except KeyboardInterrupt:
         logging.info("Keyobard interrupt recieved")
         status = "FAILED"
