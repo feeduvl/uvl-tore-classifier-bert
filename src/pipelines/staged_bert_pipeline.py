@@ -29,6 +29,7 @@ from tooling.model import get_label2id
 from tooling.observability import config_mlflow
 from tooling.observability import end_tracing
 from tooling.observability import log_artifacts
+from tooling.observability import RerunException
 from tooling.sampling import DATA_TEST
 from tooling.sampling import DATA_TRAIN
 from tooling.sampling import load_split_dataset
@@ -48,7 +49,11 @@ cs.store(name="base_config", node=StagedBERTConfig)
     version_base=None, config_path="conf", config_name="config_staged_bert"
 )
 def main(cfg: StagedBERTConfig) -> None:
-    run_name = config_mlflow(cfg)
+    try:
+        run_name = config_mlflow(cfg)
+    except RerunException:
+        return
+
     device = setup_device()
 
     mlflow.log_param("bert.num_layers", len(cfg.bert.layers))

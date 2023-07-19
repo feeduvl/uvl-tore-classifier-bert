@@ -18,6 +18,7 @@ from tooling.loading import import_dataset
 from tooling.logging import logging_setup
 from tooling.observability import config_mlflow
 from tooling.observability import end_tracing
+from tooling.observability import RerunException
 from tooling.sampling import DATA_TEST
 from tooling.sampling import DATA_TRAIN
 from tooling.sampling import load_split_dataset
@@ -37,7 +38,10 @@ logging = logging_setup(__name__)
 @hydra.main(version_base=None, config_path="conf", config_name="config_sner")
 def main(cfg: SNERConfig) -> None:
     # Setup experiment
-    run_name = config_mlflow(cfg)
+    try:
+        run_name = config_mlflow(cfg)
+    except RerunException:
+        return
 
     # Import Dataset
     import_dataset(cfg, run_name)

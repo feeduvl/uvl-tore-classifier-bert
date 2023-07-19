@@ -41,7 +41,11 @@ logging = logging_setup(__name__)
 
 @hydra.main(version_base=None, config_path="conf", config_name="config_bert")
 def main(cfg: BERTConfig) -> None:
-    run_name = config_mlflow(cfg)
+    try:
+        run_name = config_mlflow(cfg)
+    except RerunException:
+        return
+
     device = setup_device()
 
     # Import Dataset

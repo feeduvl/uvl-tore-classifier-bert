@@ -138,7 +138,7 @@ def check_for_run(
             logging.warn("Experiment was already run, continuing")
         else:
             logging.warn("Experiment was already run, aborting")
-            sys.exit()
+            raise RerunException
     else:
         logging.info("New experiment. Running")
 

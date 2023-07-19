@@ -45,7 +45,10 @@ cs.store(name="base_config", node=BiLSTMConfig)
 @hydra.main(version_base=None, config_path="conf", config_name="config_bilstm")
 def main(cfg: BiLSTMConfig) -> None:
     # Setup experiment
-    run_name = config_mlflow(cfg)
+    try:
+        run_name = config_mlflow(cfg)
+    except RerunException:
+        return
 
     # Import Dataset
     import_dataset(cfg, run_name)
