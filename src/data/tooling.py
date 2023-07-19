@@ -43,22 +43,6 @@ def get_dataset_information(name: str) -> List[tuple[str, Path]]:
     raise ValueError("No dataset with this name available")
 
 
-# Temporary directories
-TEMP = DATA_ROOT.joinpath(Path("temp"))
-
-LOADING_TEMP = TEMP.joinpath(Path("loading"))
-
-SAMPLING_TEMP = TEMP.joinpath(Path("sampling"))
-
-SNER_TEMP = TEMP.joinpath(Path("sner"))
-
-BILSTM_TEMP = TEMP.joinpath(Path("bilstm"))
-BERT_TEMP = TEMP.joinpath(Path("bert"))
-STAGED_BERT_TEMP = TEMP.joinpath(Path("staged_bert"))
-
-EVALUATION_TEMP = TEMP.joinpath(Path("evaluation"))
-
-
 def filename(
     basepath: Path, name: str, filename: str, clean: bool = False
 ) -> Path:
@@ -70,19 +54,10 @@ def filename(
 
     path.parent.mkdir(parents=True, exist_ok=True)
 
-    logging.info(f"Created path: {path}")
+    logging.debug(f"Created path: {path}")
 
     return path
 
-
-loading_filepath = partial(filename, basepath=LOADING_TEMP)
-sampling_filepath = partial(filename, basepath=SAMPLING_TEMP)
-sner_filepath = partial(filename, basepath=SNER_TEMP)
-bilstm_filepath = partial(filename, basepath=BILSTM_TEMP)
-bert_filepath = partial(filename, basepath=BERT_TEMP)
-staged_bert_filepath = partial(filename, basepath=STAGED_BERT_TEMP)
-
-evaluation_filepath = partial(filename, basepath=EVALUATION_TEMP)
 
 created_files: List[Path] = []
 
@@ -102,7 +77,7 @@ def create_file(
 
     f = open(file_path, mode=mode, encoding=encoding, buffering=buffering)
 
-    logging.info(f"Created path: {file_path}")
+    logging.debug(f"Created path: {file_path}")
 
     try:
         yield f
@@ -117,9 +92,28 @@ def cleanup_files() -> None:
                 file_path.unlink()
             else:
                 shutil.rmtree(file_path)
-        logging.info(f"Deleted path: {file_path}")
+        logging.debug(f"Deleted path: {file_path}")
 
 
 class PickleAndCSV(TypedDict):
     pickle_file: Path
     csv_file: Path
+
+
+# Temporary directories
+TEMP = DATA_ROOT.joinpath(Path("temp"))
+LOADING_TEMP = TEMP.joinpath(Path("loading"))
+SAMPLING_TEMP = TEMP.joinpath(Path("sampling"))
+EVALUATION_TEMP = TEMP.joinpath(Path("evaluation"))
+SNER_TEMP = TEMP.joinpath(Path("sner"))
+BILSTM_TEMP = TEMP.joinpath(Path("bilstm"))
+BERT_TEMP = TEMP.joinpath(Path("bert"))
+STAGED_BERT_TEMP = TEMP.joinpath(Path("staged_bert"))
+
+loading_filepath = partial(filename, basepath=LOADING_TEMP)
+sampling_filepath = partial(filename, basepath=SAMPLING_TEMP)
+sner_filepath = partial(filename, basepath=SNER_TEMP)
+bilstm_filepath = partial(filename, basepath=BILSTM_TEMP)
+bert_filepath = partial(filename, basepath=BERT_TEMP)
+staged_bert_filepath = partial(filename, basepath=STAGED_BERT_TEMP)
+evaluation_filepath = partial(filename, basepath=EVALUATION_TEMP)

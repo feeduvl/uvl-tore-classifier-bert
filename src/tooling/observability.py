@@ -14,13 +14,13 @@ from typing import Union
 
 import mlflow
 from omegaconf import OmegaConf
+from pandas.errors import UndefinedVariableError
 
 from data.tooling import cleanup_files
 from tooling.config import Config
 from tooling.logging import logging_setup
 from tooling.types import ExperimentResult
 from tooling.types import IterationResult
-
 
 logging = logging_setup(__name__)
 
@@ -78,7 +78,9 @@ def config_mlflow(cfg: Config) -> str:
     mlflow.set_tracking_uri(cfg.meta.mlflow_tracking_uri)
     logging.info("\n" + OmegaConf.to_yaml(cfg))
 
-    mlflow.set_experiment(cfg.experiment.name)
+    check_for_run(cfg)
+
+    experiment_id = mlflow.set_experiment(cfg.experiment.name)
     mlflow.autolog(silent=True)
     log_config(cfg)
 
@@ -88,8 +90,59 @@ def config_mlflow(cfg: Config) -> str:
     return str(run_name)
 
 
-def end_tracing() -> None:
-    mlflow.end_run()
+class RerunException(Exception):
+    pass
+
+
+def check_for_run(
+    cfg: Config,
+) -> None:
+    experiment_id = mlflow.set_experiment(cfg.experiment.name)
+    runs_df = mlflow.search_runs(
+        experiment_ids=[experiment_id.experiment_id], output_format="pandas"
+    )
+    runs_df.rename(columns=lambda x: x.replace(".", "_"), inplace=True)
+
+    config = flatten(
+        cast(Dict[str, str], OmegaConf.to_container(cfg, resolve=True)),
+        separator="_",
+    )
+
+    params_query_string = " and ".join(
+        [f"params_{key} == '{value}'" for key, value in config.items()]
+    )
+
+    mlflow_config: Dict[str, str] = {}
+    mlflow_config[
+        "tags_mlflow_source_git_commit"
+    ] = mlflow.utils.git_utils.get_git_commit(".")
+    mlflow_config["status"] = "FINISHED"
+
+    mlflow_config_query_string = " and ".join(
+        [f"{key} == '{value}'" for key, value in mlflow_config.items()]
+    )
+
+    query_string = params_query_string + " and " + mlflow_config_query_string
+
+    try:
+        res = runs_df.query(query_string)
+    except (
+        UndefinedVariableError
+    ):  # there is parameter in the configuration that isn't known to mlflow. we can force a new run because at least the code has changed (even if the git hash hasn't)
+        res = []
+
+    if len(res) != 0:
+        if cfg.experiment.force:
+            logging.warn("Experiment was already run, continuing")
+        else:
+            logging.warn("Experiment was already run, aborting")
+            raise RerunException
+    else:
+        logging.info("New experiment. Running")
+
+
+def end_tracing(status: str) -> None:
+    mlflow.end_run(status=status)
     cleanup_files()
 
 
@@ -111,7 +164,8 @@ def log_iteration_result(result: IterationResult) -> None:
         f"recall_{label}": value for label, value in result.pl_recall.items()
     }
     mlflow.log_metrics(pl_recall)
-    mlflow.log_artifact(result.confusion_matrix)
+    if result.confusion_matrix:
+        mlflow.log_artifact(result.confusion_matrix)
     return None
 
 

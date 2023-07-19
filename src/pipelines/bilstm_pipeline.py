@@ -1,3 +1,4 @@
+import sys
 from collections.abc import Sequence
 from typing import cast
 from typing import List
@@ -23,6 +24,7 @@ from tooling.model import PAD
 from tooling.model import ResultDF
 from tooling.observability import config_mlflow
 from tooling.observability import end_tracing
+from tooling.observability import RerunException
 from tooling.sampling import DATA_TEST
 from tooling.sampling import DATA_TRAIN
 from tooling.sampling import load_split_dataset
@@ -172,8 +174,25 @@ def main(cfg: BiLSTMConfig) -> None:
         run_name=run_name, iteration_results=iteration_tracking
     )
 
-    end_tracing()
+    end_tracing(status="FINISHED")
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+
+    except RerunException:
+        pass
+    except KeyboardInterrupt:
+        logging.info("Keyobard interrupt recieved")
+        status = "FAILED"
+        end_tracing(status=status)
+
+        sys.exit()
+
+    except Exception as e:
+        logging.error(e)
+        status = "FAILED"
+        end_tracing(status=status)
+
+        raise e

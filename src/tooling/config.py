@@ -26,6 +26,7 @@ class Experiment:
     average: str = "macro"
     dataset: str = "prolific"
     lower_case: bool = False
+    force: bool = True
 
 
 @dataclass
