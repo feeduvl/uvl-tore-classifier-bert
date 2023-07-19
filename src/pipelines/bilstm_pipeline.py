@@ -27,6 +27,7 @@ from tooling.sampling import DATA_TEST
 from tooling.sampling import DATA_TRAIN
 from tooling.sampling import load_split_dataset
 from tooling.sampling import split_dataset_k_fold
+from tooling.transformation import get_class_weights
 from tooling.transformation import transform_dataset
 from tooling.types import IterationResult
 
@@ -60,6 +61,13 @@ def main(cfg: BiLSTMConfig) -> None:
     padded_labels: Sequence[Label_None_Pad] = transformed_dataset["labels"] + [
         PAD
     ]
+
+    weights = cast(
+        List[np.float32],
+        get_class_weights(cfg.bilstm, transformed_dataset["dataset"]).tolist(),
+    )
+    weights.append(np.float32(1.0))  # account for padding label
+    class_weights = {idx: value for idx, value in enumerate(weights)}
 
     # Download Model
     glove_model = get_glove_model()
@@ -99,7 +107,9 @@ def main(cfg: BiLSTMConfig) -> None:
 
         # Get Model
         model = get_model(
-            n_tags=len(padded_labels), sentence_length=sentence_length
+            n_tags=len(padded_labels),
+            sentence_length=sentence_length,
+            cfg_bilstm=cfg.bilstm,
         )
 
         # Train
@@ -112,6 +122,7 @@ def main(cfg: BiLSTMConfig) -> None:
                 np.array(processed_data_test["embeddings"]),
                 np.array(processed_data_test["onehot_encoded"]),
             ),
+            class_weight=class_weights,
             verbose=cfg.bilstm.verbose,
         )
 

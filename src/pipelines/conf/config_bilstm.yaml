@@ -14,15 +14,15 @@ experiment:
 
 bilstm:
     sentence_length:
-    batch_size: 32
-    number_epochs: 10
-    validation_split: 0.1
-    verbose: 1
+    batch_size: 64
+    learning_rate: 0.01
+    number_epochs: 20
+    verbose: 2
+    weighted_classes: True
 
 hydra:
     launcher:
         n_jobs: 8
     sweeper:
         params:
-            experiment.dataset: forum,prolific,all
-            transformation: "glob(*)"
+            bilstm.weighted_classes: False,True

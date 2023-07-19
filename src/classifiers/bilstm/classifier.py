@@ -53,17 +53,25 @@ def construct_model(n_tags: int, sentence_length: int) -> tf.keras.Model:
     return tf.keras.Model(input, out)
 
 
-def compile_model(model: tf.keras.Model) -> None:
+def compile_model(model: tf.keras.Model, cfg: BiLSTM) -> None:
     model.compile(
-        optimizer=tf.keras.optimizers.legacy.Adam(),
+        optimizer=tf.keras.optimizers.legacy.Adam(
+            learning_rate=cfg.learning_rate
+        ),
         loss="categorical_crossentropy",
-        metrics=["accuracy", tf.keras.metrics.MeanSquaredError()],
+        weighted_metrics=[
+            tf.keras.metrics.CategoricalCrossentropy(name="training_loss"),
+            tf.keras.metrics.Precision(name="training_precision"),
+            tf.keras.metrics.Recall(name="training_recall"),
+        ],
     )
 
 
-def get_model(n_tags: int, sentence_length: int) -> tf.keras.Model:
+def get_model(
+    n_tags: int, sentence_length: int, cfg_bilstm: BiLSTM
+) -> tf.keras.Model:
     model = construct_model(n_tags=n_tags, sentence_length=sentence_length)
-    compile_model(model)
+    compile_model(model=model, cfg=cfg_bilstm)
     return model
 
 

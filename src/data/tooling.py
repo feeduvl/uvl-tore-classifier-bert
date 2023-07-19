@@ -8,6 +8,9 @@ from typing import IO
 from typing import List
 from typing import TypedDict
 
+from tooling.logging import logging_setup
+
+logging = logging_setup(__name__)
 DATA_ROOT = Path(__file__).parent
 
 
@@ -61,10 +64,13 @@ def filename(
 ) -> Path:
     path = basepath.joinpath(Path(name)).joinpath(Path(filename))
 
+    created_files.append(path)
     if clean:
         shutil.rmtree(path=path, ignore_errors=True)
 
     path.parent.mkdir(parents=True, exist_ok=True)
+
+    logging.info(f"Created path: {path}")
 
     return path
 
@@ -78,6 +84,8 @@ staged_bert_filepath = partial(filename, basepath=STAGED_BERT_TEMP)
 
 evaluation_filepath = partial(filename, basepath=EVALUATION_TEMP)
 
+created_files: List[Path] = []
+
 
 @contextmanager
 def create_file(
@@ -89,13 +97,27 @@ def create_file(
     if file_path.exists():
         file_path.unlink()
 
+    created_files.append(file_path)
     file_path.parent.mkdir(parents=True, exist_ok=True)
 
     f = open(file_path, mode=mode, encoding=encoding, buffering=buffering)
+
+    logging.info(f"Created path: {file_path}")
+
     try:
         yield f
     finally:
         f.close()
+
+
+def cleanup_files() -> None:
+    for file_path in created_files:
+        if file_path.exists():
+            if file_path.is_file():
+                file_path.unlink()
+            else:
+                shutil.rmtree(file_path)
+        logging.info(f"Deleted path: {file_path}")
 
 
 class PickleAndCSV(TypedDict):

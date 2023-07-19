@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from dataclasses import field
 from enum import Enum
 from typing import Dict
+from typing import List
 from typing import Optional
 
 from omegaconf import MISSING
@@ -18,6 +19,7 @@ LABELS_ENUM = Enum("", enum_dict)  # type: ignore[misc]
 @dataclass
 class Experiment:
     name: str = MISSING
+    description: str = ""
     random_state: int = 125
     folds: int = 5
     iterations: Optional[int] = None
@@ -63,8 +65,9 @@ class BiLSTM:
     sentence_length: Optional[int] = None
     batch_size: int = 32
     number_epochs: int = 32
-    validation_split: float = 0.1
     verbose: int = 1
+    weighted_classes: bool = False
+    learning_rate: float = 0.0001
 
 
 @dataclass
@@ -75,9 +78,15 @@ class BERT:
     train_batch_size: int = 32
     validation_batch_size: int = 32
     number_epochs: int = 32
-    learning_rate: float = 2e-05
+    learning_rate_bert: float = 2e-05
+    learning_rate_classifier: float = 0.01
     weight_decay: float = 0.01
     weighted_classes: bool = False
+
+
+@dataclass
+class StagedBERT(BERT):
+    layers: List[int] = field(default_factory=list)
 
 
 @dataclass
@@ -106,7 +115,7 @@ class BERTConfig:
 
 @dataclass
 class StagedBERTConfig:
-    bert: BERT = field(default_factory=BERT)
+    bert: StagedBERT = field(default_factory=StagedBERT)
     meta: Meta = field(default_factory=Meta)
     experiment: Experiment = field(default_factory=Experiment)
     transformation: Transformation = field(default_factory=Transformation)

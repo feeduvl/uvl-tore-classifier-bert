@@ -1,13 +1,13 @@
 from typing import List
 
 import hydra
+import torch
 from hydra.core.config_store import ConfigStore
 from transformers import BertForTokenClassification
 from transformers import BertTokenizerFast
 from transformers import TrainingArguments
 
 from classifiers.bert.classifier import create_bert_dataset
-from classifiers.bert.classifier import get_class_weights
 from classifiers.bert.classifier import get_compute_metrics
 from classifiers.bert.classifier import get_max_len
 from classifiers.bert.classifier import setup_device
@@ -27,6 +27,7 @@ from tooling.sampling import DATA_TEST
 from tooling.sampling import DATA_TRAIN
 from tooling.sampling import load_split_dataset
 from tooling.sampling import split_dataset_k_fold
+from tooling.transformation import get_class_weights
 from tooling.transformation import transform_dataset
 from tooling.types import IterationResult
 
@@ -53,9 +54,11 @@ def main(cfg: BERTConfig) -> None:
     )
 
     # Get model constants
-    class_weights = get_class_weights(
-        bert_cfg=cfg.bert, data=transformed_dataset["dataset"]
-    )
+    class_weights = torch.from_numpy(
+        get_class_weights(
+            exp_cfg=cfg.bert, data=transformed_dataset["dataset"]
+        )
+    ).to(torch.float32)
 
     id2label = get_id2label(transformed_dataset["labels"])
     label2id = get_label2id(transformed_dataset["labels"])
@@ -74,6 +77,7 @@ def main(cfg: BERTConfig) -> None:
         average=cfg.experiment.average,
         run_name=run_name,
         id2label=id2label,
+        create_confusion_matrix=True,
     )
 
     # Start kfold
@@ -126,7 +130,6 @@ def main(cfg: BERTConfig) -> None:
                 output_path(name=run_name, clean=True)
             ),  # pin iteration to avoid relogging parameter,
             run_name=run_name,
-            learning_rate=cfg.bert.learning_rate,
             per_device_train_batch_size=cfg.bert.train_batch_size,
             per_device_eval_batch_size=cfg.bert.validation_batch_size,
             num_train_epochs=cfg.bert.number_epochs,
@@ -153,9 +156,12 @@ def main(cfg: BERTConfig) -> None:
                 average=cfg.experiment.average,
                 run_name=run_name,
                 id2label=id2label,
+                create_confusion_matrix=False,
             ),
             class_weights=class_weights,
             device=device,
+            learning_rate_bert=cfg.bert.learning_rate_bert,
+            learning_rate_classifier=cfg.bert.learning_rate_classifier,
         )
         trainer.train()
         trainer.save_model(
@@ -187,4 +193,10 @@ def main(cfg: BERTConfig) -> None:
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        logging.error(e)
+        raise e
+    finally:
+        end_tracing()

@@ -6,9 +6,14 @@ from typing import TypedDict
 from typing import Union
 
 import mlflow
+import numpy as np
+import numpy.typing as npt
 import omegaconf
+from sklearn.utils.class_weight import compute_class_weight
 from strictly_typed_pandas import DataSet
 
+from tooling.config import BERT
+from tooling.config import BiLSTM
 from tooling.config import Config
 from tooling.config import Transformation
 from tooling.loading import load_dataset
@@ -16,6 +21,7 @@ from tooling.logging import logging_setup
 from tooling.model import DataDF
 from tooling.model import Label_None
 from tooling.model import Label_None_Pad
+from tooling.model import LABELS_NONE
 from tooling.model import NoneLabel
 from tooling.model import TORE_LABELS
 from tooling.model import TORE_LEVEL
@@ -108,3 +114,28 @@ def transform_dataset(
     mlflow.log_param("dataset_labels", transformed_dataset["labels"])
 
     return transformed_dataset
+
+
+def get_class_weights(
+    exp_cfg: BERT | BiLSTM,
+    data: DataSet[DataDF],
+) -> npt.NDArray[np.float32]:
+    labels = np.array(data["tore_label"])
+    unique_labels = np.unique(labels).tolist()
+    unique_labels.sort(key=lambda x: LABELS_NONE.index(x))
+
+    class_weights: npt.NDArray[np.float32]
+
+    if exp_cfg.weighted_classes:
+        np_unique_labels = np.array(unique_labels)
+        class_weights = compute_class_weight(
+            class_weight="balanced", classes=np_unique_labels, y=labels
+        ).astype(np.float32)
+
+    else:
+        weights = [1.0 for label in unique_labels]
+        class_weights = np.array(weights).astype(np.float32)
+
+    logging.info(f"Class weights: {dict(zip(unique_labels, class_weights))}")
+
+    return class_weights

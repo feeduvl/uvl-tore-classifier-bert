@@ -15,6 +15,7 @@ from typing import Union
 import mlflow
 from omegaconf import OmegaConf
 
+from data.tooling import cleanup_files
 from tooling.config import Config
 from tooling.logging import logging_setup
 from tooling.types import ExperimentResult
@@ -75,10 +76,11 @@ def log_config(cfg: Config) -> None:
 
 def config_mlflow(cfg: Config) -> str:
     mlflow.set_tracking_uri(cfg.meta.mlflow_tracking_uri)
+    logging.info("\n" + OmegaConf.to_yaml(cfg))
+
     mlflow.set_experiment(cfg.experiment.name)
     mlflow.autolog(silent=True)
     log_config(cfg)
-    logging.info("\n" + OmegaConf.to_yaml(cfg))
 
     run_name = mlflow.active_run().info.run_name
     if run_name is None:
@@ -88,6 +90,7 @@ def config_mlflow(cfg: Config) -> str:
 
 def end_tracing() -> None:
     mlflow.end_run()
+    cleanup_files()
 
 
 def log_iteration_result(result: IterationResult) -> None:

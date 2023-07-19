@@ -17,14 +17,17 @@ from transformers.modeling_outputs import (
 from transformers.models.bert import BertConfig
 from transformers.models.bert import BertModel
 from transformers.models.bert import BertPreTrainedModel
-from transformers.tokenization_utils_base import PreTrainedTokenizerBase
-from transformers.utils import PaddingStrategy
 
 
 class StagedBertForTokenClassification(BertPreTrainedModel):
     config_class = BertConfig
 
-    def __init__(self, config: BertConfig, num_hint_labels: int):
+    def __init__(
+        self,
+        config: BertConfig,
+        num_hint_labels: int,
+        layers: List[int] = [],
+    ):
         super().__init__(config)
         self.num_labels = config.num_labels
         self.num_hint_labels = num_hint_labels
@@ -36,21 +39,19 @@ class StagedBertForTokenClassification(BertPreTrainedModel):
             else config.hidden_dropout_prob
         )
         self.dropout = nn.Dropout(classifier_dropout)
-        self.c1 = nn.Linear(
-            config.hidden_size + num_hint_labels,
-            config.hidden_size + num_hint_labels,
-        )
-        self.c2 = nn.Linear(
-            config.hidden_size + num_hint_labels,
-            config.hidden_size + num_hint_labels,
-        )
-        self.c3 = nn.Linear(
-            config.hidden_size + num_hint_labels,
-            config.hidden_size + num_hint_labels,
-        )
-        self.classifier = nn.Linear(
-            config.hidden_size + num_hint_labels, config.num_labels
-        )
+
+        layers.insert(0, config.hidden_size + num_hint_labels)
+        layers.append(config.num_labels)
+
+        out_layers: List[nn.Linear] = []
+
+        for idx in range(len(layers) - 1):
+            _in = layers[idx]
+            _out = layers[idx + 1]
+            _layer = nn.Linear(_in, _out)
+            out_layers.append(_layer)
+
+        self.out_layers = nn.Sequential(*out_layers)
 
         # Initialize weights and apply final processing
         self.post_init()
@@ -101,13 +102,9 @@ class StagedBertForTokenClassification(BertPreTrainedModel):
 
         # merge the dropout bert output with the one hot encoded hint data and pass it to the
         # classifier
-        classifier_input = torch.cat([sequence_output, hint_input_ids], dim=2)
+        c = torch.cat([sequence_output, hint_input_ids], dim=2)
 
-        c1 = self.c1(classifier_input)
-        c2 = self.c2(c1)
-        c3 = self.c3(c2)
-
-        logits = self.classifier(c3)
+        logits = self.out_layers(c)
 
         loss = None
         if labels is not None:

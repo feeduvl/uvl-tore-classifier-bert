@@ -14,12 +14,14 @@ import numpy as np
 import pandas as pd
 import torch
 from datasets import Dataset
-from sklearn.utils.class_weight import compute_class_weight
 from strictly_typed_pandas import DataSet
 from torch import nn
+from transformers import AdamW
 from transformers import BatchEncoding
 from transformers import BertTokenizerFast
 from transformers import Trainer
+from transformers.pytorch_utils import ALL_LAYERNORM_LAYERS
+from transformers.trainer_pt_utils import get_parameter_names
 from transformers.trainer_utils import EvalPrediction
 
 from tooling import evaluation
@@ -173,6 +175,7 @@ def compute_metrics(
     average: str,
     run_name: str,
     id2label: Dict[int, str],
+    create_confusion_matrix: bool,
 ) -> Dict[str, float]:
     prediction, solution = compute_prediction_and_solution(
         p, id2label=id2label
@@ -187,6 +190,7 @@ def compute_metrics(
         average=average,
         solution=solution,
         result=prediction,
+        create_confusion_matrix=create_confusion_matrix,
     )
 
     iteration_tracking.append(iteration_result)
@@ -207,6 +211,7 @@ def get_compute_metrics(
     average: str,
     run_name: str,
     id2label: Dict[int, Label_None_Pad],
+    create_confusion_matrix: bool,
 ) -> partial[Dict[str, float]]:
     return partial(
         compute_metrics,
@@ -214,6 +219,7 @@ def get_compute_metrics(
         average=average,
         run_name=run_name,
         id2label=id2label,
+        create_confusion_matrix=create_confusion_matrix,
     )
 
 
@@ -262,11 +268,15 @@ class WeightedTrainer(Trainer):
         self,
         class_weights,
         device,
+        learning_rate_bert,
+        learning_rate_classifier,
         *args,
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
         self.class_weights = class_weights.to(device=device)
+        self.learning_rate_bert = learning_rate_bert
+        self.learning_rate_classifier = learning_rate_classifier
 
     # mypy: allow-untyped-defs
     def compute_loss(self, model, inputs, return_outputs=False):
@@ -286,35 +296,44 @@ class WeightedTrainer(Trainer):
         )
         return (loss, outputs) if return_outputs else loss
 
+    def create_optimizer(self):
+        decay_parameters = get_parameter_names(
+            self.model, ALL_LAYERNORM_LAYERS
+        )
+        decay_parameters = [
+            name for name in decay_parameters if "bias" not in name
+        ]
+
+        pretrained = self.model.bert.parameters()
+        pretrained_names = [
+            f"bert.{k}" for (k, v) in self.model.bert.named_parameters()
+        ]
+
+        new_params = [
+            v
+            for k, v in self.model.named_parameters()
+            if k not in pretrained_names
+        ]
+        optimizer_cls, optimizer_kwargs = Trainer.get_optimizer_cls_and_kwargs(
+            self.args
+        )
+
+        optimizer_kwargs["params"] = [
+            {"params": pretrained},
+            {"params": new_params, "lr": self.learning_rate_classifier},
+        ]
+
+        optimizer_kwargs["lr"] = self.learning_rate_bert
+
+        self.optimizer = optimizer_cls(**optimizer_kwargs)
+
+        return self.optimizer
+
 
 def setup_device() -> str:
     device = "mps" if torch.backends.mps.is_available() else "cpu"
     logging.info(f"Using device: {device}")
     return device
-
-
-def get_class_weights(
-    bert_cfg: BERT,
-    data: DataSet[DataDF],
-) -> torch.Tensor:
-    labels = np.array(data["tore_label"])
-    unique_labels = np.unique(labels).tolist()
-    unique_labels.sort(key=lambda x: LABELS_NONE.index(x))
-
-    if bert_cfg.weighted_classes:
-        np_unique_labels = np.array(unique_labels)
-        class_weights = torch.from_numpy(
-            compute_class_weight(
-                class_weight="balanced", classes=np_unique_labels, y=labels
-            )
-        ).to(torch.float32)
-    else:
-        weights = [1.0 for label in unique_labels]
-        class_weights = torch.from_numpy(np.array(weights)).to(torch.float32)
-
-    logging.info(f"Class weights: {dict(zip(unique_labels, class_weights))}")
-
-    return class_weights
 
 
 def get_max_len(

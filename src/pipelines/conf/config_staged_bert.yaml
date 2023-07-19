@@ -12,6 +12,7 @@ defaults:
 experiment:
     name: StagedBERT Test
     dataset: prolific
+    iterations: 1
 
 bert:
     model: bert-base-uncased
@@ -19,9 +20,14 @@ bert:
     train_batch_size: 32
     validation_batch_size: 64
     number_epochs: 32
-    learning_rate: 2e-05
     weight_decay: 0
     weighted_classes: True
+    learning_rate_bert: 2e-05
+    learning_rate_classifier: 0.01
+    layers:
+        - 10
+        - 20
+        - 30
 
 hydra:
     launcher:
@@ -31,3 +37,4 @@ hydra:
             experiment.name: StagedBERT Solo
             experiment.dataset: forum,prolific,all
             transformation: "glob(*)"
+            bert.layers: "[10,10],[10,11],[11,10]"
