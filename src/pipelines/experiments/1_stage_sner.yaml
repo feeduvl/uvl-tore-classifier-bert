@@ -1,0 +1,24 @@
+defaults:
+    - base_config
+    - transformation: levels
+
+    - override hydra/launcher: joblib
+    - override hydra/job_logging: colorlog
+    - override hydra/hydra_logging: colorlog
+
+    - _self_
+
+experiment:
+    name: 1. Stage SNER
+    description:
+    dataset: prolific
+    folds: 5
+    iterations: 1 # only run one experiment per config
+    force: False
+
+hydra:
+    launcher:
+        n_jobs: 4
+    sweeper:
+        params:
+            experiment.dataset: prolific

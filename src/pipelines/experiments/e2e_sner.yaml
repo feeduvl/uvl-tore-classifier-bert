@@ -1,0 +1,22 @@
+defaults:
+    - base_config
+    - transformation: None
+
+    - override hydra/launcher: joblib
+    - override hydra/job_logging: colorlog
+    - override hydra/hydra_logging: colorlog
+
+    - _self_
+
+experiment:
+    name: E2E Tests
+    description:
+    folds: 5
+    force: False
+
+hydra:
+    launcher:
+        n_jobs: 4
+    sweeper:
+        params:
+            experiment.dataset: forum,prolific,all

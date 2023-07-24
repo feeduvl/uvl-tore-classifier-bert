@@ -1,7 +1,6 @@
 defaults:
     - base_config
     - transformation: none
-    - hint_transformation: levels
 
     - override hydra/launcher: joblib
     - override hydra/job_logging: colorlog
@@ -10,8 +9,8 @@ defaults:
     - _self_
 
 experiment:
-    name: StagedBERT Parameter Sweep 2
-    description: Perform a multi parameter grid search to find the optimal configuration for using staged bert
+    name: E2E Bert Parameter Sweep
+    description: Perform a multi parameter grid search to find the optimal configuration for using bert in an e2e setting
     dataset: prolific
     folds: 5
     iterations: 1 # only run one experiment per config
@@ -28,9 +27,9 @@ hydra:
         n_jobs: 1
     sweeper:
         params:
-            bert.layers: "[],[144],[144,144]"
-            bert.number_epochs: "5,10"
+            bert.number_epochs: "3,5,10"
             bert.train_batch_size: "8,16,32"
-            bert.learning_rate_bert: "1e-05,3e-05"
-            bert.learning_rate_classifier: "0.001,0.01,0.1"
-            bert.weight_decay: "0.001,0.01,0.1"
+            bert.learning_rate_bert: "1e-05,3e-05,5e-05"
+            bert.learning_rate_classifier: "0.001,0.06,0.1"
+            bert.weight_decay: "0.001,0.05,0.1"
+            bert.weighted_classes: "False,True"
