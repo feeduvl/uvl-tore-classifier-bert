@@ -12,13 +12,19 @@ from strictly_typed_pandas.dataset import DataSet
 from classifiers.bilstm import get_embeddings_and_categorical
 from classifiers.bilstm import get_glove_model
 from classifiers.bilstm import get_model
+from classifiers.bilstm import get_result_df
 from classifiers.bilstm import get_sentence_length
+from classifiers.bilstm import MultiClassPrecision
+from classifiers.bilstm import MultiClassRecall
 from classifiers.bilstm import reverse_one_hot_encoding
 from classifiers.bilstm.files import model_path
 from tooling import evaluation
 from tooling.config import BiLSTMConfig
 from tooling.loading import import_dataset
 from tooling.logging import logging_setup
+from tooling.model import get_id2label
+from tooling.model import get_label2id
+from tooling.model import get_sentence_lengths
 from tooling.model import Label_None_Pad
 from tooling.model import PAD
 from tooling.model import ResultDF
@@ -34,7 +40,7 @@ from tooling.transformation import transform_dataset
 from tooling.types import IterationResult
 
 # hide GPU because it is a lot slower than running without it
-tf.config.set_visible_devices([], "GPU")
+# tf.config.set_visible_devices([], "GPU")
 
 logging = logging_setup(__name__)
 
@@ -74,6 +80,9 @@ def main(cfg: BiLSTMConfig) -> None:
     weights.append(np.float32(1.0))  # account for padding label
     class_weights = {idx: value for idx, value in enumerate(weights)}
 
+    label2id = get_label2id(padded_labels)
+    id2label = get_id2label(padded_labels)
+
     # Download Model
     glove_model = get_glove_model()
 
@@ -97,6 +106,7 @@ def main(cfg: BiLSTMConfig) -> None:
             sentence_length=sentence_length,
             labels=padded_labels,
             glove_model=glove_model,
+            label2id=label2id,
         )
 
         data_test = load_split_dataset(
@@ -108,6 +118,7 @@ def main(cfg: BiLSTMConfig) -> None:
             sentence_length=sentence_length,
             labels=padded_labels,
             glove_model=glove_model,
+            label2id=label2id,
         )
 
         # Get Model
@@ -115,6 +126,8 @@ def main(cfg: BiLSTMConfig) -> None:
             n_tags=len(padded_labels),
             sentence_length=sentence_length,
             cfg_bilstm=cfg.bilstm,
+            id2label=id2label,
+            average=cfg.experiment.average,
         )
 
         # Train
@@ -138,6 +151,10 @@ def main(cfg: BiLSTMConfig) -> None:
         trained_model = tf.keras.models.load_model(
             model_path(name=run_name, iteration=iteration),
             compile=False,  # https://github.com/tensorflow/tensorflow/issues/31850#issuecomment-578566637
+            custom_objects={
+                "MultiClassPrecision": MultiClassPrecision,
+                "MultiClassRecall": MultiClassRecall,
+            },
         )
 
         categorical_predictions = trained_model.predict(
@@ -148,11 +165,14 @@ def main(cfg: BiLSTMConfig) -> None:
         solution = cast(DataSet[ResultDF], data_test[["string", "tore_label"]])
 
         # Evaluate Iteration
-        result = reverse_one_hot_encoding(
-            dataset=data_test,
+
+        label_df = reverse_one_hot_encoding(
             categorical_data=categorical_predictions,
-            labels=padded_labels,
+            sentence_lenghts=get_sentence_lengths(data_test),
+            id2label=id2label,
         )
+
+        result = get_result_df(dataset=data_test, label_df=label_df)
 
         evaluation.evaluate_iteration(
             run_name=run_name,
@@ -160,6 +180,7 @@ def main(cfg: BiLSTMConfig) -> None:
             average=cfg.experiment.average,
             solution=solution,
             result=result,
+            labels=transformed_dataset["labels"],
             iteration_tracking=iteration_tracking,
         )
 

@@ -82,7 +82,7 @@ def config_mlflow(cfg: Config) -> str:
     check_for_run(cfg)
 
     mlflow.set_experiment(cfg.experiment.name)
-    mlflow.autolog(silent=True)
+    mlflow.autolog(silent=True, log_models=False)
     log_config(cfg)
 
     run_name = mlflow.active_run().info.run_name

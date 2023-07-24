@@ -6,21 +6,22 @@ from typing import Optional
 
 from strictly_typed_pandas.dataset import DataSet
 
-from tooling.model import Label
+from tooling.model import Label_None
 from tooling.model import ResultDF
+from tooling.model import ToreLabelDF
 
 
 @dataclass
 class IterationResult:
-    step: int
-    result: DataSet[ResultDF]
-    solution: DataSet[ResultDF]
+    step: Optional[int]
+    result: DataSet[ResultDF] | DataSet[ToreLabelDF]
+    solution: DataSet[ResultDF] | DataSet[ToreLabelDF]
 
     precision: float = 0.0
     recall: float = 0.0
 
-    pl_precision: Dict[Label, float] = field(default_factory=dict)
-    pl_recall: Dict[Label, float] = field(default_factory=dict)
+    pl_precision: Dict[Label_None, float] = field(default_factory=dict)
+    pl_recall: Dict[Label_None, float] = field(default_factory=dict)
 
     confusion_matrix: Optional[Path] = None
 
@@ -38,7 +39,7 @@ class ExperimentResult:
     max_precision: float = 0.0
     max_recall: float = 0.0
 
-    pl_mean_precision: Dict[Label, float] = field(default_factory=dict)
-    pl_mean_recall: Dict[Label, float] = field(default_factory=dict)
+    pl_mean_precision: Dict[Label_None, float] = field(default_factory=dict)
+    pl_mean_recall: Dict[Label_None, float] = field(default_factory=dict)
 
     confusion_matrix: Path = Path()

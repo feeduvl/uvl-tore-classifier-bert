@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import cast
 from typing import Dict
 from typing import List
+from typing import Literal
 from typing import Optional
 from typing import overload
 
@@ -14,7 +15,10 @@ from data import evaluation_filepath
 from tooling.logging import logging_setup
 from tooling.model import get_labels
 from tooling.model import Label
+from tooling.model import Label_None
+from tooling.model import Label_None_Pad
 from tooling.model import ResultDF
+from tooling.model import ToreLabelDF
 from tooling.observability import log_experiment_result
 from tooling.observability import log_iteration_result
 from tooling.types import ExperimentResult
@@ -25,8 +29,8 @@ logging = logging_setup(__name__)
 
 def output_confusion_matrix(
     fig_path: Path,
-    solution: DataSet[ResultDF],
-    results: DataSet[ResultDF],
+    solution: DataSet[ResultDF] | DataSet[ToreLabelDF],
+    results: DataSet[ResultDF] | DataSet[ToreLabelDF],
 ) -> None:
     metrics.ConfusionMatrixDisplay.from_predictions(
         y_true=solution["tore_label"],
@@ -43,8 +47,8 @@ def output_confusion_matrix(
 def confusion_matrix(
     name: str,
     iteration: int,
-    solution: DataSet[ResultDF],
-    results: DataSet[ResultDF],
+    solution: DataSet[ResultDF] | DataSet[ToreLabelDF],
+    results: DataSet[ResultDF] | DataSet[ToreLabelDF],
 ) -> Path:
     fig_path = evaluation_filepath(
         name=name, filename=(f"./{iteration}_confusion_matrix.png")
@@ -59,10 +63,12 @@ def confusion_matrix(
 
 
 def sum_confusion_matrix(
-    name: str, solution: DataSet[ResultDF], results: DataSet[ResultDF]
+    name: str,
+    solution: DataSet[ResultDF] | DataSet[ToreLabelDF],
+    results: DataSet[ResultDF] | DataSet[ToreLabelDF],
 ) -> Path:
     fig_path = evaluation_filepath(
-        name=name, filename=(f"./confusion_matrix.png")
+        name=name, filename=("./confusion_matrix.png")
     )
     output_confusion_matrix(
         fig_path=fig_path,
@@ -75,9 +81,9 @@ def sum_confusion_matrix(
 
 @overload
 def score_precision(
-    solution: DataSet[ResultDF],
-    results: DataSet[ResultDF],
-    labels: List[Label],
+    solution: DataSet[ResultDF] | DataSet[ToreLabelDF],
+    results: DataSet[ResultDF] | DataSet[ToreLabelDF],
+    labels: List[Label_None],
     average: None,
 ) -> List[float]:
     ...
@@ -85,18 +91,18 @@ def score_precision(
 
 @overload
 def score_precision(
-    solution: DataSet[ResultDF],
-    results: DataSet[ResultDF],
-    labels: List[Label],
+    solution: DataSet[ResultDF] | DataSet[ToreLabelDF],
+    results: DataSet[ResultDF] | DataSet[ToreLabelDF],
+    labels: List[Label_None],
     average: str,
 ) -> float:
     ...
 
 
 def score_precision(
-    solution: DataSet[ResultDF],
-    results: DataSet[ResultDF],
-    labels: List[Label],
+    solution: DataSet[ResultDF] | DataSet[ToreLabelDF],
+    results: DataSet[ResultDF] | DataSet[ToreLabelDF],
+    labels: List[Label_None],
     average: str | None,
 ) -> float | List[float]:
     precision: float = metrics.precision_score(
@@ -112,9 +118,9 @@ def score_precision(
 
 @overload
 def score_recall(
-    solution: DataSet[ResultDF],
-    results: DataSet[ResultDF],
-    labels: List[Label],
+    solution: DataSet[ResultDF] | DataSet[ToreLabelDF],
+    results: DataSet[ResultDF] | DataSet[ToreLabelDF],
+    labels: List[Label_None],
     average: None,
 ) -> List[float]:
     ...
@@ -122,18 +128,18 @@ def score_recall(
 
 @overload
 def score_recall(
-    solution: DataSet[ResultDF],
-    results: DataSet[ResultDF],
-    labels: List[Label],
+    solution: DataSet[ResultDF] | DataSet[ToreLabelDF],
+    results: DataSet[ResultDF] | DataSet[ToreLabelDF],
+    labels: List[Label_None],
     average: str,
 ) -> float:
     ...
 
 
 def score_recall(
-    solution: DataSet[ResultDF],
-    results: DataSet[ResultDF],
-    labels: List[Label],
+    solution: DataSet[ResultDF] | DataSet[ToreLabelDF],
+    results: DataSet[ResultDF] | DataSet[ToreLabelDF],
+    labels: List[Label_None],
     average: str | None,
 ) -> float | List[float]:
     recall: float = metrics.recall_score(
@@ -146,20 +152,48 @@ def score_recall(
     return recall
 
 
-def evaluate_iteration(
+@overload
+def evaluate(
     run_name: str,
     iteration: int,
     average: str,
-    solution: DataSet[ResultDF],
-    result: DataSet[ResultDF],
-    iteration_tracking: List[IterationResult],
+    labels: List[Label_None],
+    solution: DataSet[ResultDF] | DataSet[ToreLabelDF],
+    result: DataSet[ResultDF] | DataSet[ToreLabelDF],
+    create_confusion_matrix: bool,
+) -> IterationResult:
+    ...
+
+
+@overload
+def evaluate(
+    run_name: None,
+    iteration: None,
+    average: str,
+    labels: List[Label_None],
+    solution: DataSet[ResultDF] | DataSet[ToreLabelDF],
+    result: DataSet[ResultDF] | DataSet[ToreLabelDF],
+    create_confusion_matrix: Literal[False],
+) -> IterationResult:
+    ...
+
+
+def evaluate(
+    run_name: Optional[str],
+    iteration: Optional[int],
+    average: str,
+    labels: List[Label_None],
+    solution: DataSet[ResultDF] | DataSet[ToreLabelDF],
+    result: DataSet[ResultDF] | DataSet[ToreLabelDF],
     create_confusion_matrix: bool = True,
 ) -> IterationResult:
     res = IterationResult(step=iteration, result=result, solution=solution)
 
     # all should-be-contained-labels
-    solution_labels = get_labels(solution)
-    res.label_count = len(solution_labels)
+    # solution_labels = get_labels(solution)
+    # res.label_count = len(solution_labels)
+    solution_labels = labels
+    res.label_count = len(labels)
 
     res.precision = score_precision(
         solution=solution,
@@ -192,7 +226,7 @@ def evaluate_iteration(
 
     res.pl_recall = dict(zip(solution_labels, pl_recall, strict=True))
 
-    if create_confusion_matrix:
+    if create_confusion_matrix and run_name and iteration:
         res.confusion_matrix = confusion_matrix(
             name=run_name,
             iteration=iteration,
@@ -200,6 +234,28 @@ def evaluate_iteration(
             results=result,
         )
 
+    return res
+
+
+def evaluate_iteration(
+    run_name: str,
+    iteration: int,
+    average: str,
+    labels: List[Label_None],
+    solution: DataSet[ResultDF] | DataSet[ToreLabelDF],
+    result: DataSet[ResultDF] | DataSet[ToreLabelDF],
+    iteration_tracking: List[IterationResult],
+    create_confusion_matrix: bool = True,
+) -> IterationResult:
+    res = evaluate(
+        run_name=run_name,
+        iteration=iteration,
+        average=average,
+        labels=labels,
+        solution=solution,
+        result=result,
+        create_confusion_matrix=create_confusion_matrix,
+    )
     iteration_tracking.append(res)
 
     log_iteration_result(res)

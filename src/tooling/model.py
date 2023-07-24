@@ -163,7 +163,7 @@ def get_label2id(
     labels: Sequence[Label_None_Pad],
 ) -> Dict[Label_None_Pad, int]:
     sorted_labels = list(set(labels))
-    sorted_labels.sort(key=lambda x: LABELS_NONE.index(x))
+    sorted_labels.sort(key=lambda x: LABELS_NONE_PAD.index(x))
     return {label: idx for idx, label in enumerate(sorted_labels)}
 
 
@@ -171,7 +171,7 @@ def get_id2label(
     labels: Sequence[Label_None_Pad],
 ) -> Dict[int, Label_None_Pad]:
     sorted_labels = list(set(labels))
-    sorted_labels.sort(key=lambda x: LABELS_NONE.index(x))
+    sorted_labels.sort(key=lambda x: LABELS_NONE_PAD.index(x))
     return {idx: label for idx, label in enumerate(sorted_labels)}
 
 
@@ -245,6 +245,12 @@ class ResultDF:
     tore_label: Optional[Label]
 
 
+@dataclass
+class ToreLabelDF:
+    id: Optional[int]
+    tore_label: Optional[Label]
+
+
 def create_datadf(data: pd.DataFrame) -> DataSet[DataDF]:
     datadf = data[["sentence_id", "sentence_idx", "string", "tore_label"]]
     return cast(DataSet[DataDF], datadf)
@@ -275,6 +281,12 @@ def data_to_list_of_token_lists(
         sentences.append(sentence)
 
     return sentences
+
+
+def get_sentence_lengths(data: DataSet[DataDF]) -> List[int]:
+    sentences = data_to_list_of_token_lists(data=data)
+    lengths = [len(sentence) for sentence in sentences]
+    return lengths
 
 
 @overload
@@ -314,7 +326,7 @@ def data_to_list_of_label_lists(
 
 
 def get_labels(
-    dataset: DataSet[ResultDF] | DataSet[DataDF],
+    dataset: DataSet[ResultDF] | DataSet[DataDF] | DataSet[ToreLabelDF],
 ) -> List[Label]:
     return cast(List[Label], dataset["tore_label"].unique().tolist())
 
