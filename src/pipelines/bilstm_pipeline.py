@@ -168,7 +168,7 @@ def main(cfg: BiLSTMConfig) -> None:
 
         label_df = reverse_one_hot_encoding(
             categorical_data=categorical_predictions,
-            sentence_lenghts=get_sentence_lengths(data_test),
+            sentence_lengths=get_sentence_lengths(data_test),
             id2label=id2label,
         )
 
@@ -187,7 +187,7 @@ def main(cfg: BiLSTMConfig) -> None:
         logging.info(f"Finished {iteration=}")
 
         # early break if configured
-        if iteration == cfg.experiment.iterations:
+        if iteration + 1 == cfg.experiment.iterations:
             logging.info(
                 f"Breaking early after {iteration=} of {cfg.experiment.folds} folds"
             )

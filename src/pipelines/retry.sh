@@ -16,8 +16,14 @@ retry() {
   fi
 }
 
-retry "timeout --foreground 3h python src/pipelines/bert_pipeline.py -cp experiments/ -cn 1_stage_bert_parameter_sweep -cd src/pipelines/conf/ -m"
+timeout --foreground 1h python src/pipelines/bilstm_pipeline.py -cp experiments/ -cn e2e_bilstm_parameter_sweep -cd src/pipelines/conf/ -m
 
-retry "timeout --foreground 3h python src/pipelines/staged_bert_pipeline.py -cp experiments/ -cn staged_bert_parameter_sweep -cd src/pipelines/conf/ -m"
+timeout --foreground 1h python src/pipelines/bilstm_pipeline.py -cp experiments/ -cn 1_stage_bilstm_parameter_sweep -cd src/pipelines/conf/ -m
 
-retry "timeout --foreground 3h python src/pipelines/bert_pipeline.py -cp experiments/ -cn e2e_bert_sweep -cd src/pipelines/conf/ -m"
+
+
+#retry "timeout --foreground 3h python src/pipelines/bert_pipeline.py -cp experiments/ -cn 1_stage_bert_parameter_sweep -cd src/pipelines/conf/ -m"
+
+#retry "timeout --foreground 3h python src/pipelines/staged_bert_pipeline.py -cp experiments/ -cn staged_bert_parameter_sweep -cd src/pipelines/conf/ -m"
+
+#retry "timeout --foreground 3h python src/pipelines/bert_pipeline.py -cp experiments/ -cn e2e_bert_sweep -cd src/pipelines/conf/ -m"

@@ -1,0 +1,35 @@
+defaults:
+    - base_config
+    - transformation: None
+
+    - override hydra/launcher: joblib
+    - override hydra/job_logging: colorlog
+    - override hydra/hydra_logging: colorlog
+
+    - _self_
+
+experiment:
+    name: E2E BiLSTM Sweep
+    description: Sweep Parameters for BiLSTM in an E2E setting
+    folds: 5
+    iterations: 1
+    force: False
+
+bilstm:
+    sentence_length:
+    batch_size: 32
+    learning_rate: 0.01
+    number_epochs: 20
+    verbose: 2
+    weighted_classes: True
+
+hydra:
+    launcher:
+        n_jobs: 4
+    sweeper:
+        params:
+            experiment.dataset: prolific
+            bilstm.batch_size: 8,16,32,64
+            bilstm.learning_rate: 0.001,0.006,0.01,0.05
+            bilstm.number_epochs: 3,5,12,20
+            bilstm.weighted_classes: False,True
