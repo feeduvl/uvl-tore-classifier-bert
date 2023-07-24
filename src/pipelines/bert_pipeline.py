@@ -140,9 +140,8 @@ def main(cfg: BERTConfig) -> None:
             per_device_eval_batch_size=cfg.bert.validation_batch_size,
             num_train_epochs=cfg.bert.number_epochs,
             weight_decay=cfg.bert.weight_decay,
-            evaluation_strategy="steps",
-            eval_steps=1,
-            save_strategy="steps",
+            evaluation_strategy="epoch",
+            save_strategy="epoch",
             save_total_limit=3,
             load_best_model_at_end=True,
             optim="adamw_torch",
@@ -183,7 +182,7 @@ def main(cfg: BERTConfig) -> None:
         log_artifacts(model_path(name=run_name, iteration=iteration))
 
         # early break if configured
-        if iteration == cfg.experiment.iterations:
+        if iteration + 1 == cfg.experiment.iterations:
             logging.info(
                 f"Breaking early after {iteration=} of {cfg.experiment.folds} folds"
             )

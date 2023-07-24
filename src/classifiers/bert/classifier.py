@@ -31,8 +31,8 @@ from tooling.model import create_resultdf
 from tooling.model import data_to_list_of_label_lists
 from tooling.model import data_to_list_of_token_lists
 from tooling.model import DataDF
+from tooling.model import Label_None
 from tooling.model import Label_None_Pad
-from tooling.model import LABELS_NONE
 from tooling.model import ResultDF
 from tooling.types import IterationResult
 
@@ -173,6 +173,7 @@ def compute_metrics(
     p: EvalPrediction,
     iteration_tracking: List[IterationResult],
     average: str,
+    labels: List[Label_None],
     run_name: str,
     id2label: Dict[int, str],
     create_confusion_matrix: bool,
@@ -188,6 +189,7 @@ def compute_metrics(
         run_name=run_name,
         iteration=iteration,
         average=average,
+        labels=labels,
         solution=solution,
         result=prediction,
         create_confusion_matrix=create_confusion_matrix,

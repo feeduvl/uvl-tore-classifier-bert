@@ -95,6 +95,7 @@ def main(cfg: SNERConfig) -> None:
             run_name=run_name,
             iteration=iteration,
             average=cfg.experiment.average,
+            labels=transformed_dataset["labels"],
             solution=load_solution(name=run_name, iteration=iteration),
             result=load_result(name=run_name, iteration=iteration),
             iteration_tracking=iteration_tracking,

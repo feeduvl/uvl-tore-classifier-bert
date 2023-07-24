@@ -52,7 +52,7 @@ def test_tokenize_and_align_labels() -> None:
     }
 
     result = tokenize_and_align_labels(
-        data=datas, tokenizer=tokenizer, max_len=None
+        data=datas, tokenizer=tokenizer, max_len=22
     )
 
     assert len(result.encodings[0].tokens) == 22
