@@ -9,7 +9,7 @@ defaults:
     - _self_
 
 experiment:
-    name: 1. Stage Bert Parameter Sweep
+    name: 1st Stage Bert Parameter Sweep
     description: Perform a multi parameter grid search to find the optimal configuration for using staged bert
     dataset: prolific
     folds: 5

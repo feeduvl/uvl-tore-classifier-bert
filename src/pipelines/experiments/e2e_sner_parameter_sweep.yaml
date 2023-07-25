@@ -1,6 +1,6 @@
 defaults:
     - base_config
-    - transformation: levels
+    - transformation: None
 
     - override hydra/launcher: joblib
     - override hydra/job_logging: colorlog
@@ -9,11 +9,10 @@ defaults:
     - _self_
 
 experiment:
-    name: 1. Stage SNER
-    description:
-    dataset: prolific
+    name: E2E Sner Sweep
+    description: Sweep Parameters for SNER in an E2E setting
     folds: 5
-    iterations: 1 # only run one experiment per config
+    iterations: 1
     force: False
 
 hydra:

@@ -11,6 +11,7 @@ defaults:
 experiment:
     name: E2E BiLSTM Sweep
     description: Sweep Parameters for BiLSTM in an E2E setting
+    dataset: prolific
     folds: 5
     iterations: 1
     force: False
