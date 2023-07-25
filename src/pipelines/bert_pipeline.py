@@ -39,7 +39,6 @@ cs.store(name="base_config", node=BERTConfig)
 logging = logging_setup(__name__)
 
 
-@hydra.main(version_base=None, config_path="conf", config_name="config_bert")
 def main(cfg: BERTConfig) -> None:
     try:
         run_name = config_mlflow(cfg)
@@ -82,6 +81,7 @@ def main(cfg: BERTConfig) -> None:
         iteration_tracking=iteration_tracking,
         average=cfg.experiment.average,
         run_name=run_name,
+        labels=transformed_dataset["labels"],
         id2label=id2label,
         create_confusion_matrix=True,
     )
@@ -159,6 +159,7 @@ def main(cfg: BERTConfig) -> None:
             compute_metrics=get_compute_metrics(
                 iteration_tracking=[],
                 average=cfg.experiment.average,
+                labels=transformed_dataset["labels"],
                 run_name=run_name,
                 id2label=id2label,
                 create_confusion_matrix=False,
@@ -197,9 +198,10 @@ def main(cfg: BERTConfig) -> None:
     end_tracing(status="FINISHED")
 
 
-if __name__ == "__main__":
+@hydra.main(version_base=None, config_path="conf", config_name="config_bert")
+def main_wrapper(cfg: BERTConfig) -> None:
     try:
-        main()
+        main(cfg)
 
     except KeyboardInterrupt:
         logging.info("Keyobard interrupt recieved")
@@ -214,3 +216,7 @@ if __name__ == "__main__":
         end_tracing(status=status)
 
         raise e
+
+
+if __name__ == "__main__":
+    main_wrapper()

@@ -213,6 +213,7 @@ def get_compute_metrics(
     average: str,
     run_name: str,
     id2label: Dict[int, Label_None_Pad],
+    labels: List[Label_None],
     create_confusion_matrix: bool,
 ) -> partial[Dict[str, float]]:
     return partial(
@@ -221,6 +222,7 @@ def get_compute_metrics(
         average=average,
         run_name=run_name,
         id2label=id2label,
+        labels=labels,
         create_confusion_matrix=create_confusion_matrix,
     )
 

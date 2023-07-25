@@ -48,7 +48,6 @@ cs = ConfigStore.instance()
 cs.store(name="base_config", node=BiLSTMConfig)
 
 
-@hydra.main(version_base=None, config_path="conf", config_name="config_bilstm")
 def main(cfg: BiLSTMConfig) -> None:
     # Setup experiment
     try:
@@ -201,9 +200,10 @@ def main(cfg: BiLSTMConfig) -> None:
     end_tracing(status="FINISHED")
 
 
-if __name__ == "__main__":
+@hydra.main(version_base=None, config_path="conf", config_name="config_bilstm")
+def main_wrapper(cfg: BiLSTMConfig) -> None:
     try:
-        main()
+        main(cfg)
 
     except KeyboardInterrupt:
         logging.info("Keyobard interrupt recieved")
@@ -218,3 +218,7 @@ if __name__ == "__main__":
         end_tracing(status=status)
 
         raise e
+
+
+if __name__ == "__main__":
+    main_wrapper

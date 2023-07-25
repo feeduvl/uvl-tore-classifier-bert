@@ -35,7 +35,6 @@ cs.store(
 logging = logging_setup(__name__)
 
 
-@hydra.main(version_base=None, config_path="conf", config_name="config_sner")
 def main(cfg: SNERConfig) -> None:
     # Setup experiment
     try:
@@ -104,7 +103,7 @@ def main(cfg: SNERConfig) -> None:
         logging.info(f"Finished {iteration=}")
 
         # early break if configured
-        if iteration == cfg.experiment.iterations:
+        if iteration + 1 == cfg.experiment.iterations:
             logging.info(
                 f"Breaking early after {iteration=} of {cfg.experiment.folds} folds"
             )
@@ -118,9 +117,10 @@ def main(cfg: SNERConfig) -> None:
     end_tracing(status="FINISHED")
 
 
-if __name__ == "__main__":
+@hydra.main(version_base=None, config_path="conf", config_name="config_sner")
+def main_wrapper(cfg: SNERConfig) -> None:
     try:
-        main()
+        main(cfg)
 
     except KeyboardInterrupt:
         logging.info("Keyobard interrupt recieved")
@@ -135,3 +135,7 @@ if __name__ == "__main__":
         end_tracing(status=status)
 
         raise e
+
+
+if __name__ == "__main__":
+    main_wrapper
