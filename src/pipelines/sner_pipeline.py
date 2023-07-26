@@ -16,6 +16,7 @@ from tooling.config import SNERConfig
 from tooling.config import Transformation
 from tooling.loading import import_dataset
 from tooling.logging import logging_setup
+from tooling.observability import check_rerun
 from tooling.observability import config_mlflow
 from tooling.observability import end_tracing
 from tooling.observability import RerunException
@@ -28,20 +29,12 @@ from tooling.types import IterationResult
 
 cs = ConfigStore.instance()
 cs.store(name="base_config", node=SNERConfig)
-cs.store(
-    group="transformation", name="base_label_activity", node=Transformation
-)
+
 
 logging = logging_setup(__name__)
 
 
-def main(cfg: SNERConfig) -> None:
-    # Setup experiment
-    try:
-        run_name = config_mlflow(cfg)
-    except RerunException:
-        return
-
+def _sner(cfg: SNERConfig, run_name: str) -> None:
     # Import Dataset
     import_dataset(cfg, run_name)
 
@@ -114,28 +107,36 @@ def main(cfg: SNERConfig) -> None:
         run_name=run_name, iteration_results=iteration_tracking
     )
 
-    end_tracing(status="FINISHED")
+    end_tracing()
 
 
 @hydra.main(version_base=None, config_path="conf", config_name="config_sner")
-def main_wrapper(cfg: SNERConfig) -> None:
+def sner(cfg: SNERConfig) -> None:
     try:
-        main(cfg)
+        check_rerun(cfg=cfg)
+    except RerunException:
+        return
 
-    except KeyboardInterrupt:
-        logging.info("Keyobard interrupt recieved")
-        status = "FAILED"
-        end_tracing(status=status)
+    logging.info("Entering mlflow context")
+    with config_mlflow(cfg=cfg) as current_run:
+        try:
+            _sner(cfg, run_name=current_run.info.run_name)
+            end_tracing()
 
-        sys.exit()
+        except KeyboardInterrupt:
+            logging.info("Keyboard interrupt received")
+            end_tracing()
+            sys.exit()
 
-    except Exception as e:
-        logging.error(e)
-        status = "FAILED"
-        end_tracing(status=status)
+        except Exception as e:
+            logging.error(e)
+            end_tracing()
+            raise e
 
-        raise e
+    logging.info("Left mlflow context")
+
+    return
 
 
 if __name__ == "__main__":
-    main_wrapper
+    sner()

@@ -21,6 +21,7 @@ from tooling.loading import import_dataset
 from tooling.logging import logging_setup
 from tooling.model import get_id2label
 from tooling.model import get_label2id
+from tooling.observability import check_rerun
 from tooling.observability import config_mlflow
 from tooling.observability import end_tracing
 from tooling.observability import log_artifacts
@@ -39,12 +40,7 @@ cs.store(name="base_config", node=BERTConfig)
 logging = logging_setup(__name__)
 
 
-def main(cfg: BERTConfig) -> None:
-    try:
-        run_name = config_mlflow(cfg)
-    except RerunException:
-        return
-
+def _bert(cfg: BERTConfig, run_name: str) -> None:
     device = setup_device()
 
     # Import Dataset
@@ -195,28 +191,33 @@ def main(cfg: BERTConfig) -> None:
         run_name=run_name, iteration_results=iteration_tracking
     )
 
-    end_tracing(status="FINISHED")
-
 
 @hydra.main(version_base=None, config_path="conf", config_name="config_bert")
-def main_wrapper(cfg: BERTConfig) -> None:
+def bert(cfg: BERTConfig) -> None:
     try:
-        main(cfg)
+        check_rerun(cfg=cfg)
+    except RerunException:
+        return
 
-    except KeyboardInterrupt:
-        logging.info("Keyobard interrupt recieved")
-        status = "FAILED"
-        end_tracing(status=status)
+    logging.info("Entering mlflow context")
+    with config_mlflow(cfg=cfg) as current_run:
+        try:
+            _bert(cfg, run_name=current_run.info.run_name)
+            end_tracing()
 
-        sys.exit()
+        except KeyboardInterrupt:
+            logging.info("Keyobard interrupt recieved")
+            end_tracing()
+            sys.exit()
 
-    except Exception as e:
-        logging.error(e)
-        status = "FAILED"
-        end_tracing(status=status)
+        except Exception as e:
+            logging.error(e)
+            end_tracing()
+            raise e
 
-        raise e
+    logging.info("Left mlflow context")
+    return
 
 
 if __name__ == "__main__":
-    main_wrapper()
+    bert()

@@ -1,12 +1,11 @@
 defaults:
     - base_config
+
     - transformation: levels
 
     - override hydra/launcher: joblib
     - override hydra/job_logging: colorlog
     - override hydra/hydra_logging: colorlog
-    - override hydra/job_logging: none
-    - override hydra/hydra_logging: none
 
     - _self_
 
@@ -14,6 +13,8 @@ experiment:
     name: BERT Test
     dataset: prolific
     lower_case: True
+    force: True
+    iterations: 1
 
 bert:
     model: bert-base-uncased

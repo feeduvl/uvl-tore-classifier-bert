@@ -8,20 +8,21 @@ from hydra.core.config_store import ConfigStore
 from transformers import BertTokenizerFast
 from transformers import TrainingArguments
 
-from classifiers.bert.classifier import create_bert_dataset
 from classifiers.bert.classifier import get_compute_metrics
 from classifiers.bert.classifier import get_max_len
 from classifiers.bert.classifier import setup_device
-from classifiers.bert.classifier import WeightedTrainer
+from classifiers.bert.classifier import (
+    WeightedTrainer,
+)
 from classifiers.bert.files import model_path
 from classifiers.bert.files import output_path
-from classifiers.staged_bert.classifier import get_hint_modifier
-from classifiers.staged_bert.classifier import get_hint_transformation
 from classifiers.staged_bert.model import (
     StagedBertForTokenClassification,
 )
 from tooling import evaluation
-from tooling.config import StagedBERTConfig
+from tooling.config import DualModelStagedBERTConfig
+from tooling.experiment import get_model
+from tooling.experiment import run_model
 from tooling.loading import import_dataset
 from tooling.logging import logging_setup
 from tooling.model import get_id2label
@@ -43,11 +44,14 @@ from tooling.types import IterationResult
 logging = logging_setup(__name__)
 
 cs = ConfigStore.instance()
-cs.store(name="base_config", node=StagedBERTConfig)
+cs.store(name="base_config", node=DualModelStagedBERTConfig)
 
 
-def _staged_bert(cfg: StagedBERTConfig, run_name: str) -> None:
+def _dual_stage_bert(cfg: DualModelStagedBERTConfig, run_name: str) -> None:
     device = setup_device()
+
+    # Get First stage model
+    get_model(cfg, run_name=run_name)
 
     mlflow.log_param("bert.num_layers", len(cfg.bert.layers))
     mlflow.log_param("bert.layers", ",".join(str(x) for x in cfg.bert.layers))
@@ -80,9 +84,6 @@ def _staged_bert(cfg: StagedBERTConfig, run_name: str) -> None:
         tokenizer=TOKENIZER,
     )
 
-    hints = get_hint_transformation(cfg.hint_transformation)
-    hint_modifier = get_hint_modifier(id2label=id2label, hints=hints)
-
     # Prepare evaluation tracking
     iteration_tracking: List[IterationResult] = []
     compute_iteration_metrics = get_compute_metrics(
@@ -103,31 +104,39 @@ def _staged_bert(cfg: StagedBERTConfig, run_name: str) -> None:
         logging.info(f"Starting {iteration=}")
 
         # Load training data
-        train_data = create_bert_dataset(
-            input_data=load_split_dataset(
-                name=run_name, filename=DATA_TRAIN, iteration=iteration
-            ),
+        input_training_data = load_split_dataset(
+            name=run_name, filename=DATA_TRAIN, iteration=iteration
+        )
+
+        # Add predicted hint labels to train_dataset
+        train_data = run_model(
+            cfg=cfg,
+            run_name=run_name,
+            data=input_training_data,
             label2id=label2id,
             tokenizer=TOKENIZER,
             max_len=max_len,
-            modifiers=[hint_modifier],
         )
 
         # Load testing data
-        test_data = create_bert_dataset(
-            input_data=load_split_dataset(
-                name=run_name, filename=DATA_TEST, iteration=iteration
-            ),
+        input_test_data = load_split_dataset(
+            name=run_name, filename=DATA_TEST, iteration=iteration
+        )
+
+        # Add predicted hint labels to test_dataset
+        test_data = run_model(
+            cfg=cfg,
+            run_name=run_name,
+            data=input_test_data,
             label2id=label2id,
             tokenizer=TOKENIZER,
             max_len=max_len,
-            modifiers=[hint_modifier],
         )
 
         # Get Model
         model = StagedBertForTokenClassification.from_pretrained(
             cfg.bert.model,
-            num_hint_labels=len(hints["label2id"]),
+            num_hint_labels=len(label2id.keys()),
             layers=cfg.bert.layers,
             num_labels=len(transformed_dataset["labels"]),
             id2label=id2label,
@@ -139,7 +148,6 @@ def _staged_bert(cfg: StagedBERTConfig, run_name: str) -> None:
         model.to(device=device)
 
         # Train
-
         training_args = TrainingArguments(
             output_dir=str(
                 output_path(name=run_name, clean=True)
@@ -152,8 +160,9 @@ def _staged_bert(cfg: StagedBERTConfig, run_name: str) -> None:
             per_device_eval_batch_size=cfg.bert.validation_batch_size,
             num_train_epochs=cfg.bert.number_epochs,
             weight_decay=cfg.bert.weight_decay,
-            evaluation_strategy="epoch",
-            save_strategy="epoch",
+            evaluation_strategy="steps",
+            logging_steps=10,
+            save_strategy="steps",
             save_total_limit=3,
             load_best_model_at_end=True,
             optim="adamw_torch",
@@ -205,13 +214,13 @@ def _staged_bert(cfg: StagedBERTConfig, run_name: str) -> None:
         run_name=run_name, iteration_results=iteration_tracking
     )
 
-    end_tracing()
-
 
 @hydra.main(
-    version_base=None, config_path="conf", config_name="config_staged_bert"
+    version_base=None,
+    config_path="conf",
+    config_name="config_dual_model_staged_bert",
 )
-def staged_bert(cfg: StagedBERTConfig) -> None:
+def dual_stage_bert(cfg: DualModelStagedBERTConfig) -> None:
     try:
         check_rerun(cfg=cfg)
     except RerunException:
@@ -220,7 +229,7 @@ def staged_bert(cfg: StagedBERTConfig) -> None:
     logging.info("Entering mlflow context")
     with config_mlflow(cfg=cfg) as current_run:
         try:
-            _staged_bert(cfg, run_name=current_run.info.run_name)
+            _dual_stage_bert(cfg, run_name=current_run.info.run_name)
             end_tracing()
 
         except KeyboardInterrupt:
@@ -239,4 +248,4 @@ def staged_bert(cfg: StagedBERTConfig) -> None:
 
 
 if __name__ == "__main__":
-    staged_bert()
+    dual_stage_bert()

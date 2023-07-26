@@ -1,3 +1,4 @@
+import itertools
 from functools import partial
 from typing import Dict
 from typing import List
@@ -5,8 +6,11 @@ from typing import Optional
 from typing import TypedDict
 
 import mlflow
+import numpy as np
+import numpy.typing as npt
 import omegaconf
 from datasets import Dataset
+from transformers.trainer_utils import EvalPrediction
 
 from classifiers.bert.classifier import Modification
 from tooling.config import Transformation
@@ -103,3 +107,13 @@ def get_hint_modifier(
         hint_label2id=hints["label2id"],
     )
     return Modification(column_name=column_name, modifier=func)
+
+
+def get_hint_column(
+    predictions: npt.NDArray[np.float64],
+) -> List[List[np.int64]]:
+    predictions = np.argmax(predictions, axis=2)
+
+    predictions_list = [[p for p in prediction] for prediction in predictions]
+
+    return predictions_list

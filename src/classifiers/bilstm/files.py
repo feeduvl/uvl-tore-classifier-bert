@@ -8,7 +8,7 @@ from data import bilstm_filepath
 from tooling.model import ResultDF
 
 
-MODEL_FILENAME = "bilstm"
+MODEL_FILENAME = "model"
 
 
 def model_path(name: str, iteration: int) -> Path:

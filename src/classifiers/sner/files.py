@@ -17,7 +17,7 @@ TEMPLATE_FILENAME = "ner_training.prop.j2"
 
 TRAIN_FILENAME = "sner_train_file"
 CONFIG_FILENAME = "sner_config_file"
-MODEL_FILENAME = "sner"
+MODEL_FILENAME = "model"
 RESULT_FILENAME = "classification_result"
 SOLUTION_FILENAME = "solution"
 

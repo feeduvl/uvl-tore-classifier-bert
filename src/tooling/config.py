@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from dataclasses import field
 from enum import Enum
+from pathlib import Path
 from typing import Dict
 from typing import List
 from typing import Optional
@@ -86,6 +87,11 @@ class BERT:
 
 
 @dataclass
+class PreTrainedBERT:
+    model_path: str
+
+
+@dataclass
 class StagedBERT(BERT):
     layers: List[int] = field(default_factory=list)
 
@@ -123,4 +129,20 @@ class StagedBERTConfig:
     hint_transformation: Transformation = field(default_factory=Transformation)
 
 
-Config = SNERConfig | BiLSTMConfig | BERTConfig | StagedBERTConfig
+FirstStageConfigs = SNERConfig | BiLSTMConfig | BERTConfig
+
+
+@dataclass
+class DualModelStagedBERTConfig:
+    first_model_bert: Optional[BERTConfig] = None
+    first_model_bilstm: Optional[BiLSTMConfig] = None
+    first_model_sner: Optional[SNERConfig] = None
+
+    bert: StagedBERT = field(default_factory=StagedBERT)
+    meta: Meta = field(default_factory=Meta)
+    experiment: Experiment = field(default_factory=Experiment)
+    transformation: Transformation = field(default_factory=Transformation)
+    hint_transformation: Transformation = field(default_factory=Transformation)
+
+
+Config = FirstStageConfigs | DualModelStagedBERTConfig | StagedBERTConfig

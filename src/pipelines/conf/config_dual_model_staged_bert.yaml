@@ -1,0 +1,58 @@
+defaults:
+    - base_config
+    - transformation: none
+    - transformation@first_model_bert.transformation: levels
+
+    - override hydra/launcher: joblib
+    - override hydra/job_logging: colorlog
+    - override hydra/hydra_logging: colorlog
+
+    - _self_
+
+experiment:
+    name: Dual Model StagedBERT Test
+    dataset: prolific
+    iterations: 1
+    force: True
+
+first_model_bert:
+    experiment:
+        name: BERT Test
+        dataset: all
+        lower_case: True
+        force: True
+        iterations: 1
+
+    bert:
+        model: bert-base-uncased
+        max_len:
+        train_batch_size: 32
+        validation_batch_size: 8
+        number_epochs: 1
+        learning_rate_bert: 5e-05
+        learning_rate_classifier: 0.01
+        weight_decay: 0.01
+        weighted_classes: True
+
+bert:
+    model: bert-base-uncased
+    max_len:
+    train_batch_size: 8
+    validation_batch_size: 64
+    number_epochs: 10
+    weight_decay: 0.01
+    weighted_classes: True
+    learning_rate_bert: 3e-05
+    learning_rate_classifier: 0.1
+    layers:
+        - 144
+
+hydra:
+    launcher:
+        n_jobs: 1
+    sweeper:
+        params:
+            experiment.name: Dual Model StagedBERT Test
+            experiment.dataset: prolific, all
+            bert.layers: "[10,10],[10,11],[11,10]"
+            force: False

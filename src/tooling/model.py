@@ -15,6 +15,7 @@ from typing import TypeAlias
 from typing import Union
 
 import pandas as pd
+from datasets import Dataset
 from pydantic import BaseModel
 from pydantic.dataclasses import (
     dataclass,

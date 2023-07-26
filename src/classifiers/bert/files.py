@@ -2,7 +2,7 @@ from pathlib import Path
 
 from data import bert_filepath
 
-MODEL_FILENAME = "bert"
+MODEL_FILENAME = "model"
 OUTPUT_FILENAME = "output"
 LOGGING_FILENAME = "logging"
 

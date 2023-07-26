@@ -3,7 +3,9 @@ import sys
 from collections.abc import (
     Iterable,
 )
+from collections.abc import Iterator
 from collections.abc import MutableMapping
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
 from typing import cast
@@ -75,29 +77,45 @@ def log_config(cfg: Config) -> None:
     mlflow.log_params(config)
 
 
-def config_mlflow(cfg: Config) -> str:
+def check_rerun(cfg: Config) -> None:
     mlflow.set_tracking_uri(cfg.meta.mlflow_tracking_uri)
+
     logging.info("\n" + OmegaConf.to_yaml(cfg))
 
-    check_for_run(cfg)
+    run_id = get_run_id(cfg)
+    if run_id:
+        if cfg.experiment.force:
+            logging.warn("Experiment was already run, continuing")
+        else:
+            logging.warn("Experiment was already run, aborting")
+            raise RerunException
+    else:
+        logging.info("New experiment. Running")
 
-    mlflow.set_experiment(cfg.experiment.name)
-    mlflow.autolog(silent=True, log_models=False)
-    log_config(cfg)
 
-    run_name = mlflow.active_run().info.run_name
-    if run_name is None:
-        raise ValueError("No mlflow run_name")
-    return str(run_name)
+@contextmanager
+def config_mlflow(cfg: Config) -> Iterator[mlflow.ActiveRun]:
+    experiment = mlflow.get_experiment_by_name(cfg.experiment.name)
+
+    nested = False
+    if mlflow.active_run():
+        nested = True
+
+    with mlflow.start_run(
+        experiment_id=experiment.experiment_id, nested=nested
+    ) as current_run:
+        mlflow.autolog(silent=True, log_models=False)
+        log_config(cfg)
+        yield current_run
 
 
 class RerunException(Exception):
     pass
 
 
-def check_for_run(
+def get_run_id(
     cfg: Config,
-) -> None:
+) -> Optional[str]:
     experiment_id = mlflow.set_experiment(cfg.experiment.name)
     runs_df = mlflow.search_runs(
         experiment_ids=[experiment_id.experiment_id], output_format="pandas"
@@ -134,17 +152,13 @@ def check_for_run(
         res = []
 
     if len(res) != 0:
-        if cfg.experiment.force:
-            logging.warn("Experiment was already run, continuing")
-        else:
-            logging.warn("Experiment was already run, aborting")
-            raise RerunException
+        run_id = str(res["run_id"].iloc[-1])
+        return run_id
     else:
-        logging.info("New experiment. Running")
+        return None
 
 
-def end_tracing(status: str) -> None:
-    mlflow.end_run(status=status)
+def end_tracing() -> None:
     cleanup_files()
 
 

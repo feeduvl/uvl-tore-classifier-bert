@@ -11,12 +11,12 @@ from typing import TypedDict
 
 import mlflow
 import numpy as np
+import numpy.typing as npt
 import pandas as pd
 import torch
 from datasets import Dataset
 from strictly_typed_pandas import DataSet
 from torch import nn
-from transformers import AdamW
 from transformers import BatchEncoding
 from transformers import BertTokenizerFast
 from transformers import Trainer
@@ -133,9 +133,10 @@ def get_tokenize_and_align_labels(
 
 
 def compute_prediction_and_solution(
-    p: EvalPrediction, id2label: Dict[int, str]
+    predictions: npt.NDArray[np.float64],
+    labels: npt.NDArray[np.int64],
+    id2label: Dict[int, Label_None_Pad],
 ) -> Tuple[DataSet[ResultDF], DataSet[ResultDF]]:
-    predictions, labels = p
     predictions = np.argmax(predictions, axis=2)
 
     predictions_list = list(
@@ -175,11 +176,11 @@ def compute_metrics(
     average: str,
     labels: List[Label_None],
     run_name: str,
-    id2label: Dict[int, str],
+    id2label: Dict[int, Label_None_Pad],
     create_confusion_matrix: bool,
 ) -> Dict[str, float]:
     prediction, solution = compute_prediction_and_solution(
-        p, id2label=id2label
+        p[0], p[1], id2label=id2label
     )
 
     iteration = len(iteration_tracking)
