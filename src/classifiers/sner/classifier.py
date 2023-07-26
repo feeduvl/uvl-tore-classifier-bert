@@ -14,16 +14,16 @@ from nltk.tag import StanfordNERTagger
 from nltk.tokenize import word_tokenize
 from strictly_typed_pandas.dataset import DataSet
 
-from .files import configfile
-from .files import modelfile
-from .files import RESSOURCES_PATH
-from .files import resultfile_csv
-from .files import resultfile_pickle
-from .files import solutionfile_csv
-from .files import solutionfile_pickle
-from .files import STANFORD_JAR_PATH
-from .files import TEMPLATE_FILENAME
-from .files import trainfile
+from classifiers.sner.files import configfile
+from classifiers.sner.files import modelfile
+from classifiers.sner.files import RESSOURCES_PATH
+from classifiers.sner.files import resultfile_csv
+from classifiers.sner.files import resultfile_pickle
+from classifiers.sner.files import solutionfile_csv
+from classifiers.sner.files import solutionfile_pickle
+from classifiers.sner.files import STANFORD_JAR_PATH
+from classifiers.sner.files import TEMPLATE_FILENAME
+from classifiers.sner.files import trainfile
 from data import create_file
 from data import PickleAndCSV
 from tooling.logging import logging_setup
@@ -238,7 +238,10 @@ def realign_results(
         tokens = word_tokenize(row.string)
         if len(tokens) > 1:
             for i in range(len(tokens) - 1):
-                output = output.drop([index + 1]).reset_index(drop=True)
+                output = cast(
+                    DataSet[ResultDF],
+                    output.drop([index + 1]).reset_index(drop=True),
+                )
 
     return output
 
