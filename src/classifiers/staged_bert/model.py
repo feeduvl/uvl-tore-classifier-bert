@@ -1,3 +1,4 @@
+import math
 from collections.abc import Iterable
 from typing import Any
 from typing import Dict
@@ -40,7 +41,10 @@ class StagedBertForTokenClassification(BertPreTrainedModel):
         )
         self.dropout = nn.Dropout(classifier_dropout)
 
-        layers.insert(0, config.hidden_size + num_hint_labels)
+        in_factor = config.hidden_size + num_hint_labels
+        layers = [math.floor(layer * in_factor) for layer in layers]
+
+        layers.insert(0, in_factor)
         layers.append(config.num_labels)
 
         out_layers: List[nn.Linear] = []

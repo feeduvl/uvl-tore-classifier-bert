@@ -2,6 +2,7 @@ import sys
 from typing import List
 
 import hydra
+import mlflow
 from hydra.core.config_store import ConfigStore
 
 from classifiers.sner.classifier import classify_sentences
@@ -16,6 +17,8 @@ from tooling.config import SNERConfig
 from tooling.config import Transformation
 from tooling.loading import import_dataset
 from tooling.logging import logging_setup
+from tooling.model import get_id2label
+from tooling.model import get_label2id
 from tooling.observability import check_rerun
 from tooling.observability import config_mlflow
 from tooling.observability import end_tracing
@@ -42,6 +45,10 @@ def _sner(cfg: SNERConfig, run_name: str) -> None:
     transformed_dataset = transform_dataset(
         cfg, run_name, fill_with_zeros=False
     )
+    id2label = get_id2label(transformed_dataset["labels"])
+    label2id = get_label2id(transformed_dataset["labels"])
+    mlflow.log_param("id2label", id2label)
+    mlflow.log_param("label2id", label2id)
 
     # Prepare evaluation tracking
     iteration_tracking: List[IterationResult] = []

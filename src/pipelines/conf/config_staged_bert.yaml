@@ -26,9 +26,9 @@ bert:
     learning_rate_bert: 2e-05
     learning_rate_classifier: 0.01
     layers:
-        - 10
-        - 20
-        - 30
+        - 1
+        - 2
+        - 1
 
 hydra:
     launcher:
@@ -37,4 +37,3 @@ hydra:
         params:
             experiment.name: StagedBERT Test
             experiment.dataset: prolific, all
-            bert.layers: "[10,10],[10,11],[11,10]"

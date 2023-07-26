@@ -4,6 +4,7 @@ from typing import cast
 from typing import List
 
 import hydra
+import mlflow
 import numpy as np
 import tensorflow as tf
 from hydra.core.config_store import ConfigStore
@@ -31,6 +32,7 @@ from tooling.model import ResultDF
 from tooling.observability import check_rerun
 from tooling.observability import config_mlflow
 from tooling.observability import end_tracing
+from tooling.observability import log_artifacts
 from tooling.observability import RerunException
 from tooling.sampling import DATA_TEST
 from tooling.sampling import DATA_TRAIN
@@ -66,6 +68,7 @@ def _bilstm(cfg: BiLSTMConfig, run_name: str) -> None:
     padded_labels: Sequence[Label_None_Pad] = transformed_dataset["labels"] + [
         PAD
     ]
+    mlflow.log_param("padded_labels", padded_labels)
 
     weights = cast(
         List[np.float32],
@@ -76,6 +79,8 @@ def _bilstm(cfg: BiLSTMConfig, run_name: str) -> None:
 
     label2id = get_label2id(padded_labels)
     id2label = get_id2label(padded_labels)
+    mlflow.log_param("id2label", id2label)
+    mlflow.log_param("label2id", label2id)
 
     # Download Model
     glove_model = get_glove_model()
@@ -139,7 +144,7 @@ def _bilstm(cfg: BiLSTMConfig, run_name: str) -> None:
         )
 
         model.save(model_path(name=run_name, iteration=iteration))
-
+        log_artifacts(model_path(name=run_name, iteration=iteration))
         # Classify
 
         trained_model = tf.keras.models.load_model(

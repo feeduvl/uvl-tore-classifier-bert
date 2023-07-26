@@ -51,7 +51,9 @@ def _dual_stage_bert(cfg: DualModelStagedBERTConfig, run_name: str) -> None:
     device = setup_device()
 
     # Get First stage model
-    get_model(cfg, run_name=run_name)
+    hint_label2id, hint_id2label, glove_model, padded_labels = get_model(
+        cfg, run_name=run_name
+    )
 
     mlflow.log_param("bert.num_layers", len(cfg.bert.layers))
     mlflow.log_param("bert.layers", ",".join(str(x) for x in cfg.bert.layers))
@@ -116,6 +118,10 @@ def _dual_stage_bert(cfg: DualModelStagedBERTConfig, run_name: str) -> None:
             label2id=label2id,
             tokenizer=TOKENIZER,
             max_len=max_len,
+            hint_label2id=hint_label2id,
+            hint_id2label=hint_id2label,
+            glove_model=glove_model,
+            padded_labels=padded_labels,
         )
 
         # Load testing data
@@ -131,6 +137,10 @@ def _dual_stage_bert(cfg: DualModelStagedBERTConfig, run_name: str) -> None:
             label2id=label2id,
             tokenizer=TOKENIZER,
             max_len=max_len,
+            hint_label2id=hint_label2id,
+            hint_id2label=hint_id2label,
+            glove_model=glove_model,
+            padded_labels=padded_labels,
         )
 
         # Get Model
@@ -160,9 +170,8 @@ def _dual_stage_bert(cfg: DualModelStagedBERTConfig, run_name: str) -> None:
             per_device_eval_batch_size=cfg.bert.validation_batch_size,
             num_train_epochs=cfg.bert.number_epochs,
             weight_decay=cfg.bert.weight_decay,
-            evaluation_strategy="steps",
-            logging_steps=10,
-            save_strategy="steps",
+            evaluation_strategy="epoch",
+            save_strategy="epoch",
             save_total_limit=3,
             load_best_model_at_end=True,
             optim="adamw_torch",
@@ -218,7 +227,7 @@ def _dual_stage_bert(cfg: DualModelStagedBERTConfig, run_name: str) -> None:
 @hydra.main(
     version_base=None,
     config_path="conf",
-    config_name="config_dual_model_staged_bert",
+    config_name="bilstm_config_dual_model_staged_bert",
 )
 def dual_stage_bert(cfg: DualModelStagedBERTConfig) -> None:
     try:

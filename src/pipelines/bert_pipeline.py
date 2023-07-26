@@ -2,6 +2,7 @@ import sys
 from typing import List
 
 import hydra
+import mlflow
 import torch
 from hydra.core.config_store import ConfigStore
 from transformers import BertForTokenClassification
@@ -63,6 +64,8 @@ def _bert(cfg: BERTConfig, run_name: str) -> None:
 
     id2label = get_id2label(transformed_dataset["labels"])
     label2id = get_label2id(transformed_dataset["labels"])
+    mlflow.log_param("id2label", id2label)
+    mlflow.log_param("label2id", label2id)
 
     max_len = get_max_len(
         bert_cfg=cfg.bert,

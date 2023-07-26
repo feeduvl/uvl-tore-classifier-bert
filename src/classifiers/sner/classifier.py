@@ -148,9 +148,9 @@ def train_sner(name: str, iteration: int) -> Path:
 # Classify
 
 
-def instantiate_tagger(name: str, iteration: int) -> StanfordNERTagger:
+def instantiate_tagger(path: Path) -> StanfordNERTagger:
     st = StanfordNERTagger(
-        model_filename=str(modelfile(name=name, iteration=iteration)),
+        model_filename=str(path),
         path_to_jar=str(STANFORD_JAR_PATH),
         encoding="utf-8",
     )
@@ -175,18 +175,10 @@ def classify_sentence(
 def classify_sentences(
     name: str, iteration: int, data_test: DataSet[DataDF]
 ) -> PickleAndCSV:
-    st = instantiate_tagger(name=name, iteration=iteration)
+    path = modelfile(name=name, iteration=iteration)
 
-    sentences = data_to_sentences(data=data_test)
-
-    sentence_list = list(map(word_tokenize, sentences))
-
-    classification_result: DataSet[ResultDF] = cast(
-        DataSet[ResultDF],
-        pd.DataFrame(
-            itertools.chain.from_iterable(st.tag_sents(sentence_list)),
-            columns=["string", "tore_label"],
-        ),
+    classification_result = classify_sentences_action(
+        path, data_test=data_test
     )
 
     pickle_path = resultfile_pickle(name=name, iteration=iteration)
@@ -214,6 +206,41 @@ def classify_sentences(
     log_artifacts(pickle_path)
 
     return PickleAndCSV(pickle_file=pickle_path, csv_file=csv_path)
+
+
+def classify_sentences_action(
+    modelfile: Path, data_test: DataSet[DataDF]
+) -> DataSet[ResultDF]:
+    st = instantiate_tagger(modelfile)
+
+    sentences = data_to_sentences(data=data_test)
+
+    sentence_list = list(map(word_tokenize, sentences))
+
+    classification_result: DataSet[ResultDF] = cast(
+        DataSet[ResultDF],
+        pd.DataFrame(
+            itertools.chain.from_iterable(st.tag_sents(sentence_list)),
+            columns=["string", "tore_label"],
+        ),
+    )
+    return classification_result
+
+
+def realign_results(
+    input: DataSet[DataDF], output: DataSet[ResultDF]
+) -> DataSet[ResultDF]:
+    input.reset_index(drop=True, inplace=True)
+    output.reset_index(drop=True, inplace=True)
+
+    for row in input.itertuples():
+        index = row[0]
+        tokens = word_tokenize(row.string)
+        if len(tokens) > 1:
+            for i in range(len(tokens) - 1):
+                output = output.drop([index + 1]).reset_index(drop=True)
+
+    return output
 
 
 # Prepare solution

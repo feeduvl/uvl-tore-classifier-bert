@@ -292,35 +292,38 @@ def get_sentence_lengths(data: DataSet[DataDF]) -> List[int]:
 
 @overload
 def data_to_list_of_label_lists(
-    data: DataSet[DataDF], label2id: None
+    data: DataSet[DataDF],
+    label2id: None,
+    column: str = "tore_label",
 ) -> List[List[Label_None_Pad]]:
     ...
 
 
 @overload
 def data_to_list_of_label_lists(
-    data: DataSet[DataDF], label2id: Dict[Label_None_Pad, int]
+    data: DataSet[DataDF],
+    label2id: Dict[Label_None_Pad, int],
+    column: str = "tore_label",
 ) -> List[List[int]]:
     ...
 
 
 def data_to_list_of_label_lists(
-    data: DataSet[DataDF], label2id: Dict[Label_None_Pad, int] | None
+    data: DataSet[DataDF],
+    label2id: Dict[Label_None_Pad, int] | None,
+    column: str = "tore_label",
 ) -> Union[List[List[Label_None_Pad]], List[List[int]]]:
     if label2id:
         id_sentences = []
         for sentence_idx, grouped_data in data.groupby("sentence_id"):
-            sentence_id = [
-                label2id[string] for string in grouped_data["tore_label"]
-            ]
+            sentence_id = [label2id[string] for string in grouped_data[column]]
             id_sentences.append(sentence_id)
         return id_sentences
     else:
         label_sentences = []
         for sentence_idx, grouped_data in data.groupby("sentence_id"):
             sentence_label = [
-                cast(Label_None_Pad, string)
-                for string in grouped_data["tore_label"]
+                cast(Label_None_Pad, string) for string in grouped_data[column]
             ]
             label_sentences.append(sentence_label)
         return label_sentences

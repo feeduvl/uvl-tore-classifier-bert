@@ -45,6 +45,13 @@ class BertData(TypedDict):
     tore_label_id: List[int]
 
 
+class StagedBertData(TypedDict):
+    id: int
+    string: List[str]
+    tore_label_id: List[int]
+    hint_label_id: List[int]
+
+
 class BertDatas(TypedDict):
     id: List[int]
     string: List[List[str]]
@@ -69,6 +76,39 @@ def prepare_data(
     data: List[BertData] = [
         {"id": id, "string": data[0], "tore_label_id": data[1]}
         for id, data in enumerate(zip(token_lists_list, label_lists_list))
+    ]
+
+    return data
+
+
+def prepare_data_with_hints(
+    dataframe: DataSet[DataDF],
+    label2id: Dict[Label_None_Pad, int],
+    hint_label2id: Dict[Label_None_Pad, int],
+) -> List[StagedBertData]:
+    token_lists_list = data_to_list_of_token_lists(dataframe)
+    label_lists_list = data_to_list_of_label_lists(
+        data=dataframe, label2id=label2id
+    )
+    hint_id_lists_list = data_to_list_of_label_lists(
+        data=dataframe, label2id=hint_label2id, column="hint_input_ids"
+    )
+
+    data: List[StagedBertData] = [
+        {
+            "id": id,
+            "string": data[0],
+            "tore_label_id": data[1],
+            "hint_label_id": data[2],
+        }
+        for id, data in enumerate(
+            zip(
+                token_lists_list,
+                label_lists_list,
+                hint_id_lists_list,
+                strict=True,
+            )
+        )
     ]
 
     return data
@@ -228,14 +268,6 @@ def get_compute_metrics(
     )
 
 
-def create_tore_dataset(
-    data: DataSet[DataDF], label2id: Dict[Label_None_Pad, int]
-) -> Dataset:
-    prepared_data = prepare_data(data, label2id=label2id)
-    prepared_data_df = pd.DataFrame.from_records(prepared_data)
-    return Dataset.from_pandas(df=prepared_data_df)
-
-
 class Modification(TypedDict):
     column_name: str
     modifier: partial[List[List[int]]]
@@ -248,10 +280,9 @@ def create_bert_dataset(
     max_len: int,
     modifiers: List[Modification] = [],
 ) -> Dataset:
-    tokenizer_and_aligner = get_tokenize_and_align_labels(
-        tokenizer=tokenizer, max_len=max_len, truncation=True
-    )
-    data = create_tore_dataset(data=input_data, label2id=label2id)
+    prepared_data = prepare_data(input_data, label2id=label2id)
+    prepared_data_df = pd.DataFrame.from_records(prepared_data)
+    data = Dataset.from_pandas(df=prepared_data_df)
 
     if modifiers:
         for modifier in modifiers:
@@ -259,9 +290,41 @@ def create_bert_dataset(
                 modifier["column_name"], modifier["modifier"](dataset=data)
             )
 
+    tokenizer_and_aligner = get_tokenize_and_align_labels(
+        tokenizer=tokenizer, max_len=max_len, truncation=True
+    )
     data = data.map(tokenizer_and_aligner, batched=True)
 
     data = data.rename_columns({"string": "text", "tore_label_id": "labels"})
+
+    return data
+
+
+def create_staged_bert_dataset(
+    input_data: DataSet[DataDF],
+    label2id: Dict[Label_None_Pad, int],
+    hint_label2id: Dict[Label_None_Pad, int],
+    tokenizer: BertTokenizerFast,
+    max_len: int,
+) -> Dataset:
+    prepared_data = prepare_data_with_hints(
+        input_data, label2id=label2id, hint_label2id=hint_label2id
+    )
+    prepared_data_df = pd.DataFrame.from_records(prepared_data)
+    data = Dataset.from_pandas(df=prepared_data_df)
+
+    tokenizer_and_aligner = get_tokenize_and_align_labels(
+        tokenizer=tokenizer, max_len=max_len, truncation=True
+    )
+    data = data.map(tokenizer_and_aligner, batched=True)
+
+    data = data.rename_columns(
+        {
+            "string": "text",
+            "tore_label_id": "labels",
+            "hint_label_id": "hint_input_ids",
+        }
+    )
 
     return data
 
@@ -355,7 +418,9 @@ def get_max_len(
         t_a_a_l_test = get_tokenize_and_align_labels(
             tokenizer=tokenizer, max_len=None, truncation=False
         )
-        test_data = create_tore_dataset(data=data, label2id=label2id)
+        prepared_data = prepare_data(data, label2id=label2id)
+        prepared_data_df = pd.DataFrame.from_records(prepared_data)
+        test_data = Dataset.from_pandas(df=prepared_data_df)
         test_data = test_data.map(
             t_a_a_l_test,
             batched=True,
