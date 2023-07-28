@@ -1,0 +1,7 @@
+*.pyc
+.env
+.vscode/*
+LICENSE
+src/data/temp/*
+src/pipelines/outputs/*
+venv

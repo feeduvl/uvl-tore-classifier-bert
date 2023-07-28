@@ -1,16 +1,21 @@
--e .
+
 accelerate
 black[jupyter]
+click
 dvc
 dvclive
 evaluate
 flake8-pyproject
+Flask
 gensim
 hydra-core
 hydra-joblib-launcher
 hydra_colorlog
+itsdangerous
+Jinja2
 jupyter
 keras
+MarkupSafe
 matplotlib
 mlflow
 mypy
@@ -28,3 +33,5 @@ strictly-typed-pandas
 tensorflow==2.13.0
 torch
 transformers<=4.29.2
+uWSGI
+Werkzeug
