@@ -1,10 +1,20 @@
 from logging.config import dictConfig
+from typing import cast
+from typing import get_args
 
 from flask import Flask
+from flask import g
 from flask import json
 from flask import jsonify
 from flask import request
 from flask import Response
+
+from service.annotation_handler import create_new_annotation
+from service.classifier import classify_dataset
+from service.config import configure
+from service.types import Classifier_Options
+from service.types import Documents
+
 
 dictConfig(
     {
@@ -35,32 +45,56 @@ def classify_tore() -> Response:
     app.logger.debug("/hitec/classify/concepts/bert-classifier/run called")
 
     content = json.loads(request.data.decode("utf-8"))
-
-    documents = content["dataset"]["documents"]
-
+    documents = cast(Documents, content["dataset"]["documents"])
     app.logger.info(documents)
 
-    # codes = classifyDataset(documents)
+    configure()
+
+    method = content["params"]["classifier"]
+
+    if method not in get_args(Classifier_Options):
+        raise ValueError(
+            f"{method} is not a valid option from {get_args(Classifier_Options)}"
+        )
+    app.logger.info(f"{method=} selected")
+
+    app.logger.debug("First Sentence")
+    app.logger.debug(documents[0])
+
+    codes = classify_dataset(
+        documents=documents,
+        models=g.models,
+        label2id2label=g.label2id2label,
+        method=method,
+        max_len=g.max_len,
+        glove_model=g.glove_model,
+        tokenizer=g.tokenizer,
+    )
 
     if content["params"]["persist"] == "true":
         app.logger.info(f"Create annotations settings: {True}")
         dataset_name: str = content["dataset"]["name"]
         annotation_name: str = content["params"]["annotation_name"]
 
-        # createNewAnnotation(dataset_name, annotation_name, codes, app.logger)
+        create_new_annotation(dataset_name, annotation_name, codes, app.logger)
     else:
         app.logger.info(f"Create annotations settings: {False}")
 
     result = dict()
-    # result.update({"codes": codes})
+    result.update({"codes": codes})
     return jsonify(result)
 
 
 @app.route("/hitec/classify/concepts/bert-classifier/status", methods=["GET"])
 def get_status() -> Response:
-    status = {
-        "status": "operational",
-    }
+    try:
+        configure()
+
+        status = {
+            "status": "operational",
+        }
+    except Exception as e:
+        status = {"status": "not_operational", "error": str(e)}
 
     return jsonify(status)
 

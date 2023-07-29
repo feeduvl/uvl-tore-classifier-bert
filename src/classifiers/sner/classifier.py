@@ -29,6 +29,7 @@ from data import PickleAndCSV
 from tooling.logging import logging_setup
 from tooling.model import data_to_sentences
 from tooling.model import DataDF
+from tooling.model import HintedDataDF
 from tooling.model import ResultDF
 from tooling.model import ToreLabel
 from tooling.observability import log_artifacts
@@ -319,4 +320,15 @@ def create_solution(
     return PickleAndCSV(pickle_file=pickle_path, csv_file=csv_path)
 
 
-# Evaluation
+def classify_with_sner(
+    model_path: Path, data: DataSet[DataDF]
+) -> DataSet[HintedDataDF]:
+    result = classify_sentences_action(
+        modelfile=model_path,
+        data_test=data,
+    )
+
+    result = realign_results(input=data, output=result)
+    data["hint_input_ids"] = result["tore_label"]
+
+    return cast(DataSet[HintedDataDF], data)

@@ -1,4 +1,5 @@
 from collections.abc import Sequence
+from pathlib import Path
 from typing import Any
 from typing import cast
 from typing import Dict
@@ -20,12 +21,52 @@ from tooling.logging import logging_setup
 from tooling.model import data_to_list_of_label_lists
 from tooling.model import data_to_list_of_token_lists
 from tooling.model import DataDF
+from tooling.model import get_sentence_lengths
+from tooling.model import HintedDataDF
 from tooling.model import Label_None_Pad
 from tooling.model import PAD
 from tooling.model import ResultDF
 from tooling.model import ToreLabelDF
 
+
 logging = logging_setup(__name__)
+
+
+def classify_with_bilstm(
+    model_path: Path,
+    data: DataSet[DataDF],
+    max_len: int,
+    glove_model: pd.DataFrame,
+    hint_id2label: Dict[int, Label_None_Pad],
+) -> DataSet[HintedDataDF]:
+    embeddings = get_word_embeddings(
+        dataset=data,
+        glove_model=glove_model,
+        sentence_length=max_len,
+    )
+
+    trained_model = tf.keras.models.load_model(
+        model_path,
+        compile=False,  # https://github.com/tensorflow/tensorflow/issues/31850#issuecomment-578566637
+        custom_objects={
+            "MultiClassPrecision": MultiClassPrecision,
+            "MultiClassRecall": MultiClassRecall,
+        },
+    )
+
+    categorical_predictions = trained_model.predict(embeddings)
+
+    label_df = reverse_one_hot_encoding(
+        categorical_data=categorical_predictions,
+        sentence_lengths=get_sentence_lengths(data),
+        id2label=hint_id2label,
+    )
+
+    data.reset_index(drop=True, inplace=True)
+    label_df.reset_index(drop=True, inplace=True)
+    data["hint_input_ids"] = label_df["tore_label"]
+
+    return cast(DataSet[HintedDataDF], data)
 
 
 def construct_model(n_tags: int, sentence_length: int) -> tf.keras.Model:

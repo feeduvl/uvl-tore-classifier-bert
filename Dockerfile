@@ -10,6 +10,11 @@ COPY requirements.txt /app/
 WORKDIR /app
 RUN pip3 install --no-cache-dir --upgrade pip -r requirements.txt
 
+RUN python -m nltk.downloader punkt
+RUN python -m nltk.downloader averaged_perceptron_tagger
+RUN python -m nltk.downloader wordnet
+RUN python -m nltk.downloader omw-1.4
+
 COPY . /app/
 COPY src/service/nginx.conf /etc/nginx
 RUN pip3 install --no-cache-dir --upgrade pip -r requirements-local.txt

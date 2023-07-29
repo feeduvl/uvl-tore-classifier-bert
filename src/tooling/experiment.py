@@ -17,15 +17,12 @@ from transformers import Trainer
 
 from classifiers.bert.classifier import create_bert_dataset
 from classifiers.bert.classifier import create_staged_bert_dataset
-from classifiers.bert.classifier import setup_device
 from classifiers.bilstm import get_glove_model
-from classifiers.bilstm.classifier import get_word_embeddings
-from classifiers.bilstm.classifier import MultiClassPrecision
-from classifiers.bilstm.classifier import MultiClassRecall
-from classifiers.bilstm.classifier import reverse_one_hot_encoding
+from classifiers.bilstm.classifier import classify_with_bilstm
 from classifiers.sner.classifier import classify_sentences_action
+from classifiers.sner.classifier import classify_with_sner
 from classifiers.sner.classifier import realign_results
-from classifiers.staged_bert.classifier import get_hint_column
+from classifiers.staged_bert.classifier import classify_with_bert
 from data import staged_bert_filepath
 from pipelines.bert_pipeline import bert
 from pipelines.bilstm_pipeline import bilstm
@@ -33,7 +30,6 @@ from pipelines.sner_pipeline import sner
 from tooling.config import DualModelStagedBERTConfig
 from tooling.logging import logging_setup
 from tooling.model import DataDF
-from tooling.model import get_sentence_lengths
 from tooling.model import Label_None_Pad
 from tooling.observability import get_run_id
 
@@ -137,53 +133,33 @@ def run_model(
     hint_label2id: Optional[Dict[Label_None_Pad, int]] = None,
     hint_id2label: Optional[Dict[int, Label_None_Pad]] = None,
 ) -> Optional[Dataset]:
+    if not hint_label2id:
+        raise ValueError("No 'hint_label2id' provided")
+
     if cfg.first_model_bert:
-        logging.info("Converting dataframe to bert dataset")
-        bert_data = create_bert_dataset(
-            input_data=data,
+        model_path = pretrained_model_path(name=run_name).joinpath(
+            Path("0_model")
+        )
+
+        bert_data = classify_with_bert(
+            model_path=model_path,
+            data=data,
             label2id=label2id,
             tokenizer=tokenizer,
             max_len=max_len,
         )
 
-        if not bert_data:
-            raise ValueError("No BERT Dataset supplied")
-
-        logging.info("Loading Model")
-        model = BertForTokenClassification.from_pretrained(
-            pretrained_model_name_or_path=pretrained_model_path(
-                name=run_name
-            ).joinpath(Path("0_model"))
-        )
-        model.to(device=setup_device())
-        trainer = Trainer(model=model)
-
-        logging.info("Creating hint column")
-        # Add predicted hint labels to train_dataset
-        first_stage_train_result = trainer.predict(
-            bert_data.remove_columns("labels")
-        )
-        hint_column = get_hint_column(first_stage_train_result[0])
-        bert_data = bert_data.add_column("hint_input_ids", hint_column)
         return bert_data
 
     if cfg.first_model_sner:
-        if not hint_label2id:
-            raise ValueError("No 'hint_label2id' provided")
-
-        result = classify_sentences_action(
-            modelfile=pretrained_model_path(name=run_name).joinpath(
-                Path("0_model.ser.gz")
-            ),
-            data_test=data,
+        model_path = pretrained_model_path(name=run_name).joinpath(
+            Path("0_model.ser.gz")
         )
 
-        result = realign_results(input=data, output=result)
-
-        data["hint_input_ids"] = result["tore_label"]
+        hinted_data = classify_with_sner(model_path=model_path, data=data)
 
         bert_data = create_staged_bert_dataset(
-            input_data=data,
+            input_data=hinted_data,
             label2id=label2id,
             hint_label2id=hint_label2id,
             tokenizer=tokenizer,
@@ -193,45 +169,25 @@ def run_model(
         return bert_data
 
     if cfg.first_model_bilstm:
-        if not hint_label2id:
-            raise ValueError("No 'hint_label2id' provided")
         if not hint_id2label:
             raise ValueError("No 'hint_id2label' provided")
         if not glove_model:
             raise ValueError("No 'glove_model' provided")
-        if not padded_labels:
-            raise ValueError("No 'padded_labels' provided")
 
-        embeddings = get_word_embeddings(
-            dataset=data,
+        model_path = pretrained_model_path(name=run_name).joinpath(
+            Path("0_model")
+        )
+
+        hinted_data = classify_with_bilstm(
+            model_path=model_path,
+            data=data,
+            max_len=max_len,
             glove_model=glove_model,
-            sentence_length=max_len,
+            hint_id2label=hint_id2label,
         )
-
-        trained_model = tf.keras.models.load_model(
-            pretrained_model_path(name=run_name).joinpath(Path("0_model")),
-            compile=False,  # https://github.com/tensorflow/tensorflow/issues/31850#issuecomment-578566637
-            custom_objects={
-                "MultiClassPrecision": MultiClassPrecision,
-                "MultiClassRecall": MultiClassRecall,
-            },
-        )
-
-        categorical_predictions = trained_model.predict(embeddings)
-
-        label_df = reverse_one_hot_encoding(
-            categorical_data=categorical_predictions,
-            sentence_lengths=get_sentence_lengths(data),
-            id2label=hint_id2label,
-        )
-
-        data.reset_index(drop=True, inplace=True)
-        label_df.reset_index(drop=True, inplace=True)
-
-        data["hint_input_ids"] = label_df["tore_label"]
 
         bert_data = create_staged_bert_dataset(
-            input_data=data,
+            input_data=hinted_data,
             label2id=label2id,
             hint_label2id=hint_label2id,
             tokenizer=tokenizer,

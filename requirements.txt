@@ -26,6 +26,7 @@ pandas
 pre-commit
 pydantic
 pytest
+requests
 rich
 scikit-learn
 seqeval[gpu]

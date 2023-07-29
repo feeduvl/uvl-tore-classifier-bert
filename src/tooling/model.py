@@ -228,6 +228,16 @@ class DataDF:
     tore_label: Optional[Label]
 
 
+@dataclass
+class HintedDataDF:
+    id: int
+    sentence_id: uuid.UUID
+    sentence_idx: int
+    string: str
+    tore_label: Optional[Label]
+    hint_input_ids: int
+
+
 TokenizedDataDF = typing.NewType("TokenizedDataDF", DataDF)
 
 
@@ -247,6 +257,12 @@ class ResultDF:
 class ToreLabelDF:
     id: Optional[int]
     tore_label: Optional[Label]
+
+
+@dataclass
+class TokenDF:
+    id: Optional[int]
+    token: str
 
 
 def create_datadf(data: pd.DataFrame) -> DataSet[DataDF]:
@@ -335,3 +351,16 @@ def get_labels(
 def tokenlist_to_datadf(tokens: List[Token]) -> DataSet[DataDF]:
     dataframe = pd.DataFrame(tokens)
     return cast(DataSet[DataDF], dataframe)
+
+
+def string_list_lists_to_datadf(tokens: List[List[str]]) -> DataSet[DataDF]:
+    row_tuples: List[Tuple[uuid.UUID, int, str, None]] = []
+
+    for sentence in tokens:
+        sentence_id = uuid.uuid1()
+        idx = 0
+        for token in sentence:
+            row_tuples.append((sentence_id, idx, token, None))
+            idx += 1
+
+    return cast(DataSet[DataDF], pd.DataFrame.from_records(row_tuples))

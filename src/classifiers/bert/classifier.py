@@ -6,6 +6,7 @@ from typing import cast
 from typing import Dict
 from typing import List
 from typing import Optional
+from typing import Path
 from typing import Tuple
 from typing import TypedDict
 
@@ -31,6 +32,7 @@ from tooling.model import create_resultdf
 from tooling.model import data_to_list_of_label_lists
 from tooling.model import data_to_list_of_token_lists
 from tooling.model import DataDF
+from tooling.model import HintedDataDF
 from tooling.model import Label_None
 from tooling.model import Label_None_Pad
 from tooling.model import ResultDF
@@ -301,7 +303,7 @@ def create_bert_dataset(
 
 
 def create_staged_bert_dataset(
-    input_data: DataSet[DataDF],
+    input_data: DataSet[HintedDataDF],
     label2id: Dict[Label_None_Pad, int],
     hint_label2id: Dict[Label_None_Pad, int],
     tokenizer: BertTokenizerFast,
