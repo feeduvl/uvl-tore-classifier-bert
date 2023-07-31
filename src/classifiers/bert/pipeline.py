@@ -1,10 +1,7 @@
-import sys
 from typing import List
 
-import hydra
 import mlflow
 import torch
-from hydra.core.config_store import ConfigStore
 from transformers import BertForTokenClassification
 from transformers import BertTokenizerFast
 from transformers import TrainingArguments
@@ -22,11 +19,7 @@ from tooling.loading import import_dataset
 from tooling.logging import logging_setup
 from tooling.model import get_id2label
 from tooling.model import get_label2id
-from tooling.observability import check_rerun
-from tooling.observability import config_mlflow
-from tooling.observability import end_tracing
 from tooling.observability import log_artifacts
-from tooling.observability import RerunException
 from tooling.sampling import DATA_TEST
 from tooling.sampling import DATA_TRAIN
 from tooling.sampling import load_split_dataset
@@ -35,13 +28,11 @@ from tooling.transformation import get_class_weights
 from tooling.transformation import transform_dataset
 from tooling.types import IterationResult
 
-cs = ConfigStore.instance()
-cs.store(name="base_config", node=BERTConfig)
 
 logging = logging_setup(__name__)
 
 
-def _bert(cfg: BERTConfig, run_name: str) -> None:
+def bert_pipeline(cfg: BERTConfig, run_name: str) -> None:
     device = setup_device()
 
     # Import Dataset
@@ -193,34 +184,3 @@ def _bert(cfg: BERTConfig, run_name: str) -> None:
     evaluation.evaluate_experiment(
         run_name=run_name, iteration_results=iteration_tracking
     )
-
-
-@hydra.main(version_base=None, config_path="conf", config_name="config_bert")
-def bert(cfg: BERTConfig) -> None:
-    try:
-        check_rerun(cfg=cfg)
-    except RerunException:
-        return
-
-    logging.info("Entering mlflow context")
-    with config_mlflow(cfg=cfg) as current_run:
-        try:
-            _bert(cfg, run_name=current_run.info.run_name)
-            end_tracing()
-
-        except KeyboardInterrupt:
-            logging.info("Keyobard interrupt recieved")
-            end_tracing()
-            sys.exit()
-
-        except Exception as e:
-            logging.error(e)
-            end_tracing()
-            raise e
-
-    logging.info("Left mlflow context")
-    return
-
-
-if __name__ == "__main__":
-    bert()

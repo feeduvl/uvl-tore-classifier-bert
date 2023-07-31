@@ -1,0 +1,16 @@
+defaults:
+    - base_config
+    - transformation: levels
+    - override hydra/hydra_logging: colorlog
+
+    - _self_
+
+
+experiment:
+    name: SNER Test
+    dataset: prolific
+    lower_case: True
+    average: "macro"
+    force: True
+    folds: 5
+    iterations: 1

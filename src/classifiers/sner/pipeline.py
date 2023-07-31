@@ -1,9 +1,6 @@
-import sys
 from typing import List
 
-import hydra
 import mlflow
-from hydra.core.config_store import ConfigStore
 
 from classifiers.sner.classifier import classify_sentences
 from classifiers.sner.classifier import create_config_file
@@ -14,15 +11,11 @@ from classifiers.sner.files import load_result
 from classifiers.sner.files import load_solution
 from tooling import evaluation
 from tooling.config import SNERConfig
-from tooling.config import Transformation
 from tooling.loading import import_dataset
 from tooling.logging import logging_setup
 from tooling.model import get_id2label
 from tooling.model import get_label2id
-from tooling.observability import check_rerun
-from tooling.observability import config_mlflow
 from tooling.observability import end_tracing
-from tooling.observability import RerunException
 from tooling.sampling import DATA_TEST
 from tooling.sampling import DATA_TRAIN
 from tooling.sampling import load_split_dataset
@@ -30,14 +23,11 @@ from tooling.sampling import split_dataset_k_fold
 from tooling.transformation import transform_dataset
 from tooling.types import IterationResult
 
-cs = ConfigStore.instance()
-cs.store(name="base_config", node=SNERConfig)
-
 
 logging = logging_setup(__name__)
 
 
-def _sner(cfg: SNERConfig, run_name: str) -> None:
+def sner_pipeline(cfg: SNERConfig, run_name: str) -> None:
     # Import Dataset
     import_dataset(cfg, run_name)
 
@@ -115,35 +105,3 @@ def _sner(cfg: SNERConfig, run_name: str) -> None:
     )
 
     end_tracing()
-
-
-@hydra.main(version_base=None, config_path="conf", config_name="config_sner")
-def sner(cfg: SNERConfig) -> None:
-    try:
-        check_rerun(cfg=cfg)
-    except RerunException:
-        return
-
-    logging.info("Entering mlflow context")
-    with config_mlflow(cfg=cfg) as current_run:
-        try:
-            _sner(cfg, run_name=current_run.info.run_name)
-            end_tracing()
-
-        except KeyboardInterrupt:
-            logging.info("Keyboard interrupt received")
-            end_tracing()
-            sys.exit()
-
-        except Exception as e:
-            logging.error(e)
-            end_tracing()
-            raise e
-
-    logging.info("Left mlflow context")
-
-    return
-
-
-if __name__ == "__main__":
-    sner()

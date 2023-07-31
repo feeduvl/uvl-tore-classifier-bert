@@ -2,11 +2,11 @@ import itertools
 from copy import deepcopy
 from dataclasses import asdict
 from functools import partial
+from pathlib import Path
 from typing import cast
 from typing import Dict
 from typing import List
 from typing import Optional
-from typing import Path
 from typing import Tuple
 from typing import TypedDict
 

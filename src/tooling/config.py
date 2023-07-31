@@ -1,20 +1,41 @@
 from dataclasses import dataclass
 from dataclasses import field
 from enum import Enum
+from itertools import product
+from itertools import starmap
 from pathlib import Path
+from typing import Any
+from typing import Callable
 from typing import Dict
 from typing import List
 from typing import Optional
+from typing import TypeVar
 
 from omegaconf import MISSING
 
 from tooling.logging import logging_setup
 from tooling.model import LABELS_NONE
 
+T = TypeVar("T", bound=Callable[..., Any])
+
+
 logging = logging_setup(__name__)
 
 enum_dict: Dict[str, str] = {k: k for k in LABELS_NONE}
 LABELS_ENUM = Enum("", enum_dict)  # type: ignore[misc]
+
+
+def get_variants(config_class: T, **items: Dict[str, Any]) -> List[T]:
+    # del items["config_class"]
+    variants = product(*items.values())
+
+    instances: List[Any] = []
+    for variant in list(variants):
+        config: Dict[str, Any] = dict(zip(items.keys(), variant, strict=True))
+        instance = config_class(**config)
+        instances.append(instance)
+
+    return instances
 
 
 @dataclass
@@ -79,7 +100,7 @@ class BERT:
     max_len: Optional[int] = 106
     train_batch_size: int = 32
     validation_batch_size: int = 32
-    number_epochs: int = 32
+    number_epochs: int = 5
     learning_rate_bert: float = 2e-05
     learning_rate_classifier: float = 0.01
     weight_decay: float = 0.01

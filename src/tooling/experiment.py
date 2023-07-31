@@ -24,9 +24,9 @@ from classifiers.sner.classifier import classify_with_sner
 from classifiers.sner.classifier import realign_results
 from classifiers.staged_bert.classifier import classify_with_bert
 from data import staged_bert_filepath
-from pipelines.bert_pipeline import bert
-from pipelines.bilstm_pipeline import bilstm
-from pipelines.sner_pipeline import sner
+from experiments.bert import bert
+from experiments.bilstm import bilstm
+from experiments.sner import sner
 from tooling.config import DualModelStagedBERTConfig
 from tooling.logging import logging_setup
 from tooling.model import DataDF
@@ -135,21 +135,43 @@ def run_model(
 ) -> Optional[Dataset]:
     if not hint_label2id:
         raise ValueError("No 'hint_label2id' provided")
+    if not hint_id2label:
+        raise ValueError("No 'hint_id2label' provided")
+    if not label2id:
+        raise ValueError("No 'label2id' provided")
 
     if cfg.first_model_bert:
         model_path = pretrained_model_path(name=run_name).joinpath(
             Path("0_model")
         )
 
-        bert_data = classify_with_bert(
+        first_bert_data = create_bert_dataset(
+            input_data=data,
+            label2id=label2id,  # we have all labels in the data, therefore provide label2id - classify with bert won't use them
+            tokenizer=tokenizer,
+            max_len=max_len,
+        )
+
+        hints = classify_with_bert(
             model_path=model_path,
-            data=data,
+            bert_data=first_bert_data,
+            id2label=hint_id2label,
+        )
+
+        hint_ids = [
+            [hint_label2id[hint] for hint in hint_list] for hint_list in hints
+        ]
+
+        second_bert_data = create_bert_dataset(
+            input_data=data,
             label2id=label2id,
             tokenizer=tokenizer,
             max_len=max_len,
         )
 
-        return bert_data
+        return second_bert_data.add_column(
+            name="hint_input_ids", column=hint_ids
+        )
 
     if cfg.first_model_sner:
         model_path = pretrained_model_path(name=run_name).joinpath(

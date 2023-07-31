@@ -44,31 +44,55 @@ def get_models() -> Models:
                 "UVL_SNER_MODEL",
                 Path(__file__)
                 .parent.resolve()
-                .joinpath(Path("./sner.ser.gz")),
+                .joinpath(Path("./models/sner.ser.gz")),
             )
         ),
         bilstm=Path(
             os.environ.get(
                 "UVL_BILSTM_MODEL",
-                Path(__file__).parent.resolve().joinpath(Path("./bilstm")),
+                Path(__file__)
+                .parent.resolve()
+                .joinpath(Path("./models/bilstm")),
             )
         ),
         bert_1=Path(
             os.environ.get(
                 "UVL_BERT_1_MODEL",
-                Path(__file__).parent.resolve().joinpath(Path("./bert_1")),
+                Path(__file__)
+                .parent.resolve()
+                .joinpath(Path("./models/bert_1")),
             )
         ),
-        bert_2=Path(
+        bert_2_bert=Path(
             os.environ.get(
-                "UVL_BERT_2_MODEL",
-                Path(__file__).parent.resolve().joinpath(Path("bert_2")),
+                "UVL_BERT_2_BERT_MODEL",
+                Path(__file__)
+                .parent.resolve()
+                .joinpath(Path("./models/bert_2_bert")),
+            )
+        ),
+        bert_2_sner=Path(
+            os.environ.get(
+                "UVL_BERT_2_SNER_MODEL",
+                Path(__file__)
+                .parent.resolve()
+                .joinpath(Path("./models/bert_2_sner")),
+            )
+        ),
+        bert_2_bilstm=Path(
+            os.environ.get(
+                "UVL_BERT_2_BILSTM_MODEL",
+                Path(__file__)
+                .parent.resolve()
+                .joinpath(Path("./models/bert_2_bilstm")),
             )
         ),
         bert=Path(
             os.environ.get(
                 "UVL_BERT_MODEL",
-                Path(__file__).parent.resolve().joinpath(Path("bert")),
+                Path(__file__)
+                .parent.resolve()
+                .joinpath(Path("./models/bert")),
             )
         ),
     )
@@ -82,7 +106,7 @@ def get_label2id2label() -> Label2Id2Label:
                     "UVL_LABEL2ID",
                     Path(__file__)
                     .parent.resolve()
-                    .joinpath(Path("label2id.pickle")),
+                    .joinpath(Path("./models/label2id.pickle")),
                 ),
                 "rb",
             )
@@ -93,7 +117,7 @@ def get_label2id2label() -> Label2Id2Label:
                     "UVL_ID2LABEL",
                     Path(__file__)
                     .parent.resolve()
-                    .joinpath(Path("id2label.pickle")),
+                    .joinpath(Path("./models/id2label.pickle")),
                 ),
                 "rb",
             )
@@ -104,7 +128,7 @@ def get_label2id2label() -> Label2Id2Label:
                     "UVL_HINT_LABEL2ID",
                     Path(__file__)
                     .parent.resolve()
-                    .joinpath(Path("hint_label2id.pickle")),
+                    .joinpath(Path("./models/hint_label2id.pickle")),
                 ),
                 "rb",
             )
@@ -115,7 +139,7 @@ def get_label2id2label() -> Label2Id2Label:
                     "UVL_HINT_ID2LABEL",
                     Path(__file__)
                     .parent.resolve()
-                    .joinpath(Path("hint_id2label.pickle")),
+                    .joinpath(Path("./models/hint_id2label.pickle")),
                 ),
                 "rb",
             )

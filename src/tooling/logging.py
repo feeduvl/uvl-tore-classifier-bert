@@ -12,7 +12,7 @@ def logging_setup(name: str) -> logging.Logger:
 
     FORMAT = "%(message)s"
     logging.basicConfig(
-        level="NOTSET", format=FORMAT, datefmt="[%X]", handlers=[RichHandler()]
+        level="NOTSET", format=FORMAT, datefmt="[%X]", handlers=[]
     )
     logger = logging.getLogger(name)
 

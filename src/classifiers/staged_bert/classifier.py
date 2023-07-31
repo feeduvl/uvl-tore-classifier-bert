@@ -97,7 +97,6 @@ def get_hint_transformation(
     )
 
     logging.info(f"Hint Label2Id: {hint_label2id=}")
-    mlflow.log_param("hint_label2id", hint_label2id)
 
     return Hints(
         transformation_function=transformation_function, label2id=hint_label2id

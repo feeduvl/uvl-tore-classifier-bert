@@ -1,13 +1,10 @@
-import sys
 from collections.abc import Sequence
 from typing import cast
 from typing import List
 
-import hydra
 import mlflow
 import numpy as np
 import tensorflow as tf
-from hydra.core.config_store import ConfigStore
 from strictly_typed_pandas.dataset import DataSet
 
 from classifiers.bilstm import get_embeddings_and_categorical
@@ -29,11 +26,8 @@ from tooling.model import get_sentence_lengths
 from tooling.model import Label_None_Pad
 from tooling.model import PAD
 from tooling.model import ResultDF
-from tooling.observability import check_rerun
-from tooling.observability import config_mlflow
 from tooling.observability import end_tracing
 from tooling.observability import log_artifacts
-from tooling.observability import RerunException
 from tooling.sampling import DATA_TEST
 from tooling.sampling import DATA_TRAIN
 from tooling.sampling import load_split_dataset
@@ -42,16 +36,10 @@ from tooling.transformation import get_class_weights
 from tooling.transformation import transform_dataset
 from tooling.types import IterationResult
 
-# hide GPU because it is a lot slower than running without it
-# tf.config.set_visible_devices([], "GPU")
-
 logging = logging_setup(__name__)
 
-cs = ConfigStore.instance()
-cs.store(name="base_config", node=BiLSTMConfig)
 
-
-def _bilstm(cfg: BiLSTMConfig, run_name: str) -> None:
+def bilstm_pipeline(cfg: BiLSTMConfig, run_name: str) -> None:
     # Import Dataset
     import_dataset(cfg, run_name)
 
@@ -198,35 +186,3 @@ def _bilstm(cfg: BiLSTMConfig, run_name: str) -> None:
     )
 
     end_tracing()
-
-
-@hydra.main(version_base=None, config_path="conf", config_name="config_bilstm")
-def bilstm(cfg: BiLSTMConfig) -> None:
-    try:
-        check_rerun(cfg=cfg)
-    except RerunException:
-        return
-
-    logging.info("Entering mlflow context")
-    with config_mlflow(cfg=cfg) as current_run:
-        try:
-            _bilstm(cfg, run_name=current_run.info.run_name)
-            end_tracing()
-
-        except KeyboardInterrupt:
-            logging.info("Keyboard interrupt received")
-            end_tracing()
-            sys.exit()
-
-        except Exception as e:
-            logging.error(e)
-            end_tracing()
-            raise e
-
-    logging.info("Left mlflow context")
-
-    return
-
-
-if __name__ == "__main__":
-    bilstm()
