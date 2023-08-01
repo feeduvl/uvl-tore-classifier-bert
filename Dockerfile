@@ -1,5 +1,11 @@
 FROM python:3.11-slim-buster
 
+ARG MLFLOW_TRACKING_USERNAME
+ARG MLFLOW_TRACKING_PASSWORD
+ARG MLFLOW_URL
+ENV CUDA_VISIBLE_DEVICES=-1
+
+
 RUN apt-get update && apt-get install -y \
     gcc \
     python3-dev \
@@ -21,6 +27,8 @@ RUN pip3 install --no-cache-dir --upgrade pip -r requirements-local.txt
 
 WORKDIR /app/src/service/
 RUN chmod +x start.sh
-EXPOSE 80
+RUN jupyter nbconvert --to python --execute train.ipynb
+
+EXPOSE 9693
 
 CMD ["./start.sh"]

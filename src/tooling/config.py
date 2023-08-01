@@ -72,9 +72,7 @@ class Transformation:
     internal_data: Optional[str] = None
 
 
-@dataclass
-class Meta:
-    mlflow_tracking_uri: str = "https://bockstaller.cc"
+
 
 
 @dataclass
@@ -120,7 +118,7 @@ class StagedBERT(BERT):
 @dataclass
 class SNERConfig:
     sner: SNER = field(default_factory=SNER)
-    meta: Meta = field(default_factory=Meta)
+    
     experiment: Experiment = field(default_factory=Experiment)
     transformation: Transformation = field(default_factory=Transformation)
 
@@ -128,7 +126,7 @@ class SNERConfig:
 @dataclass
 class BiLSTMConfig:
     bilstm: BiLSTM = field(default_factory=BiLSTM)
-    meta: Meta = field(default_factory=Meta)
+    
     experiment: Experiment = field(default_factory=Experiment)
     transformation: Transformation = field(default_factory=Transformation)
 
@@ -136,7 +134,7 @@ class BiLSTMConfig:
 @dataclass
 class BERTConfig:
     bert: BERT = field(default_factory=BERT)
-    meta: Meta = field(default_factory=Meta)
+    
     experiment: Experiment = field(default_factory=Experiment)
     transformation: Transformation = field(default_factory=Transformation)
 
@@ -144,7 +142,7 @@ class BERTConfig:
 @dataclass
 class StagedBERTConfig:
     bert: StagedBERT = field(default_factory=StagedBERT)
-    meta: Meta = field(default_factory=Meta)
+    
     experiment: Experiment = field(default_factory=Experiment)
     transformation: Transformation = field(default_factory=Transformation)
     hint_transformation: Transformation = field(default_factory=Transformation)
@@ -160,7 +158,7 @@ class DualModelStagedBERTConfig:
     first_model_sner: Optional[SNERConfig] = None
 
     bert: StagedBERT = field(default_factory=StagedBERT)
-    meta: Meta = field(default_factory=Meta)
+    
     experiment: Experiment = field(default_factory=Experiment)
     transformation: Transformation = field(default_factory=Transformation)
     hint_transformation: Transformation = field(default_factory=Transformation)

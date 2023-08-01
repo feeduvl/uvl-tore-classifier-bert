@@ -77,8 +77,6 @@ def log_config(cfg: Config) -> None:
 
 
 def check_rerun(cfg: Config) -> None:
-    mlflow.set_tracking_uri(cfg.meta.mlflow_tracking_uri)
-
     logging.info("\n" + OmegaConf.to_yaml(cfg))
 
     run_id = get_run_id(cfg)
