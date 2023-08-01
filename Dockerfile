@@ -25,9 +25,12 @@ COPY . /app/
 COPY src/service/nginx.conf /etc/nginx
 RUN pip3 install --no-cache-dir --upgrade pip -r requirements-local.txt
 
+
+RUN python train.py
+
+
 WORKDIR /app/src/service/
 RUN chmod +x start.sh
-RUN jupyter nbconvert --to python --execute train.ipynb
 
 EXPOSE 9693
 
