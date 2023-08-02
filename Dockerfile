@@ -14,14 +14,15 @@ RUN apt-get update && apt-get install -y \
 RUN pip3 install --no-cache-dir --upgrade pip
 
 COPY requirements.txt /app/
-WORKDIR /app
-RUN pip3 install --no-cache-dir  -r requirements.txt
+
+RUN pip3 install --no-cache-dir  -r /app/requirements.txt
 
 RUN python -m nltk.downloader punkt
 RUN python -m nltk.downloader averaged_perceptron_tagger
 RUN python -m nltk.downloader wordnet
 RUN python -m nltk.downloader omw-1.4
 
+WORKDIR /app
 COPY . /app/
 COPY src/service/nginx.conf /etc/nginx
 RUN pip3 install --no-cache-dir --upgrade pip -r requirements-local.txt
@@ -36,6 +37,11 @@ ENV MLFLOW_TRACKING_URI=$mlflow_tracking_uri
 
 ENV UVL_BERT_RUN_EXPERIMENTS=False
 ENV UVL_BERT_PIN_COMMITS=False
+ENV MPLCONFIGDIR=/app/temp/matplotlib/
+ENV TRANSFORMERS_CACHE=/app/temp/transformers/
+
+RUN mkdir -p $MPLCONFIGDIR
+RUN mkdir -p $TRANSFORMERS_CACHE
 
 RUN jupyter nbconvert --to python --execute train.ipynb
 

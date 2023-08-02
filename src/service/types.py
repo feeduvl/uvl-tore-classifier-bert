@@ -50,7 +50,9 @@ class Models:
     sner: Path
     bilstm: Path
     bert_1: Path
-    bert_2: Path
+    bert_2_bert: Path
+    bert_2_sner: Path
+    bert_2_bilstm: Path
     bert: Path
 
 

@@ -5,7 +5,8 @@ from typing import Union
 import pandas as pd
 from nltk import download
 from nltk import pos_tag
-from nltk.corpus import wordnet
+import nltk
+
 from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import sent_tokenize
 from nltk.tokenize import word_tokenize
@@ -36,15 +37,21 @@ def do_nltk_downloads() -> None:
 
 def get_wordnet_pos(
     treebank_tag: str,
-) -> Union[wordnet.ADJ, wordnet.VERB, wordnet.NOUN, wordnet.ADV, Literal[""]]:
+) -> Union[
+    nltk.corpus.wordnet.ADJ,
+    nltk.corpus.wordnet.VERB,
+    nltk.corpus.wordnet.NOUN,
+    nltk.corpus.wordnet.ADV,
+    Literal[""],
+]:
     if treebank_tag.startswith("J"):
-        return wordnet.ADJ
+        return nltk.corpus.wordnet.ADJ
     if treebank_tag.startswith("V"):
-        return wordnet.VERB
+        return nltk.corpus.wordnet.VERB
     if treebank_tag.startswith("N"):
-        return wordnet.NOUN
+        return nltk.corpus.wordnet.NOUN
     if treebank_tag.startswith("R"):
-        return wordnet.ADV
+        return nltk.corpus.wordnet.ADV
     return ""
 
 
