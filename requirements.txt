@@ -2,8 +2,6 @@
 accelerate
 black[jupyter]
 click
-dvc
-dvclive
 evaluate
 flake8-pyproject
 Flask

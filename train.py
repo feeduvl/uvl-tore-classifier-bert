@@ -1,5 +1,16 @@
+#!/usr/bin/env python
+# coding: utf-8
 
-# %%
+# In[1]:
+
+
+get_ipython().run_line_magic('load_ext', 'autoreload')
+get_ipython().run_line_magic('autoreload', '2')
+
+
+# In[2]:
+
+
 import logging
 import shutil
 from omegaconf import OmegaConf
@@ -9,6 +20,10 @@ import mlflow
 from src.experiments.sner import sner
 from pathlib import Path
 
+import os
+
+
+
 logging.basicConfig(
     format="%(asctime)s %(levelname)s:%(message)s",
     level=logging.INFO,
@@ -16,10 +31,19 @@ logging.basicConfig(
 )
 logger = logging.getLogger("training")
 
-# %%
+
+# In[3]:
+
+
 sentence_length = 110
 
-# %%
+run_experiments = bool(os.getenv("UVL_BERT_RUN_EXPERIMENTS",False) )
+pin_commits = bool(os.getenv("UVL_BERT_PIN_COMMITS",False) )
+
+
+# In[4]:
+
+
 from tooling.config import Experiment, Transformation
 
 base_experiment_config = Experiment(
@@ -58,7 +82,10 @@ label_transformation_config = Transformation(
     internal_data="System_Level",
 )
 
-# %%
+
+# In[5]:
+
+
 from classifiers.staged_bert.classifier import get_hint_transformation
 import pickle
 
@@ -82,10 +109,12 @@ pickle.dump(label2id, open("./src/service/models/label2id.pickle", "wb"))
 id2label = {y: x for x, y in label2id.items()}
 pickle.dump(id2label, open("./src/service/models/id2label.pickle", "wb"))
 
-# %% [markdown]
+
 # ## Train BiLSTM First Stage Model
 
-# %%
+# In[6]:
+
+
 from tooling.observability import get_run_id
 from tooling.config import BiLSTMConfig, BiLSTM
 from experiments.bilstm import bilstm
@@ -104,9 +133,10 @@ bilstm_cfg = OmegaConf.structured(
     )
 )
 
-bilstm(bilstm_cfg)
+if run_experiments:
+    bilstm(bilstm_cfg)
 
-bilstm_run_id = get_run_id(bilstm_cfg)
+bilstm_run_id = get_run_id(bilstm_cfg, pin_commit = pin_commits)
 
 print(bilstm_run_id)
 
@@ -121,10 +151,12 @@ except FileNotFoundError:
     pass
 Path("./src/service/models/0_model").rename("./src/service/models/bilstm")
 
-# %% [markdown]
+
 # ## Train SNER First Stage Model
 
-# %%
+# In[7]:
+
+
 from tooling.observability import get_run_id
 from tooling.config import SNERConfig, SNER
 from experiments.sner import sner
@@ -143,9 +175,10 @@ sner_cfg = OmegaConf.structured(
     )
 )
 
-sner(OmegaConf.create(sner_cfg))
+if run_experiments:
+    sner(OmegaConf.create(sner_cfg))
 
-sner_run_id = get_run_id(sner_cfg)
+sner_run_id = get_run_id(sner_cfg, pin_commit = pin_commits)
 
 print(sner_run_id)
 
@@ -162,10 +195,12 @@ Path("./src/service/models/0_model.ser.gz").rename(
     "./src/service/models/sner.ser.gz"
 )
 
-# %% [markdown]
+
 # ## Train BERT First Stage Model
 
-# %%
+# In[8]:
+
+
 from tooling.observability import get_run_id
 from tooling.config import BERTConfig, BERT
 from experiments.bert import bert
@@ -184,9 +219,10 @@ bert_1_cfg = OmegaConf.structured(
     )
 )
 
-bert(OmegaConf.create(bert_1_cfg))
+if run_experiments:
+    bert(OmegaConf.create(bert_1_cfg))
 
-bert_1_run_id = get_run_id(bert_1_cfg)
+bert_1_run_id = get_run_id(bert_1_cfg, pin_commit = pin_commits)
 
 print(bert_1_run_id)
 
@@ -201,10 +237,12 @@ except FileNotFoundError:
     pass
 Path("./src/service/models/0_model").rename("./src/service/models/bert_1")
 
-# %% [markdown]
+
 # ## Train BERT Second Stage Model for BERT First Stage
 
-# %%
+# In[9]:
+
+
 from tooling.observability import get_run_id
 from tooling.config import DualModelStagedBERTConfig, StagedBERT
 from experiments.dual_model_staged_bert import dual_stage_bert
@@ -224,9 +262,10 @@ bert_2_bert_cfg = OmegaConf.structured(
     )
 )
 
-dual_stage_bert(OmegaConf.create(bert_2_bert_cfg))
+if run_experiments:
+    dual_stage_bert(OmegaConf.create(bert_2_bert_cfg))
 
-bert_2_bert_run_id = get_run_id(bert_2_bert_cfg)
+bert_2_bert_run_id = get_run_id(bert_2_bert_cfg, pin_commit = pin_commits)
 
 print(bert_2_bert_run_id)
 
@@ -241,10 +280,12 @@ except FileNotFoundError:
     pass
 Path("./src/service/models/0_model").rename("./src/service/models/bert_2_bert")
 
-# %% [markdown]
+
 # ## Train BERT Second Stage Model for SNER First Stage
 
-# %%
+# In[10]:
+
+
 from tooling.observability import get_run_id
 from tooling.config import DualModelStagedBERTConfig, StagedBERT
 from experiments.dual_model_staged_bert import dual_stage_bert
@@ -264,9 +305,10 @@ bert_2_sner_cfg = OmegaConf.structured(
     )
 )
 
-dual_stage_bert(OmegaConf.create(bert_2_sner_cfg))
+if run_experiments:
+    dual_stage_bert(OmegaConf.create(bert_2_sner_cfg))
 
-bert_2_sner_run_id = get_run_id(bert_2_sner_cfg)
+bert_2_sner_run_id = get_run_id(bert_2_sner_cfg, pin_commit = pin_commits)
 
 print(bert_2_sner_run_id)
 
@@ -282,10 +324,12 @@ except FileNotFoundError:
 
 Path("./src/service/models/0_model").rename("./src/service/models/bert_2_sner")
 
-# %% [markdown]
+
 # ## Train BERT Second Stage Model for BILSTM First Stage
 
-# %%
+# In[11]:
+
+
 from tooling.observability import get_run_id
 from tooling.config import DualModelStagedBERTConfig, StagedBERT
 from experiments.dual_model_staged_bert import dual_stage_bert
@@ -305,9 +349,10 @@ bert_2_bilstm_cfg = OmegaConf.structured(
     )
 )
 
-dual_stage_bert(OmegaConf.create(bert_2_bilstm_cfg))
+if run_experiments:
+    dual_stage_bert(OmegaConf.create(bert_2_bilstm_cfg))
 
-bert_2_bilstm_run_id = get_run_id(bert_2_bilstm_cfg)
+bert_2_bilstm_run_id = get_run_id(bert_2_bilstm_cfg, pin_commit = pin_commits)
 
 print(bert_2_bilstm_run_id)
 
@@ -324,10 +369,12 @@ Path("./src/service/models/0_model").rename(
     "./src/service/models/bert_2_bilstm"
 )
 
-# %% [markdown]
+
 # ## Train BERT E2E Model
 
-# %%
+# In[12]:
+
+
 from tooling.observability import get_run_id
 from tooling.config import BERTConfig, BERT
 from experiments.bert import bert
@@ -346,9 +393,10 @@ bert_cfg = OmegaConf.structured(
     )
 )
 
-bert(OmegaConf.create(bert_cfg))
+if run_experiments:
+    bert(OmegaConf.create(bert_cfg))
 
-bert_run_id = get_run_id(bert_cfg)
+bert_run_id = get_run_id(bert_cfg, pin_commit = pin_commits)
 
 print(bert_run_id)
 
@@ -361,5 +409,4 @@ try:
 except FileNotFoundError:
     pass
 Path("./src/service/models/0_model").rename("./src/service/models/bert")
-
 

@@ -5,3 +5,5 @@ LICENSE
 src/data/temp/*
 src/pipelines/outputs/*
 venv
+src/service/models/*
+mlruns

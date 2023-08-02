@@ -28,7 +28,7 @@ from tooling.model import get_label2id
 from tooling.model import Label_None_Pad
 from tooling.model import LABELS_NONE
 from tooling.model import ZERO
-from tooling.transformation import transform_token_label
+from tooling.transformation import transform_token_label, Hints, get_hint_transformation
 
 logging = logging_setup(__name__)
 
@@ -62,45 +62,8 @@ def generate_hint_data(
     return hints
 
 
-class Hints(TypedDict):
-    transformation_function: partial[Optional[Label_None_Pad]]
-    label2id: Dict[Label_None_Pad, int]
 
 
-def get_hint_transformation(
-    transformation_cfg: Transformation,
-) -> Hints:
-    dict_cfg = omegaconf.OmegaConf.to_container(transformation_cfg)
-
-    if not isinstance(dict_cfg, dict):
-        raise ValueError("No config passed")
-
-    del dict_cfg["description"]
-    del dict_cfg["type"]
-
-    hint_labels: List[Label_None_Pad] = ["0"]
-
-    for new_value in dict_cfg.values():
-        if new_value is None:
-            continue
-        elif new_value in LABELS_NONE:
-            hint_labels.append(new_value)
-            continue
-        else:
-            raise ValueError(
-                f"Transformation value '{new_value}' isn't valid TORE_LABEL"
-            )
-
-    hint_label2id = get_label2id(list(set(hint_labels)))
-    transformation_function = partial(
-        transform_token_label, cfg=transformation_cfg
-    )
-
-    logging.info(f"Hint Label2Id: {hint_label2id=}")
-
-    return Hints(
-        transformation_function=transformation_function, label2id=hint_label2id
-    )
 
 
 def get_hint_modifier(

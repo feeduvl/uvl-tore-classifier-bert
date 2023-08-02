@@ -3,8 +3,9 @@ from typing import List
 from typing import Literal
 from typing import Optional
 from typing import TypedDict
-from typing import Union
-
+from typing import Union, Dict
+from functools import partial
+from tooling.model import get_label2id
 import mlflow
 import numpy as np
 import numpy.typing as npt
@@ -139,3 +140,45 @@ def get_class_weights(
     logging.info(f"Class weights: {dict(zip(unique_labels, class_weights))}")
 
     return class_weights
+
+
+class Hints(TypedDict):
+    transformation_function: partial[Optional[Label_None_Pad]]
+    label2id: Dict[Label_None_Pad, int]
+
+
+
+def get_hint_transformation(
+    transformation_cfg: Transformation,
+) -> Hints:
+    dict_cfg = omegaconf.OmegaConf.to_container(transformation_cfg)
+
+    if not isinstance(dict_cfg, dict):
+        raise ValueError("No config passed")
+
+    del dict_cfg["description"]
+    del dict_cfg["type"]
+
+    hint_labels: List[Label_None_Pad] = ["0"]
+
+    for new_value in dict_cfg.values():
+        if new_value is None:
+            continue
+        elif new_value in LABELS_NONE:
+            hint_labels.append(new_value)
+            continue
+        else:
+            raise ValueError(
+                f"Transformation value '{new_value}' isn't valid TORE_LABEL"
+            )
+
+    hint_label2id = get_label2id(list(set(hint_labels)))
+    transformation_function = partial(
+        transform_token_label, cfg=transformation_cfg
+    )
+
+    logging.info(f"Hint Label2Id: {hint_label2id=}")
+
+    return Hints(
+        transformation_function=transformation_function, label2id=hint_label2id
+    )

@@ -111,7 +111,7 @@ class RerunException(Exception):
 
 
 def get_run_id(
-    cfg: Config,
+    cfg: Config, pin_commit: bool=True
 ) -> Optional[str]:
     experiment_id = mlflow.set_experiment(cfg.experiment.name)
     runs_df = mlflow.search_runs(
@@ -130,9 +130,12 @@ def get_run_id(
     )
 
     mlflow_config: Dict[str, str] = {}
-    mlflow_config[
-        "tags_mlflow_source_git_commit"
-    ] = mlflow.utils.git_utils.get_git_commit(".")
+
+    if pin_commit:
+        mlflow_config[
+            "tags_mlflow_source_git_commit"
+        ] = mlflow.utils.git_utils.get_git_commit(".")
+    
     mlflow_config["status"] = "FINISHED"
 
     mlflow_config_query_string = " and ".join(
