@@ -1,12 +1,5 @@
 FROM python:3.11-slim-buster
 
-ENV MLFLOW_TRACKING_USERNAME=mlflow
-
-ENV MLFLOW_TRACKING_PASSWORD=bockstaller
-ENV MLFLOW_TRACKING_URI=https://bockstaller.cc
-ENV UVL_BERT_RUN_EXPERIMENTS=False
-ENV UVL_BERT_PIN_COMMITS=False
-
 ENV PYDEVD_DISABLE_FILE_VALIDATION=1
 ENV GLIBC_TUNABLES=glibc.rtld.optional_static_tls=1024
 ENV CUDA_VISIBLE_DEVICES=-1
@@ -33,7 +26,12 @@ COPY . /app/
 COPY src/service/nginx.conf /etc/nginx
 RUN pip3 install --no-cache-dir --upgrade pip -r requirements-local.txt
 
-RUN echo $MLFLOW_URL
+ENV MLFLOW_TRACKING_USERNAME
+ENV MLFLOW_TRACKING_PASSWORD
+ENV MLFLOW_TRACKING_URI
+ENV UVL_BERT_RUN_EXPERIMENTS=False
+ENV UVL_BERT_PIN_COMMITS=False
+
 RUN jupyter nbconvert --to python --execute train.ipynb
 
 WORKDIR /app/src/service/

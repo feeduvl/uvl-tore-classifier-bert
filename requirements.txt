@@ -34,4 +34,3 @@ torch
 transformers<=4.29.2
 uWSGI
 Werkzeug
-boto3
