@@ -26,9 +26,14 @@ COPY . /app/
 COPY src/service/nginx.conf /etc/nginx
 RUN pip3 install --no-cache-dir --upgrade pip -r requirements-local.txt
 
-ENV MLFLOW_TRACKING_USERNAME
-ENV MLFLOW_TRACKING_PASSWORD
-ENV MLFLOW_TRACKING_URI
+ARG mlflow_tracking_password
+ARG mlflow_tracking_username
+ARG mlflow_tracking_uri
+
+ENV MLFLOW_TRACKING_USERNAME=$mlflow_tracking_username
+ENV MLFLOW_TRACKING_PASSWORD=$mlflow_tracking_password
+ENV MLFLOW_TRACKING_URI=$mlflow_tracking_uri
+
 ENV UVL_BERT_RUN_EXPERIMENTS=False
 ENV UVL_BERT_PIN_COMMITS=False
 
