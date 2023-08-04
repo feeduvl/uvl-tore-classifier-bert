@@ -17,10 +17,13 @@ COPY requirements.txt /app/
 
 RUN pip3 install --no-cache-dir  -r /app/requirements.txt
 
-RUN python -m nltk.downloader punkt
-RUN python -m nltk.downloader averaged_perceptron_tagger
-RUN python -m nltk.downloader wordnet
-RUN python -m nltk.downloader omw-1.4
+RUN mkdir -p /usr/share/nltk_data
+RUN python -m nltk.downloader -d /usr/share/nltk_data punkt
+RUN python -m nltk.downloader -d /usr/share/nltk_data averaged_perceptron_tagger
+RUN python -m nltk.downloader -d /usr/share/nltk_data wordnet
+RUN python -m nltk.downloader -d /usr/share/nltk_data omw-1.4
+
+
 
 WORKDIR /app
 COPY . /app/
@@ -37,16 +40,24 @@ ENV MLFLOW_TRACKING_URI=$mlflow_tracking_uri
 
 ENV UVL_BERT_RUN_EXPERIMENTS=False
 ENV UVL_BERT_PIN_COMMITS=False
-ENV MPLCONFIGDIR=/app/temp/matplotlib/
-ENV TRANSFORMERS_CACHE=/app/temp/transformers/
 
+ENV MPLCONFIGDIR=/app/temp/matplotlib/
 RUN mkdir -p $MPLCONFIGDIR
+
+ENV TRANSFORMERS_CACHE=/app/temp/transformers/
 RUN mkdir -p $TRANSFORMERS_CACHE
 
 RUN jupyter nbconvert --to python --execute train.ipynb
 
 WORKDIR /app/src/service/
+
 RUN chmod +x start.sh
+
+ENV HF_HOME=/usr/share/huggingface
+RUN mkdir -p /usr/share/huggingface
+
+ENV GENSIM_DATA_DIR=/usr/share/gensim-data
+RUN mkdir -p /usr/share/gensim-data
 
 EXPOSE 9693
 

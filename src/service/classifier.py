@@ -129,7 +129,7 @@ def classify_dataset(
         )
 
         labels = classify_with_bert_stage_2(
-            model_path=models.bert_2,
+            model_path=models.bert_2_sner,
             bert_data=hinted_bert_data,
             id2label=label2id2label.id2label,
         )
@@ -152,7 +152,7 @@ def classify_dataset(
         )
 
         labels = classify_with_bert_stage_2(
-            model_path=models.bert_1,
+            model_path=models.bert_2_bilstm,
             bert_data=hinted_bert_data,
             id2label=label2id2label.id2label,
         )
@@ -167,7 +167,7 @@ def classify_dataset(
         )
 
         labels = classify_with_bert_stage_2(
-            model_path=models.bert_2,
+            model_path=models.bert_2_bert,
             bert_data=hinted_bert_data,
             id2label=label2id2label.id2label,
         )

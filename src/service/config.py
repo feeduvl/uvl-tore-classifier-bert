@@ -145,3 +145,7 @@ def get_label2id2label() -> Label2Id2Label:
             )
         ),
     )
+
+
+if __name__ == "__main__":
+    configure()
