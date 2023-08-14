@@ -64,4 +64,9 @@ class Label2Id2Label:
     hint_id2label: Dict[int, Label_None_Pad]
 
 
-Classifier_Options = Literal["bilstm_bert", "sner_bert", "bert_bert", "bert"]
+Classifier_Options = Literal[
+    "bert-classifier/bilstm_bert",
+    "bert-classifier/sner_bert",
+    "bert-classifier/bert_bert",
+    "bert-classifier/bert",
+]

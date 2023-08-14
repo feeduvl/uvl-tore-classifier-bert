@@ -41,7 +41,19 @@ cache: Dict[str, Any] = {}
 cache = configure(cache)
 
 
-@app.route("/hitec/classify/concepts/bert-classifier/run", methods=["POST"])
+@app.route(
+    "/hitec/classify/concepts/bert-classifier/bert/run", methods=["POST"]
+)
+@app.route(
+    "/hitec/classify/concepts/bert-classifier/bert_bert/run", methods=["POST"]
+)
+@app.route(
+    "/hitec/classify/concepts/bert-classifier/bilstm_bert/run",
+    methods=["POST"],
+)
+@app.route(
+    "/hitec/classify/concepts/bert-classifier/sner_bert/run", methods=["POST"]
+)
 def classify_tore() -> Response:
     app.logger.info("BERT Classification run requested")
     app.logger.debug("/hitec/classify/concepts/bert-classifier/run called")
