@@ -117,7 +117,7 @@ def classify_dataset(
 
     data = string_list_lists_to_datadf(tokens)
 
-    if method == "sner_bert":
+    if method == "bert-classifier/sner_bert":
         hinted_data = classify_with_sner(model_path=models.sner, data=data)
 
         hinted_bert_data = create_staged_bert_dataset(
@@ -134,7 +134,7 @@ def classify_dataset(
             id2label=label2id2label.id2label,
         )
 
-    elif method == "bilstm_bert":
+    elif method == "bert-classifier/bilstm_bert":
         hinted_data = classify_with_bilstm(
             model_path=models.bilstm,
             data=data,
@@ -157,7 +157,7 @@ def classify_dataset(
             id2label=label2id2label.id2label,
         )
 
-    elif method == "bert_bert":
+    elif method == "bert-classifier/bert_bert":
         hinted_bert_data = classify_with_bert_stage_1(
             model_path=models.bert_1,
             data=data,
@@ -172,7 +172,7 @@ def classify_dataset(
             id2label=label2id2label.id2label,
         )
 
-    elif method == "bert":
+    elif method == "bert-classifier/bert":
         bert_data = create_bert_dataset(
             input_data=data,
             label2id=label2id2label.label2id,
