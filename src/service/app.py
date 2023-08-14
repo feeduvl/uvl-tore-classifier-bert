@@ -65,6 +65,9 @@ def classify_tore() -> Response:
     global cache
     cache = configure(cache)
 
+    app.logger.info(content)
+    app.logger.info(content["params"])
+
     method = content["params"]["method"]
 
     if method not in get_args(Classifier_Options):
