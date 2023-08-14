@@ -60,13 +60,12 @@ def classify_tore() -> Response:
 
     content = json.loads(request.data.decode("utf-8"))
     documents = cast(Documents, content["dataset"]["documents"])
-    app.logger.info(documents)
 
     # access the "per worker" cache of configuration
     global cache
     cache = configure(cache)
 
-    method = content["params"]["classifier"]
+    method = content["params"]["method"]
 
     if method not in get_args(Classifier_Options):
         raise ValueError(
