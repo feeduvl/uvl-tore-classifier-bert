@@ -59,6 +59,6 @@ RUN mkdir -p /usr/share/huggingface
 ENV GENSIM_DATA_DIR=/usr/share/gensim-data
 RUN mkdir -p /usr/share/gensim-data
 
-EXPOSE 9693
+EXPOSE 9694
 
 CMD ["./start.sh"]
