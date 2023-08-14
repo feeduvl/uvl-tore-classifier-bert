@@ -2,29 +2,32 @@ import os
 import pickle
 from pathlib import Path
 
-from flask import g
+
 from transformers import BertTokenizerFast
 
+from typing import Dict, Any
 from classifiers.bilstm import get_glove_model
 from service.types import Label2Id2Label
 from service.types import Models
 
 
-def configure() -> None:
-    if "glove_model" not in g:
-        g.glove_model = get_glove_model()
+def configure(cache: Dict[str, Any]) -> Dict[str, Any]:
+    if getattr(cache, "glove_model", None) is None:
+        cache["glove_model"] = get_glove_model()
 
-    if "models" not in g:
-        g.models = get_models()
+    if getattr(cache, "models", None) is None:
+        cache["models"] = get_models()
 
-    if "label2id2label" not in g:
-        g.label2id2label = get_label2id2label()
+    if getattr(cache, "label2id2label", None) is None:
+        cache["label2id2label"] = get_label2id2label()
 
-    if "tokenizer" not in g:
-        g.tokenizer = get_tokenizer()
+    if getattr(cache, "tokenizer", None) is None:
+        cache["tokenizer"] = get_tokenizer()
 
-    if "max_len" not in g:
-        g.max_len = get_max_len()
+    if getattr(cache, "max_len", None) is None:
+        cache["max_len"] = get_max_len()
+
+    return cache
 
 
 def get_tokenizer() -> BertTokenizerFast:

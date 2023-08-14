@@ -3,7 +3,6 @@ from typing import cast
 from typing import get_args
 
 from flask import Flask
-from flask import g
 from flask import json
 from flask import jsonify
 from flask import request
@@ -14,7 +13,7 @@ from service.classifier import classify_dataset
 from service.config import configure
 from service.types import Classifier_Options
 from service.types import Documents
-
+from typing import Dict, Any
 
 dictConfig(
     {
@@ -38,6 +37,9 @@ dictConfig(
 
 app = Flask(__name__)
 
+cache: Dict[str, Any] = {}
+cache = configure(cache)
+
 
 @app.route("/hitec/classify/concepts/bert-classifier/run", methods=["POST"])
 def classify_tore() -> Response:
@@ -48,7 +50,9 @@ def classify_tore() -> Response:
     documents = cast(Documents, content["dataset"]["documents"])
     app.logger.info(documents)
 
-    configure()
+    # access the "per worker" cache of configuration
+    global cache
+    cache = configure(cache)
 
     method = content["params"]["classifier"]
 
@@ -63,12 +67,12 @@ def classify_tore() -> Response:
 
     codes = classify_dataset(
         documents=documents,
-        models=g.models,
-        label2id2label=g.label2id2label,
+        models=cache["models"],
+        label2id2label=cache["label2id2label"],
         method=method,
-        max_len=g.max_len,
-        glove_model=g.glove_model,
-        tokenizer=g.tokenizer,
+        max_len=cache["max_len"],
+        glove_model=cache["glove_model"],
+        tokenizer=cache["tokenizer"],
     )
 
     if content["params"]["persist"] == "true":
@@ -88,7 +92,9 @@ def classify_tore() -> Response:
 @app.route("/hitec/classify/concepts/bert-classifier/status", methods=["GET"])
 def get_status() -> Response:
     try:
-        configure()
+        # access the "per worker" cache of configuration
+        global cache
+        cache = configure(cache)
 
         status = {
             "status": "operational",
