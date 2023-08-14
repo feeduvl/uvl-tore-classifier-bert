@@ -12,19 +12,19 @@ from service.types import Models
 
 
 def configure(cache: Dict[str, Any]) -> Dict[str, Any]:
-    if getattr(cache, "glove_model", None) is None:
+    if cache.get("glove_model", None) is None:
         cache["glove_model"] = get_glove_model()
 
-    if getattr(cache, "models", None) is None:
+    if cache.get("models", None) is None:
         cache["models"] = get_models()
 
-    if getattr(cache, "label2id2label", None) is None:
+    if cache.get("label2id2label", None) is None:
         cache["label2id2label"] = get_label2id2label()
 
-    if getattr(cache, "tokenizer", None) is None:
+    if cache.get("tokenizer", None) is None:
         cache["tokenizer"] = get_tokenizer()
 
-    if getattr(cache, "max_len", None) is None:
+    if cache.get("max_len", None) is None:
         cache["max_len"] = get_max_len()
 
     return cache
