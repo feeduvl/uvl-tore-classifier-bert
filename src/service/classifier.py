@@ -24,7 +24,7 @@ from service.types import Code
 from service.types import Documents
 from service.types import Label2Id2Label
 from service.types import Models
-from tooling.model import Label_None_Pad
+from tooling.model import Label_None_Pad, ZERO
 from tooling.model import string_list_lists_to_datadf
 
 
@@ -88,18 +88,27 @@ def build_codes(
     lemmas: List[List[str]],
     labels: List[List[Label_None_Pad]],
 ) -> List[Code]:
-    idx = 0
+    token_idx = 0
+    code_idx = 0
     codes = []
     for sentence_lemmas, sentence_labels in zip(lemmas, labels, strict=True):
-        for lemma, label in zip(sentence_lemmas, sentence_labels, strict=True):
+        for lemma, label in zip(sentence_lemmas, sentence_labels):
+            if label is ZERO:
+                token_idx += 1
+                continue
+
+            label = label.replace("_", " ")
+
             code = Code(
-                tokens=[idx],
+                tokens=[token_idx],
                 name=lemma,
                 tore=label,
-                index=idx,
+                index=code_idx,
                 relationship_memberships=[],
             )
             codes.append(code)
+            code_idx += 1
+            token_idx += 1
     return codes
 
 
@@ -110,7 +119,6 @@ def classify_dataset(
     label2id2label: Label2Id2Label,
     max_len: int,
     glove_model: pd.DataFrame,
-    tokenizer: BertTokenizerFast,
 ) -> List[Code]:
     tokens = get_tokens(documents=documents)
     lemmas = get_lemmas(tokens=tokens)
@@ -118,6 +126,8 @@ def classify_dataset(
     data = string_list_lists_to_datadf(tokens)
 
     if method == "bert-classifier/sner_bert":
+        tokenizer = BertTokenizerFast.from_pretrained(models.bert_2_sner)
+
         hinted_data = classify_with_sner(model_path=models.sner, data=data)
 
         hinted_bert_data = create_staged_bert_dataset(
@@ -126,6 +136,8 @@ def classify_dataset(
             hint_label2id=label2id2label.hint_label2id,
             tokenizer=tokenizer,
             max_len=max_len,
+            ignore_labels=True,
+            align_labels=False,
         )
 
         labels = classify_with_bert_stage_2(
@@ -135,6 +147,8 @@ def classify_dataset(
         )
 
     elif method == "bert-classifier/bilstm_bert":
+        tokenizer = BertTokenizerFast.from_pretrained(models.bert_2_bilstm)
+
         hinted_data = classify_with_bilstm(
             model_path=models.bilstm,
             data=data,
@@ -149,6 +163,8 @@ def classify_dataset(
             hint_label2id=label2id2label.hint_label2id,
             tokenizer=tokenizer,
             max_len=max_len,
+            ignore_labels=True,
+            align_labels=False,
         )
 
         labels = classify_with_bert_stage_2(
@@ -158,11 +174,13 @@ def classify_dataset(
         )
 
     elif method == "bert-classifier/bert_bert":
+        tokenizer_1 = BertTokenizerFast.from_pretrained(models.bert_1)
+
         hinted_bert_data = classify_with_bert_stage_1(
             model_path=models.bert_1,
             data=data,
             label2id=label2id2label.label2id,
-            tokenizer=tokenizer,
+            tokenizer=tokenizer_1,
             max_len=max_len,
         )
 
@@ -173,11 +191,15 @@ def classify_dataset(
         )
 
     elif method == "bert-classifier/bert":
+        tokenizer = BertTokenizerFast.from_pretrained(models.bert)
+
         bert_data = create_bert_dataset(
             input_data=data,
             label2id=label2id2label.label2id,
             tokenizer=tokenizer,
             max_len=max_len,
+            ignore_labels=True,
+            align_labels=False,
         )
 
         labels = classify_with_bert(

@@ -28,7 +28,11 @@ from tooling.model import get_label2id
 from tooling.model import Label_None_Pad
 from tooling.model import LABELS_NONE
 from tooling.model import ZERO
-from tooling.transformation import transform_token_label, Hints, get_hint_transformation
+from tooling.transformation import (
+    transform_token_label,
+    Hints,
+    get_hint_transformation,
+)
 
 logging = logging_setup(__name__)
 
@@ -60,10 +64,6 @@ def generate_hint_data(
         hints.append(hint_list)
 
     return hints
-
-
-
-
 
 
 def get_hint_modifier(
@@ -103,6 +103,8 @@ def classify_with_bert_stage_1(
         label2id=label2id,
         tokenizer=tokenizer,
         max_len=max_len,
+        ignore_labels=True,
+        align_labels=False,
     )
 
     if not bert_data:
@@ -140,7 +142,9 @@ def hint_column_to_labels(
 
 
 def classify_with_bert_stage_2(
-    model_path: Path, bert_data: Dataset, id2label: Dict[int, Label_None_Pad]
+    model_path: Path,
+    bert_data: Dataset,
+    id2label: Dict[int, Label_None_Pad],
 ) -> List[List[Label_None_Pad]]:
     logging.info("Loading Model")
     model = StagedBertForTokenClassification.from_pretrained(
@@ -151,10 +155,8 @@ def classify_with_bert_stage_2(
 
     logging.info("Creating results")
     # Add predicted hint labels to train_dataset
-    first_stage_train_result = trainer.predict(
-        bert_data.remove_columns("labels")
-    )
-    hint_column = get_hint_column(first_stage_train_result[0])
+    second_stage_result = trainer.predict(bert_data.remove_columns("labels"))
+    hint_column = get_hint_column(second_stage_result[0])
 
     return hint_column_to_labels(column=hint_column, id2label=id2label)
 

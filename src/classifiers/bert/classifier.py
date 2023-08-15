@@ -68,33 +68,60 @@ class StagedBertDatas(TypedDict):
 
 
 def prepare_data(
-    dataframe: DataSet[DataDF], label2id: Dict[Label_None_Pad, int]
+    dataframe: DataSet[DataDF],
+    label2id: Dict[Label_None_Pad, int],
+    ignore_labels: bool,
 ) -> List[BertData]:
     token_lists_list = data_to_list_of_token_lists(dataframe)
-    label_lists_list = data_to_list_of_label_lists(
-        data=dataframe, label2id=label2id
-    )
+    if not ignore_labels:
+        label_lists_list = data_to_list_of_label_lists(
+            data=dataframe, label2id=label2id
+        )
 
-    data: List[BertData] = [
-        {"id": id, "string": data[0], "tore_label_id": data[1]}
-        for id, data in enumerate(zip(token_lists_list, label_lists_list))
-    ]
+        data_with_labels: List[BertData] = [
+            {"id": id, "string": data[0], "tore_label_id": data[1]}
+            for id, data in enumerate(zip(token_lists_list, label_lists_list))
+        ]
+        return data_with_labels
 
-    return data
+    else:
+        data_without_labels: List[BertData] = [
+            {"id": id, "string": data[0], "tore_label_id": None}
+            for id, data in enumerate(zip(token_lists_list))
+        ]
+
+        return data_without_labels
+
+
+def pad_or_truncate_list(input_list: List[int], length: int) -> List[int]:
+    if len(input_list) < length:
+        diff = length - len(input_list)
+        output_list = input_list + ([0] * diff)
+    elif len(input_list) == length:
+        return input_list
+    elif len(input_list) > length:
+        return input_list[:length]
+
+    return output_list
 
 
 def prepare_data_with_hints(
     dataframe: DataSet[DataDF],
     label2id: Dict[Label_None_Pad, int],
     hint_label2id: Dict[Label_None_Pad, int],
+    ignore_labels: bool,
 ) -> List[StagedBertData]:
     token_lists_list = data_to_list_of_token_lists(dataframe)
-    label_lists_list = data_to_list_of_label_lists(
-        data=dataframe, label2id=label2id
-    )
     hint_id_lists_list = data_to_list_of_label_lists(
         data=dataframe, label2id=hint_label2id, column="hint_input_ids"
     )
+
+    if not ignore_labels:
+        label_lists_list = data_to_list_of_label_lists(
+            data=dataframe, label2id=label2id
+        )
+    else:
+        label_lists_list = [None] * len(token_lists_list)
 
     data: List[StagedBertData] = [
         {
@@ -120,6 +147,7 @@ def tokenize_and_align_labels(
     data: BertDatas | StagedBertDatas,
     tokenizer: BertTokenizerFast,
     max_len: Optional[int],
+    align_labels: bool,
     truncation: bool = True,
 ) -> BatchEncoding:
     tokenized_inputs = tokenizer(
@@ -134,28 +162,40 @@ def tokenize_and_align_labels(
     columns.remove("id")
     columns.remove("string")
 
-    for column in columns:
-        labels = []
+    if not align_labels:
+        columns.remove("tore_label_id")
 
-        for i, label in enumerate(data[column]):  # type:ignore
-            word_ids = tokenized_inputs.word_ids(
-                batch_index=i
-            )  # Map tokens to their respective word.
-            previous_word_idx = None
-            label_ids = []
-            for word_idx in word_ids:  # Set the special tokens to -100.
-                if word_idx is None:
-                    label_ids.append(-100)
-                elif (
-                    word_idx != previous_word_idx
-                ):  # Only label the first token of a given word.
-                    label_ids.append(label[word_idx])
-                else:
-                    label_ids.append(-100)
-                previous_word_idx = word_idx
-            labels.append(label_ids)
+    try:
+        padding_value = -100
+        for column in columns:
+            labels = []
+            if column == "hint_label_id":
+                padding_value = 0
 
-        tokenized_inputs[column] = labels
+            for i, label in enumerate(data[column]):  # type:ignore
+                word_ids = tokenized_inputs.word_ids(
+                    batch_index=i
+                )  # Map tokens to their respective word.
+                previous_word_idx = None
+                label_ids = []
+                for word_idx in word_ids:  # Set the special tokens to -100.
+                    if word_idx is None:
+                        label_ids.append(padding_value)
+                    elif (
+                        word_idx != previous_word_idx
+                    ):  # Only label the first token of a given word.
+                        label_ids.append(label[word_idx])
+                    else:
+                        label_ids.append(padding_value)
+                    previous_word_idx = word_idx
+                labels.append(label_ids)
+
+            tokenized_inputs[column] = labels
+    except TypeError as e:
+        if align_labels:
+            raise e
+        else:
+            pass
 
     return tokenized_inputs
 
@@ -164,12 +204,14 @@ def get_tokenize_and_align_labels(
     tokenizer: BertTokenizerFast,
     max_len: Optional[int],
     truncation: bool = True,
+    align_labels: bool = True,
 ) -> partial[BatchEncoding]:
     func = partial(
         tokenize_and_align_labels,
         tokenizer=tokenizer,
         max_len=max_len,
         truncation=truncation,
+        align_labels=align_labels,
     )
     return func
 
@@ -281,8 +323,14 @@ def create_bert_dataset(
     tokenizer: BertTokenizerFast,
     max_len: int,
     modifiers: List[Modification] = [],
+    ignore_labels: bool = False,
+    align_labels: bool = True,
 ) -> Dataset:
-    prepared_data = prepare_data(input_data, label2id=label2id)
+    prepared_data = prepare_data(
+        input_data,
+        label2id=label2id,
+        ignore_labels=ignore_labels,
+    )
     prepared_data_df = pd.DataFrame.from_records(prepared_data)
     data = Dataset.from_pandas(df=prepared_data_df)
 
@@ -293,7 +341,10 @@ def create_bert_dataset(
             )
 
     tokenizer_and_aligner = get_tokenize_and_align_labels(
-        tokenizer=tokenizer, max_len=max_len, truncation=True
+        tokenizer=tokenizer,
+        max_len=max_len,
+        truncation=True,
+        align_labels=align_labels,
     )
     data = data.map(tokenizer_and_aligner, batched=True)
 
@@ -308,15 +359,23 @@ def create_staged_bert_dataset(
     hint_label2id: Dict[Label_None_Pad, int],
     tokenizer: BertTokenizerFast,
     max_len: int,
+    ignore_labels: bool = False,
+    align_labels: bool = True,
 ) -> Dataset:
     prepared_data = prepare_data_with_hints(
-        input_data, label2id=label2id, hint_label2id=hint_label2id
+        input_data,
+        label2id=label2id,
+        hint_label2id=hint_label2id,
+        ignore_labels=ignore_labels,
     )
     prepared_data_df = pd.DataFrame.from_records(prepared_data)
     data = Dataset.from_pandas(df=prepared_data_df)
 
     tokenizer_and_aligner = get_tokenize_and_align_labels(
-        tokenizer=tokenizer, max_len=max_len, truncation=True
+        tokenizer=tokenizer,
+        max_len=max_len,
+        truncation=True,
+        align_labels=align_labels,
     )
     data = data.map(tokenizer_and_aligner, batched=True)
 

@@ -15,25 +15,6 @@ from service.types import Classifier_Options
 from service.types import Documents
 from typing import Dict, Any
 
-dictConfig(
-    {
-        "version": 1,
-        "formatters": {
-            "default": {
-                "format": "[%(asctime)s] %(levelname)s in %(module)s: %(message)s",
-            }
-        },
-        "handlers": {
-            "wsgi": {
-                "class": "logging.StreamHandler",
-                "stream": "sys.stdout",
-                "formatter": "default",
-            }
-        },
-        "root": {"level": "DEBUG", "handlers": ["wsgi"]},
-    }
-)
-
 
 app = Flask(__name__)
 
@@ -85,7 +66,6 @@ def classify_tore() -> Response:
         method=method,
         max_len=cache["max_len"],
         glove_model=cache["glove_model"],
-        tokenizer=cache["tokenizer"],
     )
 
     if content["params"]["persist"] == "true":
@@ -119,4 +99,4 @@ def get_status() -> Response:
 
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=9695)
+    app.run(debug=True, host="0.0.0.0", port=9696)

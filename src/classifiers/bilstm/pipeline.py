@@ -24,7 +24,7 @@ from tooling.model import get_id2label
 from tooling.model import get_label2id
 from tooling.model import get_sentence_lengths
 from tooling.model import Label_None_Pad
-from tooling.model import PAD
+from tooling.model import PAD, ZERO
 from tooling.model import ResultDF
 from tooling.observability import end_tracing
 from tooling.observability import log_artifacts
@@ -53,9 +53,9 @@ def bilstm_pipeline(cfg: BiLSTMConfig, run_name: str) -> None:
         cfg.bilstm, data=transformed_dataset["dataset"]
     )
 
-    padded_labels: Sequence[Label_None_Pad] = transformed_dataset["labels"] + [
-        PAD
-    ]
+    padded_labels: Sequence[Label_None_Pad] = list(
+        set(transformed_dataset["labels"] + [ZERO])
+    )
     mlflow.log_param("padded_labels", padded_labels)
 
     weights = cast(
@@ -110,7 +110,7 @@ def bilstm_pipeline(cfg: BiLSTMConfig, run_name: str) -> None:
 
         # Get Model
         model = get_model(
-            n_tags=len(padded_labels),
+            n_tags=len(set(padded_labels)),
             sentence_length=sentence_length,
             cfg_bilstm=cfg.bilstm,
             id2label=id2label,

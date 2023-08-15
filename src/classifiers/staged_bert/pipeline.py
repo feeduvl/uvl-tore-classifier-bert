@@ -16,6 +16,7 @@ from classifiers.staged_bert.classifier import get_hint_modifier
 from classifiers.staged_bert.classifier import get_hint_transformation
 from classifiers.staged_bert.model import (
     StagedBertForTokenClassification,
+    StagedBertModelConfig,
 )
 from tooling import evaluation
 from tooling.config import DualModelStagedBERTConfig
@@ -119,14 +120,17 @@ def staged_bert_pipeline(cfg: StagedBERTConfig, run_name: str) -> None:
             modifiers=[hint_modifier],
         )
 
-        # Get Model
-        model = StagedBertForTokenClassification.from_pretrained(
-            cfg.bert.model,
+        model_config = StagedBertModelConfig(
             num_hint_labels=len(hints["label2id"]),
             layers=cfg.bert.layers,
             num_labels=len(transformed_dataset["labels"]),
             id2label=id2label,
             label2id=label2id,
+        )
+
+        # Get Model
+        model = StagedBertForTokenClassification.from_pretrained(
+            cfg.bert.model, config=model_config
         )
         # for param in model.bert.parameters():
         #    param.requires_grad = False
@@ -301,14 +305,20 @@ def dual_stage_bert_pipeline(
             padded_labels=padded_labels,
         )
 
-        # Get Model
-        model = StagedBertForTokenClassification.from_pretrained(
-            cfg.bert.model,
-            num_hint_labels=len(label2id.keys()),
-            layers=cfg.bert.layers,
+        model_config = StagedBertModelConfig(
+            pretrained_model_name_or_path=cfg.bert.model,
+            num_hint_labels=len(hint_label2id.keys()),
+            layers=list(cfg.bert.layers),
             num_labels=len(transformed_dataset["labels"]),
             id2label=id2label,
             label2id=label2id,
+        )
+
+        # Get Model
+        model = StagedBertForTokenClassification.from_pretrained(
+            pretrained_model_name_or_path=cfg.bert.model,
+            config=model_config,
+            ignore_mismatched_sizes=True,
         )
         # for param in model.bert.parameters():
         #    param.requires_grad = False

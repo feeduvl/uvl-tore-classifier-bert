@@ -111,8 +111,6 @@ def bert_pipeline(cfg: BERTConfig, run_name: str) -> None:
             id2label=id2label,
             label2id=label2id,
         )
-        # for param in model.bert.parameters():
-        #    param.requires_grad = False
 
         model.to(device=device)
 

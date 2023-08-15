@@ -1,0 +1,37 @@
+{
+    "method": "bert-classifier/bert",
+    "dataset": {
+        "uploaded_at": "2022-06-23T09:35:49.11Z",
+        "name": "Prolific_Datensatz_1-33",
+        "size": 5,
+        "documents": [
+            {
+                "number": 0,
+                "text": "This app is for mapping & route following for cycling & walking. It can be altered to your abilities, so you know whether you till likely be able to complete a route. It helps  more than, say Google maps as it can show a route away from roads for walking or hiking. You can track you own routes with photos so others can see what you have don, and you can track your own progress as you try new routes or activities. \nIt is useful being able to plan a route on your desktop/laptop with a bigger screen, and then transfer to to your phone to use when you are actually out...though it does rely on having a good internet signal, which in remote areas is not always possible.",
+                "id": "Description-1"
+            },
+            {
+                "number": 1,
+                "text": "I like being able to start on my PC and transfer to my phone.\nI like being able to see what routes others have done with their photos.\nI like being able to see how difficult a route might be, and if I might be able to complete it.",
+                "id": "Like-1"
+            },
+            {
+                "number": 2,
+                "text": "I would like it to be able to work off line for when there is no internet signal.\nI am scared of my phone running out of battery before I am complete.\nI have privacy worries that others know where I am.",
+                "id": "Dislike-1"
+            },
+            {
+                "number": 3,
+                "text": "I would like it to use less battery power or work when using air plane mode so the battery will last longer. \nI want it to work offline so internet is not always needed.\nI don't have a data allowance, so this costs by the minute.",
+                "id": "Improvement-1"
+            },
+            {
+                "number": 4,
+                "text": "I believe that the Komoot app is a commuting app which lets you do a variety of things regarding commuting. \nIt lets you select which mode of transport you would like to take and then can provide you with a route between your start position and final destination. It can consider what roads you would like to use e.g. quieter roads if commuting by bicycle and footpaths etc.\nYou can then save these routes and gives you further information, with elevation, distance and likely time to take given.\nIf you are looking for a local walk or bicycle route, you can also view popular routes planned and used by other users of the app. These are grouped by beginner, intermediate and advanced routes.\nThe application also allows you to add pictures so that you can see popular landmarks on the route, and get some idea of location.",
+                "id": "Description-2"
+            }
+        ],
+        "ground_truth": []
+    },
+    "params": { "annotation_name": "", "debug": "false", "persist": "false" }
+}

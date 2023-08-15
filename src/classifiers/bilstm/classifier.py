@@ -24,7 +24,7 @@ from tooling.model import DataDF
 from tooling.model import get_sentence_lengths
 from tooling.model import HintedDataDF
 from tooling.model import Label_None_Pad
-from tooling.model import PAD
+from tooling.model import PAD, ZERO
 from tooling.model import ResultDF
 from tooling.model import ToreLabelDF
 
@@ -156,7 +156,7 @@ def get_one_hot_encoding(
         sequences=sentences_label_id_list,
         maxlen=sentence_length,
         padding="post",
-        value=label2id[PAD],
+        value=label2id[ZERO],
     )
 
     return cast(

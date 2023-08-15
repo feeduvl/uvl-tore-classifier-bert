@@ -363,4 +363,15 @@ def string_list_lists_to_datadf(tokens: List[List[str]]) -> DataSet[DataDF]:
             row_tuples.append((sentence_id, idx, token, None))
             idx += 1
 
-    return cast(DataSet[DataDF], pd.DataFrame.from_records(row_tuples))
+    return cast(
+        DataSet[DataDF],
+        pd.DataFrame.from_records(
+            row_tuples,
+            columns=[
+                "sentence_id",
+                "sentence_idx",
+                "string",
+                "tore_label",
+            ],
+        ),
+    )

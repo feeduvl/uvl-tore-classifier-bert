@@ -21,23 +21,14 @@ def configure(cache: Dict[str, Any]) -> Dict[str, Any]:
     if cache.get("label2id2label", None) is None:
         cache["label2id2label"] = get_label2id2label()
 
-    if cache.get("tokenizer", None) is None:
-        cache["tokenizer"] = get_tokenizer()
-
     if cache.get("max_len", None) is None:
         cache["max_len"] = get_max_len()
 
     return cache
 
 
-def get_tokenizer() -> BertTokenizerFast:
-    return BertTokenizerFast.from_pretrained(
-        os.environ.get("UVL_BERT_BASE_MODEL", "bert-base-uncased")
-    )
-
-
 def get_max_len() -> int:
-    return int(os.environ.get("UVL_MAX_LEN", "106"))
+    return int(os.environ.get("UVL_MAX_LEN", "110"))
 
 
 def get_models() -> Models:

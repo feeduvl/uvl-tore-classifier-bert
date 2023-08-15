@@ -72,9 +72,6 @@ class Transformation:
     internal_data: Optional[str] = None
 
 
-
-
-
 @dataclass
 class SNER:
     type: str = "SNER"
@@ -85,7 +82,7 @@ class BiLSTM:
     type: str = "BiLSTM"
     sentence_length: Optional[int] = None
     batch_size: int = 32
-    number_epochs: int = 32
+    number_epochs: int = 4
     verbose: int = 1
     weighted_classes: bool = False
     learning_rate: float = 0.0001
@@ -93,7 +90,7 @@ class BiLSTM:
 
 @dataclass
 class BERT:
-    model: str = "bert-base-cased"
+    model: str = "bert-base-uncased"
     type: str = "BERT"
     max_len: Optional[int] = 106
     train_batch_size: int = 32
@@ -118,7 +115,7 @@ class StagedBERT(BERT):
 @dataclass
 class SNERConfig:
     sner: SNER = field(default_factory=SNER)
-    
+
     experiment: Experiment = field(default_factory=Experiment)
     transformation: Transformation = field(default_factory=Transformation)
 
@@ -126,7 +123,7 @@ class SNERConfig:
 @dataclass
 class BiLSTMConfig:
     bilstm: BiLSTM = field(default_factory=BiLSTM)
-    
+
     experiment: Experiment = field(default_factory=Experiment)
     transformation: Transformation = field(default_factory=Transformation)
 
@@ -134,7 +131,7 @@ class BiLSTMConfig:
 @dataclass
 class BERTConfig:
     bert: BERT = field(default_factory=BERT)
-    
+
     experiment: Experiment = field(default_factory=Experiment)
     transformation: Transformation = field(default_factory=Transformation)
 
@@ -142,7 +139,7 @@ class BERTConfig:
 @dataclass
 class StagedBERTConfig:
     bert: StagedBERT = field(default_factory=StagedBERT)
-    
+
     experiment: Experiment = field(default_factory=Experiment)
     transformation: Transformation = field(default_factory=Transformation)
     hint_transformation: Transformation = field(default_factory=Transformation)
@@ -158,7 +155,7 @@ class DualModelStagedBERTConfig:
     first_model_sner: Optional[SNERConfig] = None
 
     bert: StagedBERT = field(default_factory=StagedBERT)
-    
+
     experiment: Experiment = field(default_factory=Experiment)
     transformation: Transformation = field(default_factory=Transformation)
     hint_transformation: Transformation = field(default_factory=Transformation)

@@ -20,18 +20,30 @@ from transformers.models.bert import BertModel
 from transformers.models.bert import BertPreTrainedModel
 
 
-class StagedBertForTokenClassification(BertPreTrainedModel):
-    config_class = BertConfig
+class StagedBertModelConfig(BertConfig):
+    model_type = "staged_bert"
 
     def __init__(
         self,
-        config: BertConfig,
-        num_hint_labels: int,
+        num_hint_labels: int = 0,
         layers: List[int] = [],
+        **kwargs,
+    ):
+        super().__init__(**kwargs)
+        self.num_hint_labels = num_hint_labels
+        self.layers = layers
+
+
+class StagedBertForTokenClassification(BertPreTrainedModel):
+    config_class = StagedBertModelConfig
+
+    def __init__(
+        self,
+        config: StagedBertModelConfig,
     ):
         super().__init__(config)
         self.num_labels = config.num_labels
-        self.num_hint_labels = num_hint_labels
+        self.num_hint_labels = config.num_hint_labels
 
         self.bert = BertModel(config, add_pooling_layer=False)
         classifier_dropout = (
@@ -41,8 +53,8 @@ class StagedBertForTokenClassification(BertPreTrainedModel):
         )
         self.dropout = nn.Dropout(classifier_dropout)
 
-        in_factor = config.hidden_size + num_hint_labels
-        layers = [math.floor(layer * in_factor) for layer in layers]
+        in_factor = config.hidden_size + config.num_hint_labels
+        layers = [math.floor(layer * in_factor) for layer in config.layers]
 
         layers.insert(0, in_factor)
         layers.append(config.num_labels)
