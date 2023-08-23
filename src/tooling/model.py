@@ -59,14 +59,10 @@ INTERACTION_LEVEL_LABELS: Tuple[InteractionLevelLabel, ...] = cast(
 )
 
 ImportSystemLevelLabel = Literal[
-    "Software",
-    "Internal Action",
-    "Internal Data",
+    "Software", "Internal Action", "Internal Data", "System Level"
 ]
 SystemLevelLabel = Literal[
-    "Software",
-    "Internal_Action",
-    "Internal_Data",
+    "Software", "Internal_Action", "Internal_Data", "System Level"
 ]
 SYSTEM_LEVEL_LABELS: Tuple[SystemLevelLabel, ...] = cast(
     tuple[SystemLevelLabel], typing.get_args(SystemLevelLabel)
@@ -196,8 +192,8 @@ class ImportCode(BaseModel):
 
 
 class ImportDataSet(BaseModel):
-    uploaded_at: datetime
-    last_updated: datetime
+    uploaded_at: Optional[datetime]
+    last_updated: Optional[datetime]
     name: str
     dataset: str
     docs: List[ImportDoc]

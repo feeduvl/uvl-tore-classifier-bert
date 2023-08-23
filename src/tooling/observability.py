@@ -13,7 +13,7 @@ from typing import List
 from typing import Optional
 from typing import Tuple
 from typing import Union
-
+import os
 import mlflow
 from omegaconf import OmegaConf
 from pandas.errors import UndefinedVariableError
@@ -27,18 +27,26 @@ from tooling.types import IterationResult
 logging = logging_setup(__name__)
 
 
+def log_param(key: str, value: Any) -> None:
+    if not os.getenv("DISABLE_MLFLOW"):
+        mlflow.log_param(key, value=value)
+
+
 def log_artifacts(
     artifact_paths: Union[Path, Iterable[Path], Dict[str, Any]]
 ) -> None:
     if isinstance(artifact_paths, Dict):
         for value in artifact_paths.values():
             if isinstance(value, Path):
-                mlflow.log_artifact(value)
+                if not os.getenv("DISABLE_MLFLOW"):
+                    mlflow.log_artifact(value)
     elif isinstance(artifact_paths, Iterable):
         for path in artifact_paths:
-            mlflow.log_artifact(path)
+            if not os.getenv("DISABLE_MLFLOW"):
+                mlflow.log_artifact(path)
     else:
-        mlflow.log_artifact(artifact_paths)
+        if not os.getenv("DISABLE_MLFLOW"):
+            mlflow.log_artifact(artifact_paths)
 
 
 def flatten(
@@ -72,8 +80,8 @@ def log_config(cfg: Config) -> None:
         cast(Dict[str, str], OmegaConf.to_container(cfg, resolve=True)),
         separator=".",
     )
-
-    mlflow.log_params(config)
+    if not os.getenv("DISABLE_MLFLOW"):
+        mlflow.log_params(config)
 
 
 def check_rerun(cfg: Config) -> None:
@@ -92,27 +100,28 @@ def check_rerun(cfg: Config) -> None:
 
 @contextmanager
 def config_mlflow(cfg: Config) -> Iterator[mlflow.ActiveRun]:
-    experiment = mlflow.get_experiment_by_name(cfg.experiment.name)
+    if not os.getenv("DISABLE_MLFLOW"):
+        experiment = mlflow.get_experiment_by_name(cfg.experiment.name)
 
-    nested = False
-    if mlflow.active_run():
-        nested = True
+        nested = False
+        if mlflow.active_run():
+            nested = True
 
-    with mlflow.start_run(
-        experiment_id=experiment.experiment_id, nested=nested
-    ) as current_run:
-        mlflow.autolog(silent=True, log_models=False)
-        log_config(cfg)
-        yield current_run
+        with mlflow.start_run(
+            experiment_id=experiment.experiment_id, nested=nested
+        ) as current_run:
+            mlflow.autolog(silent=True, log_models=False)
+            log_config(cfg)
+            yield current_run
+    else:
+        raise Exception("Mlflow disabled")
 
 
 class RerunException(Exception):
     pass
 
 
-def get_run_id(
-    cfg: Config, pin_commit: bool=True
-) -> Optional[str]:
+def get_run_id(cfg: Config, pin_commit: bool = True) -> Optional[str]:
     experiment_id = mlflow.set_experiment(cfg.experiment.name)
     runs_df = mlflow.search_runs(
         experiment_ids=[experiment_id.experiment_id], output_format="pandas"
@@ -135,7 +144,7 @@ def get_run_id(
         mlflow_config[
             "tags_mlflow_source_git_commit"
         ] = mlflow.utils.git_utils.get_git_commit(".")
-    
+
     mlflow_config["status"] = "FINISHED"
 
     mlflow_config_query_string = " and ".join(

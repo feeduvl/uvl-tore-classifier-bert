@@ -70,6 +70,7 @@ class Transformation:
     software: Optional[str] = None
     internal_action: Optional[str] = None
     internal_data: Optional[str] = None
+    system_level: Optional[str] = None
 
 
 @dataclass

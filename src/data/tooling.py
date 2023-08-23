@@ -22,14 +22,16 @@ datasets = [
     "prolific/TORE_Coded_Answers_1_33.json",
     "prolific/TORE_Coded_Answers_34_66.json",
     "prolific/TORE_Coded_Answers_67_100.json",
+    "app/Komoot_AppReview.json",
 ]
-dataset_source = ["anno", "anno", "prolific", "prolific", "prolific"]
+dataset_source = ["anno", "anno", "prolific", "prolific", "prolific", "komoot"]
 IMPORT_DATASET_PATHS = [
     IMPORT_PATH.joinpath(Path(dataset)) for dataset in datasets
 ]
 DATASETS = list(zip(dataset_source, IMPORT_DATASET_PATHS))
 FORUM = DATASETS[:2]
-PROLIFIC = DATASETS[2:]
+PROLIFIC = DATASETS[2:5]
+KOMOOT = [DATASETS[5]]
 
 
 def get_dataset_information(name: str) -> List[tuple[str, Path]]:
@@ -37,6 +39,8 @@ def get_dataset_information(name: str) -> List[tuple[str, Path]]:
         return FORUM
     if name == "prolific":
         return PROLIFIC
+    if name == "komoot":
+        return KOMOOT
     if name == "all":
         return DATASETS
 

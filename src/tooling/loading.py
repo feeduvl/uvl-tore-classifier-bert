@@ -65,13 +65,21 @@ def split_tokenlist_into_sentences(tokens: List[Token]) -> List[Token]:
 
     result_tokens: List[Token] = []
     for start, end in zip(starts, ends):
-        if end - start != 0:
-            sentence_uuid = uuid.uuid1()
-            sentence = tokens[start:end]
-            for idx, token in enumerate(sentence):
-                token.sentence_idx = idx
-                token.sentence_id = sentence_uuid
-            result_tokens += sentence
+        if end - start == 0:
+            continue
+
+        if end - start == 1:
+            # filter out "ratings sentences"
+            # the delemiting method used in the dataset makes every prepended rating look like a sentence
+            if tokens[start].string.isdigit():
+                continue
+
+        sentence_uuid = uuid.uuid1()
+        sentence = tokens[start:end]
+        for idx, token in enumerate(sentence):
+            token.sentence_idx = idx
+            token.sentence_id = sentence_uuid
+        result_tokens += sentence
 
     return result_tokens
 

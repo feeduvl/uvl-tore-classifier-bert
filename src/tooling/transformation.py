@@ -30,6 +30,8 @@ from tooling.model import ToreLabel
 from tooling.model import ToreLevel
 from tooling.model import ZERO
 
+from tooling.observability import log_param
+
 logging = logging_setup(__name__)
 
 
@@ -112,7 +114,7 @@ def transform_dataset(
         lower_case_token(transformed_dataset["dataset"])
 
     logging.info(f"Dataset Labels: {transformed_dataset['labels']=}")
-    mlflow.log_param("dataset_labels", transformed_dataset["labels"])
+    log_param("dataset_labels", transformed_dataset["labels"])
 
     return transformed_dataset
 
@@ -145,7 +147,6 @@ def get_class_weights(
 class Hints(TypedDict):
     transformation_function: partial[Optional[Label_None_Pad]]
     label2id: Dict[Label_None_Pad, int]
-
 
 
 def get_hint_transformation(
