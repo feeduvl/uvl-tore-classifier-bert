@@ -53,10 +53,14 @@ def add_classification_to_annotation(
 def store_annotation(annotation: Annotation, logger: Logger) -> int:
     logger.info("Storing annotation")
 
+    logger.info(annotation)
+
     request = requests.post(
         "https://feed-uvl.ifi.uni-heidelberg.de/hitec/repository/concepts/store/annotation/",
         json=annotation,
     )
+
+    logger.info(f"Storing annotation response:  {request}")
 
     return request.status_code
 
