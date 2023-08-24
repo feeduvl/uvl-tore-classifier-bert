@@ -79,6 +79,9 @@ def classify_tore() -> Response:
 
     result = dict()
     result.update({"codes": codes})
+
+    app.logger.info(result)
+
     return jsonify(result)
 
 
