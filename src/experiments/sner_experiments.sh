@@ -17,5 +17,5 @@ retry() {
 }
 
 
-retry "timeout --foreground 1h python src/pipelines/sner_pipeline.py -cp experiments/ -cn 1_stage_sner_parameter_sweep -cd src/pipelines/conf/ -m"
-retry "timeout --foreground 1h python src/pipelines/sner_pipeline.py -cp experiments/ -cn e2e_sner_parameter_sweep -cd src/pipelines/conf/ -m"
+retry "timeout --foreground 1h python src/experiments/sner.py -cp configurations/ -cn 1_stage_sner_parameter_sweep -cd src/experiments/conf/ -m"
+retry "timeout --foreground 1h python src/experiments/sner.py -cp configurations/ -cn e2e_sner_parameter_sweep -cd src/experiments/conf/ -m"

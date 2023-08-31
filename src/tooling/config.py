@@ -159,7 +159,6 @@ class DualModelStagedBERTConfig:
 
     experiment: Experiment = field(default_factory=Experiment)
     transformation: Transformation = field(default_factory=Transformation)
-    hint_transformation: Transformation = field(default_factory=Transformation)
 
 
 Config = FirstStageConfigs | DualModelStagedBERTConfig | StagedBERTConfig

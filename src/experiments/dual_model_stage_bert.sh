@@ -17,5 +17,5 @@ retry() {
 }
 
 
-retry "timeout --foreground 2h python src/experiments/bert.py -cp configurations/ -cn e2e_bert_parameter_sweep -cd src/experiments/conf/ -m"
-retry "timeout --foreground 2h python src/experiments/bert.py -cp configurations/ -cn 1_stage_bert_parameter_sweep -cd src/experiments/conf/ -m"
+
+retry "timeout --foreground 2h python src/experiments/dual_model_staged_bert.py -cp configurations/ -cn 2_stage_dual_model_bert_bert_sweep -cd src/experiments/conf/ -m"

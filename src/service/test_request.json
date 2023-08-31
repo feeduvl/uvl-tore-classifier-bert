@@ -33,5 +33,9 @@
         ],
         "ground_truth": []
     },
-    "params": { "annotation_name": "", "debug": "false", "persist": "false" }
+    "params": {
+        "annotation_name": "OOM Test",
+        "debug": "false",
+        "persist": "true"
+    }
 }

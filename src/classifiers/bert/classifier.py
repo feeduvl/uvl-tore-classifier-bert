@@ -479,7 +479,9 @@ def get_max_len(
         t_a_a_l_test = get_tokenize_and_align_labels(
             tokenizer=tokenizer, max_len=None, truncation=False
         )
-        prepared_data = prepare_data(data, label2id=label2id)
+        prepared_data = prepare_data(
+            data, label2id=label2id, ignore_labels=False
+        )
         prepared_data_df = pd.DataFrame.from_records(prepared_data)
         test_data = Dataset.from_pandas(df=prepared_data_df)
         test_data = test_data.map(
@@ -490,7 +492,18 @@ def get_max_len(
             {"string": "text", "tore_label_id": "labels"}
         )
 
-        max_len = max([len(s) for s in test_data["text"]])
+        # iterate over all input_ids and remove the tokens with the special embedding value 0 as these are used for padding
+        # get the longest sequence and add 1
+        # that is the longest sequence the classifier has to handle
+        max_len = (
+            max(
+                [
+                    len(list(filter((0).__ne__, s)))
+                    for s in test_data["input_ids"]
+                ]
+            )
+            + 1
+        )
         logging.info(f"Computed maximal token sequence length: {max_len = }")
         mlflow.log_param("computed_max_len", max_len)
 

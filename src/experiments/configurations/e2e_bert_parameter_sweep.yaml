@@ -9,27 +9,29 @@ defaults:
     - _self_
 
 experiment:
-    name: E2E Bert Parameter Sweep
+    name: E2E_Bert_Parameter_Sweep
     description: Perform a multi parameter grid search to find the optimal configuration for using bert in an e2e setting
-    dataset: prolific
+    dataset: all
     folds: 5
     iterations: 1 # only run one experiment per config
     force: False
+    lower_case: True
 
 bert:
     model: bert-base-uncased
-    max_len:
+    max_len: 123
     validation_batch_size: 64
-    weighted_classes: True
+    weighted_classes: False
+    
 
 hydra:
     launcher:
         n_jobs: 1
     sweeper:
         params:
-            bert.number_epochs: "3,5,10"
+            bert.number_epochs: "3,5,8"
             bert.train_batch_size: "8,16,32"
-            bert.learning_rate_bert: "1e-05,3e-05,5e-05"
-            bert.learning_rate_classifier: "0.001,0.06,0.1"
-            bert.weight_decay: "0.001,0.05,0.1"
-            bert.weighted_classes: "False,True"
+            bert.learning_rate_bert: "4e-05,5e-05,6e-05"
+            bert.learning_rate_classifier: "0.06,0.1,0.15"
+            bert.weight_decay: "0.01"
+            bert.weighted_classes: "False"

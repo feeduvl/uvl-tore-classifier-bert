@@ -1,0 +1,62 @@
+defaults:
+    - base_config
+    - transformation: none
+    - transformation@first_model_bert.transformation: levels
+
+
+    - override hydra/launcher: joblib
+    - override hydra/job_logging: colorlog
+    - override hydra/hydra_logging: colorlog
+
+    - _self_
+
+experiment:
+    name: 2ndStageDualModelBertParameterSweep
+    description: Perform a multi parameter grid search to find the optimal configuration for using staged bert
+    dataset: all
+    folds: 5
+    iterations: 1 # only run one experiment per config
+    force: False
+
+first_model_bert:
+    
+
+    experiment:
+        name: 1stStageBertParameterSweep
+        description: Perform a multi parameter grid search to find the optimal configuration for using staged bert
+        dataset: all
+        folds: 5
+        iterations: 1 # only run one experiment per config
+        force: False
+        lower_case: True
+
+    
+
+    bert:
+        model: bert-base-uncased
+        max_len: 123
+        number_epochs: 3
+        train_batch_size: 16
+        validation_batch_size: 64
+        learning_rate_bert: 3e-05
+        learning_rate_classifier: 0.0005
+        weight_decay: 0.01
+        weighted_classes: True
+
+bert:
+    model: bert-base-uncased
+    max_len: 123
+    validation_batch_size: 64
+    weighted_classes: True
+
+hydra:
+    launcher:
+        n_jobs: 1
+    sweeper:
+        params:
+            bert.layers: "[144],[144,144]"
+            bert.number_epochs: "3,5"
+            bert.train_batch_size: "8,16"
+            bert.learning_rate_bert: "3e-05"
+            bert.learning_rate_classifier: "0.08,0.1,0.12"
+            bert.weight_decay: "0.001,0.01,0.1"
