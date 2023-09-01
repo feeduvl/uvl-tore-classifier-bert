@@ -133,7 +133,6 @@ def bert_pipeline(cfg: BERTConfig, run_name: str) -> None:
             save_total_limit=3,
             optim="adamw_torch",
             push_to_hub=False,
-            use_mps_device=True,
         )
 
         # mypy: allow-untyped-call

@@ -156,7 +156,6 @@ def staged_bert_pipeline(cfg: StagedBERTConfig, run_name: str) -> None:
             save_total_limit=3,
             optim="adamw_torch",
             push_to_hub=False,
-            use_mps_device=True,
         )
 
         trainer = WeightedTrainer(  # type: ignore
@@ -343,7 +342,6 @@ def dual_stage_bert_pipeline(
             load_best_model_at_end=True,
             optim="adamw_torch",
             push_to_hub=False,
-            use_mps_device=True,
         )
 
         trainer = WeightedTrainer(  # type: ignore
