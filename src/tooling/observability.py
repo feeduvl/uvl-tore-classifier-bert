@@ -135,7 +135,7 @@ def get_run_id(cfg: Config, pin_commit: bool = True) -> Optional[str]:
         separator="_",
     )
     del config["experiment_force"]
-    del config["pin_commit"]
+    del config["experiment_pin_commit"]
 
     params_query_string = " and ".join(
         [f"params_{key} == '{value}'" for key, value in config.items()]
