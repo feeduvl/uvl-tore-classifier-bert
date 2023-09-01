@@ -9,7 +9,7 @@ defaults:
     - _self_
 
 experiment:
-    name: E2E_SNER_Sweep
+    name: v2_E2E_SNER_Sweep
     description: Sweep Parameters for SNER in an E2E setting
     folds: 5
     iterations: 5
@@ -20,4 +20,4 @@ hydra:
         n_jobs: 4
     sweeper:
         params:
-            experiment.dataset: prolific, forum, komoot, all
+            experiment.dataset: all

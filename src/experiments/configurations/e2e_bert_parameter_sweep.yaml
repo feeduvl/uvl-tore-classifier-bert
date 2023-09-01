@@ -9,7 +9,7 @@ defaults:
     - _self_
 
 experiment:
-    name: E2E_Bert_Parameter_Sweep
+    name: v2_E2E_Bert_Parameter_Sweep
     description: Perform a multi parameter grid search to find the optimal configuration for using bert in an e2e setting
     dataset: all
     folds: 5

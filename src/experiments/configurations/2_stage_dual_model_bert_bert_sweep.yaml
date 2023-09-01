@@ -11,7 +11,7 @@ defaults:
     - _self_
 
 experiment:
-    name: 2ndStageDualModelBertParameterSweep
+    name: v2_2ndStageDualModelBertParameterSweep
     description: Perform a multi parameter grid search to find the optimal configuration for using staged bert
     dataset: all
     folds: 5
@@ -22,7 +22,7 @@ first_model_bert:
     
 
     experiment:
-        name: 1stStageBertParameterSweep
+        name: v2_1stStageBertParameterSweep
         description: Perform a multi parameter grid search to find the optimal configuration for using staged bert
         dataset: all
         folds: 5

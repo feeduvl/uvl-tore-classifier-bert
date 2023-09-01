@@ -16,7 +16,8 @@ retry() {
   fi
 }
 
+retry "timeout --foreground 1h python src/experiments/bilstm.py -cp configurations/ -cn e2e_bilstm_parameter_sweep -cd src/experiments/conf/ -m"
+
 retry "timeout --foreground 1h python src/experiments/bilstm.py -cp configurations/ -cn 1_stage_bilstm_parameter_sweep -cd src/experiments/conf/ -m"
 
-retry "timeout --foreground 1h python src/experiments/bilstm.py -cp configurations/ -cn e2e_bilstm_parameter_sweep -cd src/experiments/conf/ -m"
 

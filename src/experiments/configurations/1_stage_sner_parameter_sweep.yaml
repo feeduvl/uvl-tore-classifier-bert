@@ -9,7 +9,7 @@ defaults:
     - _self_
 
 experiment:
-    name: 1stStageSner
+    name: v2_1stStageSner
     description: Sweep Parameters for SNER in an 1st stage setting
     folds: 5
     iterations: 5
@@ -20,4 +20,4 @@ hydra:
         n_jobs: 4
     sweeper:
         params:
-            experiment.dataset: prolific, forum, komoot, all
+            experiment.dataset: all

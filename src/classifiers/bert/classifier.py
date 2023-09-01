@@ -460,7 +460,10 @@ class WeightedTrainer(Trainer):
 
 
 def setup_device() -> str:
-    device = "mps" if torch.backends.mps.is_available() else "cpu"
+    device = "cpu"
+    device = "cuda" if torch.cuda.is_available() else device
+    device = "mps" if torch.backends.mps.is_available() else device
+
     logging.info(f"Using device: {device}")
     return device
 

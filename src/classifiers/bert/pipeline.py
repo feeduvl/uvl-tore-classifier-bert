@@ -131,7 +131,6 @@ def bert_pipeline(cfg: BERTConfig, run_name: str) -> None:
             evaluation_strategy="epoch",
             save_strategy="epoch",
             save_total_limit=3,
-            load_best_model_at_end=True,
             optim="adamw_torch",
             push_to_hub=False,
             use_mps_device=True,
