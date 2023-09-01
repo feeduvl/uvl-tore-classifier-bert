@@ -464,7 +464,7 @@ def setup_device() -> str:
     device = "cuda" if torch.cuda.is_available() else device
     device = "mps" if torch.backends.mps.is_available() else device
 
-    logging.info(f"Using device: {device}")
+    logging.debug(f"Using device: {device}")
     return device
 
 

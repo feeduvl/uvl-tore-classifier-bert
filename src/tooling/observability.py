@@ -122,6 +122,8 @@ class RerunException(Exception):
 
 
 def get_run_id(cfg: Config, pin_commit: bool = True) -> Optional[str]:
+    pin_commit = cfg.experiment.pin_commit
+
     experiment_id = mlflow.set_experiment(cfg.experiment.name)
     runs_df = mlflow.search_runs(
         experiment_ids=[experiment_id.experiment_id], output_format="pandas"
@@ -133,6 +135,7 @@ def get_run_id(cfg: Config, pin_commit: bool = True) -> Optional[str]:
         separator="_",
     )
     del config["experiment_force"]
+    del config["pin_commit"]
 
     params_query_string = " and ".join(
         [f"params_{key} == '{value}'" for key, value in config.items()]
