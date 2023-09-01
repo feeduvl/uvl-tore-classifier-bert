@@ -416,7 +416,7 @@ class WeightedTrainer(Trainer):
         # compute custom loss (suppose one has 3 labels with different weights)
 
         weights = self.class_weights
-        weights.to("mps")
+        weights.to(setup_device())
 
         loss_fct = nn.CrossEntropyLoss(weight=weights)
 
