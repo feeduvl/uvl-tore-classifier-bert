@@ -1,0 +1,26 @@
+defaults:
+    - base_config
+    - transformation: None
+
+    - override hydra/launcher: joblib
+    - override hydra/job_logging: colorlog
+    - override hydra/hydra_logging: colorlog
+
+    - _self_
+
+experiment:
+    name: v2_E2E_Validation
+    description: Cross validate best BILSTM E2E
+    dataset: all
+    folds: 5
+    iterations: 5
+    force: False
+
+bilstm:
+    sentence_length: 106
+    batch_size: 32
+    learning_rate: 0.006
+    number_epochs: 12
+    verbose: 2
+    weighted_classes: False
+

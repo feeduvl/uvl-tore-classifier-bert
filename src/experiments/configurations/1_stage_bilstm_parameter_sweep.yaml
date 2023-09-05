@@ -11,7 +11,7 @@ defaults:
 experiment:
     name: v2_1stStageBiLSTMSweep
     description: Sweep Parameters for BiLSTM in an 1st stage setting
-    dataset: prolific
+    dataset: all
     folds: 5
     iterations: 1
     force: False

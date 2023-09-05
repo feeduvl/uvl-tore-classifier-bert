@@ -16,5 +16,6 @@ retry() {
   fi
 }
 
-retry "timeout --foreground 2h python3.11 src/experiments/bert.py -cp configurations/ -cn 1_stage_bert_parameter_sweep -cd src/experiments/conf/ -m"
-retry "timeout --foreground 2h python3.11 src/experiments/bert.py -cp configurations/ -cn e2e_bert_parameter_sweep -cd src/experiments/conf/ -m"
+
+
+retry "timeout --foreground 2h python src/experiments/fake_staged_bert.py -cp configurations/ -cn fake_staged_bert -cd src/experiments/conf/ "

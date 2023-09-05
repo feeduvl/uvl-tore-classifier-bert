@@ -180,4 +180,6 @@ def classify_with_bert(
     )
     hint_column = get_hint_column(first_stage_train_result[0])
 
+    del model
+
     return hint_column_to_labels(column=hint_column, id2label=id2label)

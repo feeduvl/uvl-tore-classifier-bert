@@ -9,11 +9,9 @@ defaults:
     - _self_
 
 experiment:
-    name: v2_E2E_SNER_Sweep
-    description: Sweep Parameters for SNER in an E2E setting
+    name: v2_E2E_Validation
+    description:  Cross validate best SNER E2E
     folds: 5
-    iterations: 1
+    iterations: 5
     force: False
-    experiment.dataset: all
-
-
+    dataset: all

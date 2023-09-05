@@ -1,0 +1,26 @@
+defaults:
+    - base_config
+    - transformation: levels
+
+    - override hydra/launcher: joblib
+    - override hydra/job_logging: colorlog
+    - override hydra/hydra_logging: colorlog
+
+    - _self_
+
+experiment:
+    name: v2_1stStageValidation
+    description: Cross validate for BiLSTM in an 1st stage setting
+    dataset: all
+    folds: 5
+    iterations: 5
+    force: False
+
+bilstm:
+    sentence_length: 106
+    batch_size: 16
+    learning_rate: 0.006
+    number_epochs: 5
+    verbose: 2
+    weighted_classes: False
+

@@ -18,7 +18,9 @@ cs.store(name="base_config", node=StagedBERTConfig)
 
 
 @hydra.main(
-    version_base=None, config_path="conf", config_name="config_staged_bert"
+    version_base=None,
+    config_path="conf",
+    config_name="fake_staged_bert_parameter_sweep",
 )
 def staged_bert(cfg: StagedBERTConfig) -> None:
     try:

@@ -59,12 +59,12 @@ def staged_bert_pipeline(cfg: StagedBERTConfig, run_name: str) -> None:
         cfg, run_name, fill_with_zeros=True
     )
 
+    raw_class_weights = get_class_weights(
+        exp_cfg=cfg.bert, data=transformed_dataset["dataset"]
+    )
+
     # Get model constants
-    class_weights = torch.from_numpy(
-        get_class_weights(
-            exp_cfg=cfg.bert, data=transformed_dataset["dataset"]
-        )
-    ).to(torch.float32)
+    class_weights = torch.from_numpy(raw_class_weights).to(torch.float32)
     id2label = get_id2label(transformed_dataset["labels"])
     label2id = get_label2id(transformed_dataset["labels"])
 
@@ -120,20 +120,27 @@ def staged_bert_pipeline(cfg: StagedBERTConfig, run_name: str) -> None:
             modifiers=[hint_modifier],
         )
 
+        logging.info("Finished data loading")
+
         model_config = StagedBertModelConfig(
+            device=setup_device(),
+            pretrained_model_name_or_path=cfg.bert.model,
             num_hint_labels=len(hints["label2id"]),
-            layers=cfg.bert.layers,
+            layers=list(cfg.bert.layers),
             num_labels=len(transformed_dataset["labels"]),
             id2label=id2label,
             label2id=label2id,
+            weights=raw_class_weights.tolist(),
         )
 
         # Get Model
         model = StagedBertForTokenClassification.from_pretrained(
-            cfg.bert.model, config=model_config
+            pretrained_model_name_or_path=cfg.bert.model,
+            config=model_config,
+            ignore_mismatched_sizes=True,
         )
-        # for param in model.bert.parameters():
-        #    param.requires_grad = False
+
+        print(model)
 
         model.to(device=device)
 
@@ -231,12 +238,12 @@ def dual_stage_bert_pipeline(
         cfg, run_name, fill_with_zeros=True
     )
 
+    raw_class_weights = get_class_weights(
+        exp_cfg=cfg.bert, data=transformed_dataset["dataset"]
+    )
+
     # Get model constants
-    class_weights = torch.from_numpy(
-        get_class_weights(
-            exp_cfg=cfg.bert, data=transformed_dataset["dataset"]
-        )
-    ).to(torch.float32)
+    class_weights = torch.from_numpy(raw_class_weights).to(torch.float32)
     id2label = get_id2label(transformed_dataset["labels"])
     label2id = get_label2id(transformed_dataset["labels"])
 
@@ -305,12 +312,14 @@ def dual_stage_bert_pipeline(
         )
 
         model_config = StagedBertModelConfig(
+            device=setup_device(),
             pretrained_model_name_or_path=cfg.bert.model,
             num_hint_labels=len(hint_label2id.keys()),
             layers=list(cfg.bert.layers),
             num_labels=len(transformed_dataset["labels"]),
             id2label=id2label,
             label2id=label2id,
+            weights=raw_class_weights.tolist(),
         )
 
         # Get Model
@@ -319,6 +328,8 @@ def dual_stage_bert_pipeline(
             config=model_config,
             ignore_mismatched_sizes=True,
         )
+
+        print(model)
         # for param in model.bert.parameters():
         #    param.requires_grad = False
 
@@ -339,8 +350,7 @@ def dual_stage_bert_pipeline(
             weight_decay=cfg.bert.weight_decay,
             evaluation_strategy="epoch",
             save_strategy="epoch",
-            save_total_limit=3,
-            load_best_model_at_end=True,
+            load_best_model_at_end=False,
             optim="adamw_torch",
             push_to_hub=False,
             use_mps_device=(device == "mps"),

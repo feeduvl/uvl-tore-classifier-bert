@@ -1,7 +1,7 @@
 defaults:
     - base_config
     - transformation: none
-    - hint_transformation: levels
+    - transformation@hint_transformation: levels
 
     - override hydra/launcher: joblib
     - override hydra/job_logging: colorlog
@@ -10,7 +10,7 @@ defaults:
     - _self_
 
 experiment:
-    name: StagedBERT Parameter Sweep 2
+    name: v2_2Stage_Validation
     description: Perform a multi parameter grid search to find the optimal configuration for using staged bert
     dataset: prolific
     folds: 5
@@ -19,18 +19,13 @@ experiment:
 
 bert:
     model: bert-base-uncased
-    max_len:
+    max_len: 123
     validation_batch_size: 64
     weighted_classes: True
+    train_batch_size: 8
+    layers: []
+    number_epochs: 5
+    weight_decay: 0.1
+    learning_rate_classifier: 0.16
+    learning_rate_bert: 3e-05
 
-hydra:
-    launcher:
-        n_jobs: 1
-    sweeper:
-        params:
-            bert.layers: "[],[144],[144,144]"
-            bert.number_epochs: "5,10"
-            bert.train_batch_size: "8,16,32"
-            bert.learning_rate_bert: "1e-05,3e-05"
-            bert.learning_rate_classifier: "0.001,0.01,0.1"
-            bert.weight_decay: "0.001,0.01,0.1"

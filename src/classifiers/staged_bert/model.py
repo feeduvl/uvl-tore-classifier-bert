@@ -10,6 +10,7 @@ from typing import TypedDict
 from typing import Union
 
 import torch
+import numpy as np
 from torch import nn
 from torch.nn import CrossEntropyLoss
 from transformers.modeling_outputs import (
@@ -25,16 +26,21 @@ class StagedBertModelConfig(BertConfig):
 
     def __init__(
         self,
+        device: str = "cpu",
         num_hint_labels: int = 0,
         layers: List[int] = [],
+        weights: Optional[List[float]] = None,
         **kwargs,
     ):
         super().__init__(**kwargs)
         self.num_hint_labels = num_hint_labels
         self.layers = layers
+        self.weights = weights
+        self.device = device
 
 
 class StagedBertForTokenClassification(BertPreTrainedModel):
+    # https://colab.research.google.com/drive/1ZLfcB16Et9U2V-udrw8zwrfChFCIhomz?usp=sharing#scrollTo=m-TTyOMJOGBD
     config_class = StagedBertModelConfig
 
     def __init__(
@@ -44,6 +50,12 @@ class StagedBertForTokenClassification(BertPreTrainedModel):
         super().__init__(config)
         self.num_labels = config.num_labels
         self.num_hint_labels = config.num_hint_labels
+        print("Test")
+        self.weights = (
+            torch.from_numpy(np.array(config.weights))
+            .to(torch.float32)
+            .to(device=config.device)
+        )
 
         self.bert = BertModel(config, add_pooling_layer=False)
         classifier_dropout = (
@@ -53,19 +65,22 @@ class StagedBertForTokenClassification(BertPreTrainedModel):
         )
         self.dropout = nn.Dropout(classifier_dropout)
 
-        in_factor = config.hidden_size + config.num_hint_labels
-        layers = [math.floor(layer * in_factor) for layer in config.layers]
+        in_size = config.hidden_size + config.num_hint_labels
+        layers = [layer for layer in config.layers]
 
-        layers.insert(0, in_factor)
+        layers.insert(0, in_size)
         layers.append(config.num_labels)
 
-        out_layers: List[nn.Linear] = []
+        out_layers: List[nn.Linear | nn.ReLU] = []
 
         for idx in range(len(layers) - 1):
             _in = layers[idx]
             _out = layers[idx + 1]
             _layer = nn.Linear(_in, _out)
             out_layers.append(_layer)
+            out_layers.append(nn.ReLU())
+
+        out_layers.pop(-1)  # remove last relu
 
         self.out_layers = nn.Sequential(*out_layers)
 
@@ -124,7 +139,7 @@ class StagedBertForTokenClassification(BertPreTrainedModel):
 
         loss = None
         if labels is not None:
-            loss_fct = CrossEntropyLoss()
+            loss_fct = CrossEntropyLoss(weight=self.weights)
             loss = loss_fct(logits.view(-1, self.num_labels), labels.view(-1))
 
         if not return_dict:

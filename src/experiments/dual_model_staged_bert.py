@@ -20,7 +20,7 @@ cs.store(name="base_config", node=DualModelStagedBERTConfig)
 @hydra.main(
     version_base=None,
     config_path="conf",
-    config_name="bilstm_config_dual_model_staged_bert",
+    config_name="2_stage_dual_model_bert_bert_sweep",
 )
 def dual_stage_bert(cfg: DualModelStagedBERTConfig) -> None:
     try:
