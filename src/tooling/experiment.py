@@ -46,7 +46,10 @@ def pretrained_model_path(name: str) -> Path:
 
 
 def get_model(
-    cfg: DualModelStagedBERTConfig, run_name: str, retry: int = 0
+    cfg: DualModelStagedBERTConfig,
+    run_name: str,
+    iteration: int,
+    retry: int = 0,
 ) -> Tuple[
     Dict[Label_None_Pad, int],
     Dict[int, Label_None_Pad],
@@ -58,13 +61,13 @@ def get_model(
 
     if cfg.first_model_bert:
         run_id = get_run_id(cfg.first_model_bert)
-        suffix = "/0_model"
+        suffix = f"/{iteration}_model"
     elif cfg.first_model_bilstm:
         run_id = get_run_id(cfg.first_model_bilstm)
-        suffix = "/0_model"
+        suffix = f"/{iteration}_model"
     elif cfg.first_model_sner:
         run_id = get_run_id(cfg.first_model_sner)
-        suffix = "/0_model.ser.gz"
+        suffix = f"/{iteration}_model.ser.gz"
     else:
         raise NotImplementedError
 
@@ -106,17 +109,23 @@ def get_model(
             logging.warn("Running missing experiment")
             bert(cfg.first_model_bert)
             logging.warn("Retry finding experiment")
-            return get_model(cfg, run_name=run_name, retry=retry + 1)
+            return get_model(
+                cfg, run_name=run_name, iteration=iteration, retry=retry + 1
+            )
         if cfg.first_model_bilstm:
             logging.warn("Running missing experiment")
             bilstm(cfg.first_model_bilstm)
             logging.warn("Retry finding experiment")
-            return get_model(cfg, run_name=run_name, retry=retry + 1)
+            return get_model(
+                cfg, run_name=run_name, iteration=iteration, retry=retry + 1
+            )
         if cfg.first_model_sner:
             logging.warn("Running missing experiment")
             sner(cfg.first_model_sner)
             logging.warn("Retry finding experiment")
-            return get_model(cfg, run_name=run_name, retry=retry + 1)
+            return get_model(
+                cfg, run_name=run_name, iteration=iteration, retry=retry + 1
+            )
         else:
             raise NotImplementedError
 
@@ -124,6 +133,7 @@ def get_model(
 def run_model(
     cfg: DualModelStagedBERTConfig,
     run_name: str,
+    iteration: int,
     data: DataSet[DataDF],
     label2id: Dict[Label_None_Pad, int],
     tokenizer: BertTokenizerFast,
@@ -142,7 +152,7 @@ def run_model(
 
     if cfg.first_model_bert:
         model_path = pretrained_model_path(name=run_name).joinpath(
-            Path("0_model")
+            Path(f"{iteration}_model")
         )
 
         first_bert_data = create_bert_dataset(
@@ -175,7 +185,7 @@ def run_model(
 
     if cfg.first_model_sner:
         model_path = pretrained_model_path(name=run_name).joinpath(
-            Path("0_model.ser.gz")
+            Path(f"{iteration}_model.ser.gz")
         )
 
         hinted_data = classify_with_sner(model_path=model_path, data=data)
@@ -195,15 +205,17 @@ def run_model(
             raise ValueError("No 'hint_id2label' provided")
         if not glove_model:
             raise ValueError("No 'glove_model' provided")
+        if not cfg.first_model_bilstm.bilstm.sentence_length:
+            raise ValueError("No 'sentence_length' provided")
 
         model_path = pretrained_model_path(name=run_name).joinpath(
-            Path("0_model")
+            Path(f"{iteration}_model")
         )
 
         hinted_data = classify_with_bilstm(
             model_path=model_path,
             data=data,
-            max_len=max_len,
+            max_len=cfg.first_model_bilstm.bilstm.sentence_length,
             glove_model=glove_model,
             hint_id2label=hint_id2label,
         )

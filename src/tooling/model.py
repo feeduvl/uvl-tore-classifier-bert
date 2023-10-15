@@ -62,7 +62,7 @@ ImportSystemLevelLabel = Literal[
     "Software", "Internal Action", "Internal Data", "System Level"
 ]
 SystemLevelLabel = Literal[
-    "Software", "Internal_Action", "Internal_Data", "System Level"
+    "Software", "Internal_Action", "Internal_Data", "System_Level"
 ]
 SYSTEM_LEVEL_LABELS: Tuple[SystemLevelLabel, ...] = cast(
     tuple[SystemLevelLabel], typing.get_args(SystemLevelLabel)
@@ -231,7 +231,7 @@ class HintedDataDF:
     sentence_idx: int
     string: str
     tore_label: Optional[Label]
-    hint_input_ids: int
+    hint_input_ids: int | str
 
 
 TokenizedDataDF = typing.NewType("TokenizedDataDF", DataDF)
@@ -282,7 +282,7 @@ def data_to_sentences(data: DataSet[DataDF]) -> List[str]:
 
 
 def data_to_list_of_token_lists(
-    data: DataSet[DataDF],
+    data: DataSet[DataDF] | DataSet[HintedDataDF],
 ) -> List[List[str]]:
     sentences: List[List[str]] = []
 
@@ -301,7 +301,7 @@ def get_sentence_lengths(data: DataSet[DataDF]) -> List[int]:
 
 @overload
 def data_to_list_of_label_lists(
-    data: DataSet[DataDF],
+    data: DataSet[DataDF] | DataSet[HintedDataDF],
     label2id: None,
     column: str = "tore_label",
 ) -> List[List[Label_None_Pad]]:
@@ -310,7 +310,7 @@ def data_to_list_of_label_lists(
 
 @overload
 def data_to_list_of_label_lists(
-    data: DataSet[DataDF],
+    data: DataSet[DataDF] | DataSet[HintedDataDF],
     label2id: Dict[Label_None_Pad, int],
     column: str = "tore_label",
 ) -> List[List[int]]:
@@ -318,7 +318,7 @@ def data_to_list_of_label_lists(
 
 
 def data_to_list_of_label_lists(
-    data: DataSet[DataDF],
+    data: DataSet[DataDF] | DataSet[HintedDataDF],
     label2id: Dict[Label_None_Pad, int] | None,
     column: str = "tore_label",
 ) -> Union[List[List[Label_None_Pad]], List[List[int]]]:

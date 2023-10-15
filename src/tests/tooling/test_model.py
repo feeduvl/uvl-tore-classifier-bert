@@ -21,9 +21,9 @@ from tooling.model import label_to_id
         ("Software", 10),
         ("Internal_Action", 11),
         ("Internal_Data", 12),
-        ("Domain_Level", 13),
-        ("Interaction_Level", 14),
-        ("System_Level", 15),
+        ("System_Level", 13),
+        ("Domain_Level", 14),
+        ("Interaction_Level", 15),
         ("_", -1),
     ],
 )

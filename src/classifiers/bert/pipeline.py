@@ -1,11 +1,11 @@
-from typing import List
+from typing import List, Any, Dict
 
 import mlflow
 import torch
 from transformers import BertForTokenClassification
 from transformers import BertTokenizerFast
 from transformers import TrainingArguments
-
+from datasets import Dataset
 from classifiers.bert.classifier import create_bert_dataset
 from classifiers.bert.classifier import get_compute_metrics
 from classifiers.bert.classifier import get_max_len
@@ -18,14 +18,14 @@ from tooling.config import BERTConfig
 from tooling.loading import import_dataset
 from tooling.logging import logging_setup
 from tooling.model import get_id2label
-from tooling.model import get_label2id
+from tooling.model import get_label2id, Label_None_Pad
 from tooling.observability import log_artifacts
 from tooling.sampling import DATA_TEST
 from tooling.sampling import DATA_TRAIN
 from tooling.sampling import load_split_dataset
 from tooling.sampling import split_dataset_k_fold
 from tooling.transformation import get_class_weights
-from tooling.transformation import transform_dataset
+from tooling.transformation import transform_dataset, TransformedDataset
 from tooling.types import IterationResult
 
 
@@ -105,60 +105,18 @@ def bert_pipeline(cfg: BERTConfig, run_name: str) -> None:
         )
 
         # Get Model
-        model = BertForTokenClassification.from_pretrained(
-            cfg.bert.model,
-            num_labels=len(transformed_dataset["labels"]),
-            id2label=id2label,
-            label2id=label2id,
-        )
-
-        model.to(device=device)
-
-        # Train
-
-        training_args = TrainingArguments(
-            output_dir=str(
-                output_path(name=run_name, clean=True)
-            ),  # pin iteration to avoid relogging parameter,
-            logging_dir=str(
-                output_path(name=run_name, clean=True)
-            ),  # pin iteration to avoid relogging parameter,
-            run_name=run_name,
-            per_device_train_batch_size=cfg.bert.train_batch_size,
-            per_device_eval_batch_size=cfg.bert.validation_batch_size,
-            num_train_epochs=cfg.bert.number_epochs,
-            weight_decay=cfg.bert.weight_decay,
-            evaluation_strategy="epoch",
-            save_strategy="epoch",
-            save_total_limit=3,
-            optim="adamw_torch",
-            push_to_hub=False,
-            use_mps_device=(device=="mps")
-        )
-
-        # mypy: allow-untyped-call
-        trainer = WeightedTrainer(  # type: ignore
-            model=model,
-            args=training_args,
-            train_dataset=train_data,
-            eval_dataset=test_data,
-            tokenizer=TOKENIZER,
-            compute_metrics=get_compute_metrics(
-                iteration_tracking=[],
-                average=cfg.experiment.average,
-                labels=transformed_dataset["labels"],
-                run_name=run_name,
-                id2label=id2label,
-                create_confusion_matrix=False,
-            ),
-            class_weights=class_weights,
-            device=device,
-            learning_rate_bert=cfg.bert.learning_rate_bert,
-            learning_rate_classifier=cfg.bert.learning_rate_classifier,
-        )
-        trainer.train()
-        trainer.save_model(
-            output_dir=str(model_path(name=run_name, iteration=iteration))
+        trainer = train_bert(
+            cfg,
+            run_name,
+            device,
+            TOKENIZER,
+            transformed_dataset,
+            class_weights,
+            id2label,
+            label2id,
+            iteration,
+            train_data,
+            test_data,
         )
 
         test_results = trainer.predict(test_data)
@@ -181,3 +139,75 @@ def bert_pipeline(cfg: BERTConfig, run_name: str) -> None:
     evaluation.evaluate_experiment(
         run_name=run_name, iteration_results=iteration_tracking
     )
+
+
+def train_bert(
+    cfg: BERTConfig,
+    run_name: str,
+    device: str,
+    TOKENIZER: Any,
+    transformed_dataset: TransformedDataset,
+    class_weights: torch.Tensor,
+    id2label: Dict[int, Label_None_Pad],
+    label2id: Dict[Label_None_Pad, int],
+    iteration: int,
+    train_data: Dataset,
+    test_data: Dataset,
+) -> WeightedTrainer:
+    model = BertForTokenClassification.from_pretrained(
+        cfg.bert.model,
+        num_labels=len(transformed_dataset["labels"]),
+        id2label=id2label,
+        label2id=label2id,
+    )
+
+    model.to(device=device)
+
+    # Train
+
+    training_args = TrainingArguments(
+        output_dir=str(
+            output_path(name=run_name, clean=True)
+        ),  # pin iteration to avoid relogging parameter,
+        logging_dir=str(
+            output_path(name=run_name, clean=True)
+        ),  # pin iteration to avoid relogging parameter,
+        run_name=run_name,
+        per_device_train_batch_size=cfg.bert.train_batch_size,
+        per_device_eval_batch_size=cfg.bert.validation_batch_size,
+        num_train_epochs=cfg.bert.number_epochs,
+        weight_decay=cfg.bert.weight_decay,
+        evaluation_strategy="epoch",
+        save_strategy="epoch",
+        save_total_limit=3,
+        optim="adamw_torch",
+        push_to_hub=False,
+        use_mps_device=(device == "mps"),
+    )
+
+    # mypy: allow-untyped-call
+    trainer = WeightedTrainer(  # type: ignore
+        model=model,
+        args=training_args,
+        train_dataset=train_data,
+        eval_dataset=test_data,
+        tokenizer=TOKENIZER,
+        compute_metrics=get_compute_metrics(
+            iteration_tracking=[],
+            average=cfg.experiment.average,
+            labels=transformed_dataset["labels"],
+            run_name=run_name,
+            id2label=id2label,
+            create_confusion_matrix=False,
+        ),
+        class_weights=class_weights,
+        device=device,
+        learning_rate_bert=cfg.bert.learning_rate_bert,
+        learning_rate_classifier=cfg.bert.learning_rate_classifier,
+    )
+    trainer.train()
+    trainer.save_model(
+        output_dir=str(model_path(name=run_name, iteration=iteration))
+    )
+
+    return trainer

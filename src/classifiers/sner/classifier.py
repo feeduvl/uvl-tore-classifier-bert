@@ -88,7 +88,9 @@ def create_config_file(name: str, iteration: int) -> Path:
     with create_file(filepath) as cf:
         template_dir = RESSOURCES_PATH
 
-        environment = Environment(loader=FileSystemLoader(template_dir))
+        environment = Environment(
+            loader=FileSystemLoader(template_dir), autoescape=True
+        )
         template = environment.get_template(TEMPLATE_FILENAME)
         content = template.render(**asdict(config))
 
@@ -214,14 +216,17 @@ def classify_sentences_action(
 ) -> DataSet[ResultDF]:
     st = instantiate_tagger(modelfile)
 
-    sentences = data_to_sentences(data=data_test)
+    sentences = []
 
-    sentence_list = list(map(word_tokenize, sentences))
+    for sentence_idx, grouped_data in data_test.groupby("sentence_id"):
+        sentences.append([string for string in grouped_data["string"]])
+
+    labeled_sentences = st.tag_sents(sentences)
 
     classification_result: DataSet[ResultDF] = cast(
         DataSet[ResultDF],
         pd.DataFrame(
-            itertools.chain.from_iterable(st.tag_sents(sentence_list)),
+            itertools.chain.from_iterable(labeled_sentences),
             columns=["string", "tore_label"],
         ),
     )
@@ -285,11 +290,7 @@ def match_tokenization(
 def create_solution(
     name: str, iteration: int, data_test: DataSet[DataDF]
 ) -> PickleAndCSV:
-    aligned_tokens = match_tokenization(data_test=data_test)
-
-    solution_df = pd.DataFrame(
-        aligned_tokens, columns=["string", "tore_label"]
-    )
+    solution_df = data_test[["string", "tore_label"]].copy()
 
     solution_df.fillna("0", inplace=True)
 
@@ -327,8 +328,9 @@ def classify_with_sner(
         modelfile=model_path,
         data_test=data,
     )
+    result = cast(DataSet[ResultDF], result.reset_index())
+    data = cast(DataSet[DataDF], data.reset_index())
 
-    result = realign_results(input=data, output=result)
-    data["hint_input_ids"] = result["tore_label"]
+    data["hint_input_ids"] = result["tore_label"].copy()
 
     return cast(DataSet[HintedDataDF], data)

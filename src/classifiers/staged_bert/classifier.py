@@ -135,7 +135,7 @@ def hint_column_to_labels(
     for sentence in column:
         sentence_labels: List[Label_None_Pad] = []
         for token in sentence:
-            sentence_labels.append(id2label[token])
+            sentence_labels.append(id2label[int(token)])
         labels.append(sentence_labels)
 
     return labels

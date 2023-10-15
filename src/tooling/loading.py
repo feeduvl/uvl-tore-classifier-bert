@@ -138,25 +138,37 @@ def denormalize_dataset(
                     code_skip_set.add(token_id)
 
     dataset: List[Token] = []
+
+    # lets iterate over the documents contained in a dataset
     for imported_document in imported_dataset.docs:
         tokens: List[Token] = []
+        # iterate over all tokens contained in the document by index
         for token_index in range(
             imported_document.begin_index, imported_document.end_index
         ):
             imported_token = imported_dataset.tokens[token_index]
+
+            # in the case that we got a token that is not none and should not be skipped
             if (imported_token.index is not None) and (
                 imported_token.index not in code_skip_set
             ):
+                # get the codes for the token
                 try:
                     tore_codes = tokenindex_codes[imported_token.index]
 
                 except KeyError as e:
+                    # ok we got a key error meaning there is no code
+                    # double check if that is correct and expected
                     if imported_token.num_tore_codes == 0:
                         tore_codes = []
+
+                    # if not abort by reraising the exception
                     else:
                         logging.error(f"Key error caused by {imported_token}")
                         raise e
+
                 finally:
+                    # munge data to fit into the dataclass
                     token_str = clean_token(imported_token.name)
 
                     if token_str is None:

@@ -13,7 +13,7 @@ from classifiers.bert.classifier import WeightedTrainer
 from classifiers.bert.files import model_path
 from classifiers.bert.files import output_path
 from classifiers.staged_bert.classifier import get_hint_modifier
-from classifiers.staged_bert.classifier import get_hint_transformation
+from tooling.transformation import get_hint_transformation
 from classifiers.staged_bert.model import (
     StagedBertForTokenClassification,
     StagedBertModelConfig,
@@ -218,11 +218,6 @@ def dual_stage_bert_pipeline(
 ) -> None:
     device = setup_device()
 
-    # Get First stage model
-    hint_label2id, hint_id2label, glove_model, padded_labels = get_model(
-        cfg, run_name=run_name
-    )
-
     mlflow.log_param("bert.num_layers", len(cfg.bert.layers))
     mlflow.log_param("bert.layers", ",".join(str(x) for x in cfg.bert.layers))
 
@@ -273,15 +268,26 @@ def dual_stage_bert_pipeline(
     ):
         logging.info(f"Starting {iteration=}")
 
+        # Get First stage model
+        hint_label2id, hint_id2label, glove_model, padded_labels = get_model(
+            cfg, iteration=iteration, run_name=run_name
+        )
+
         # Load training data
         input_training_data = load_split_dataset(
             name=run_name, filename=DATA_TRAIN, iteration=iteration
+        )
+
+        # Load testing data
+        input_test_data = load_split_dataset(
+            name=run_name, filename=DATA_TEST, iteration=iteration
         )
 
         # Add predicted hint labels to train_dataset
         train_data = run_model(
             cfg=cfg,
             run_name=run_name,
+            iteration=iteration,
             data=input_training_data,
             label2id=label2id,
             tokenizer=TOKENIZER,
@@ -292,15 +298,11 @@ def dual_stage_bert_pipeline(
             padded_labels=padded_labels,
         )
 
-        # Load testing data
-        input_test_data = load_split_dataset(
-            name=run_name, filename=DATA_TEST, iteration=iteration
-        )
-
         # Add predicted hint labels to test_dataset
         test_data = run_model(
             cfg=cfg,
             run_name=run_name,
+            iteration=iteration,
             data=input_test_data,
             label2id=label2id,
             tokenizer=TOKENIZER,

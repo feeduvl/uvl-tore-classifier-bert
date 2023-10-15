@@ -2,73 +2,64 @@
 # the rest of the file as described above.
 [project]
 name = "uvl_tore_classifier_bert"
-version= "0.1"
+version = "0.1"
 
 [tool.setuptools]
 # ...
-package-dir = {"" = "src"}
+package-dir = { "" = "src" }
 
 [tool.mypy]
 warn_return_any = "True"
 warn_unused_configs = "True"
 disallow_subclassing_any = "False"
-mypy_path="src"
-strict="True"
-packages = [
-    "classifiers",
-    "data",
-    "tests",
-    "tooling",
-    "pipelines",
-
-]
-
-
+mypy_path = "src"
+strict = "True"
+packages = ["classifiers", "data", "tests", "tooling", "experiments"]
 
 
 [[tool.mypy.overrides]]
-module="nltk.*"
+module = "nltk.*"
 ignore_missing_imports = "True"
 
 [[tool.mypy.overrides]]
-module="sklearn.*"
+module = "sklearn.*"
 ignore_missing_imports = "True"
 
 [[tool.mypy.overrides]]
-module="matplotlib.*"
+module = "matplotlib.*"
 ignore_missing_imports = "True"
 
 [[tool.mypy.overrides]]
-module="mlflow.*"
+module = "mlflow.*"
 ignore_missing_imports = "True"
 
 [[tool.mypy.overrides]]
-module="gensim.*"
+module = "gensim.*"
 ignore_missing_imports = "True"
 
 [[tool.mypy.overrides]]
-module="tensorflow.*"
+module = "tensorflow.*"
 ignore_missing_imports = "True"
 
 [[tool.mypy.overrides]]
-module="keras.*"
+module = "keras.*"
 ignore_missing_imports = "True"
 
 
 [[tool.mypy.overrides]]
-module="strictly_typed_pandas.*"
+module = "strictly_typed_pandas.*"
 implicit_reexport = "True"
 
 [[tool.mypy.overrides]]
-module="datasets.*"
+module = "datasets.*"
 ignore_missing_imports = "True"
 
 [[tool.mypy.overrides]]
-module="transformers.*"
+module = "transformers.*"
 ignore_missing_imports = "True"
 
 [[tool.mypy.overrides]]
-module="evaluate.*"
+module = "evaluate.*"
 ignore_missing_imports = "True"
 
 [tool.black]

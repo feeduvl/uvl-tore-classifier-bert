@@ -19,6 +19,7 @@ class IterationResult:
 
     precision: float = 0.0
     recall: float = 0.0
+    f1: float = 0.0
 
     pl_precision: Dict[Label_None, float] = field(default_factory=dict)
     pl_recall: Dict[Label_None, float] = field(default_factory=dict)
@@ -32,12 +33,15 @@ class IterationResult:
 class ExperimentResult:
     label_count: int = 0
 
+    min_f1: float = 0.0
     min_precision: float = 0.0
     min_recall: float = 0.0
     mean_precision: float = 0.0
+    mean_f1: float = 0.0
     mean_recall: float = 0.0
     max_precision: float = 0.0
     max_recall: float = 0.0
+    max_f1: float = 0.0
 
     pl_mean_precision: Dict[Label_None, float] = field(default_factory=dict)
     pl_mean_recall: Dict[Label_None, float] = field(default_factory=dict)

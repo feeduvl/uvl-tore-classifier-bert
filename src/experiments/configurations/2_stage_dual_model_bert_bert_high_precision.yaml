@@ -1,7 +1,7 @@
 defaults:
     - base_config
     - transformation: none
-    - transformation@first_model_bert.transformation: levels
+    - transformation@first_model_bilstm.transformation: levels
 
 
     - override hydra/launcher: joblib
@@ -18,26 +18,24 @@ experiment:
     iterations: 5 # only run one experiment per config
     force: False
 
-first_model_bert:
+first_model_bilstm:
     experiment:
-        name: v2_1stStageBertParameterSweep
-        description: Perform a multi parameter grid search to find the optimal configuration for using staged bert
+        name: v2_1stStageValidation_special
+        description: Cross validate BiLSTM high precision
         dataset: all
         folds: 5
-        iterations: 1 # only run one experiment per config
+        iterations: 5 # only run one experiment per config
         force: False
         lower_case: True
-    bert:
-        model: bert-base-uncased
-        max_len: 123
-        number_epochs: 8
-        train_batch_size: 8
-        validation_batch_size: 64
-        learning_rate_bert: 3e-05
-        learning_rate_classifier: 0.0005
-        weight_decay: 0.001
-        weighted_classes: True
+    bilstm:
+        sentence_length: 106
+        batch_size: 64
+        learning_rate: 0.05
+        number_epochs: 12
+        verbose: 2
+        weighted_classes: False
 
+    
 bert:
     model: bert-base-uncased
     max_len: 123

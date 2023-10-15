@@ -1,6 +1,6 @@
 from collections.abc import Sequence
 from typing import cast
-from typing import List
+from typing import List, Dict
 
 import mlflow
 import numpy as np
@@ -13,7 +13,7 @@ from classifiers.bilstm import get_model
 from classifiers.bilstm import get_result_df
 from classifiers.bilstm import get_sentence_length
 from classifiers.bilstm import MultiClassPrecision
-from classifiers.bilstm import MultiClassRecall
+from classifiers.bilstm import MultiClassRecall, ProcessedData
 from classifiers.bilstm import reverse_one_hot_encoding
 from classifiers.bilstm.files import model_path
 from tooling import evaluation
@@ -24,8 +24,9 @@ from tooling.model import get_id2label
 from tooling.model import get_label2id
 from tooling.model import get_sentence_lengths
 from tooling.model import Label_None_Pad
-from tooling.model import PAD, ZERO
-from tooling.model import ResultDF
+from tooling.model import ZERO
+from tooling.model import ResultDF, DataDF
+
 from tooling.observability import end_tracing
 from tooling.observability import log_artifacts
 from tooling.sampling import DATA_TEST
@@ -70,9 +71,6 @@ def bilstm_pipeline(cfg: BiLSTMConfig, run_name: str) -> None:
     mlflow.log_param("id2label", id2label)
     mlflow.log_param("label2id", label2id)
 
-    # Download Model
-    glove_model = get_glove_model()
-
     # Prepare evaluation tracking
     iteration_tracking: List[IterationResult] = []
 
@@ -88,52 +86,23 @@ def bilstm_pipeline(cfg: BiLSTMConfig, run_name: str) -> None:
             name=run_name, filename=DATA_TRAIN, iteration=iteration
         )
 
-        processed_data = get_embeddings_and_categorical(
-            dataset=data_train,
-            sentence_length=sentence_length,
-            labels=padded_labels,
-            glove_model=glove_model,
-            label2id=label2id,
-        )
-
         data_test = load_split_dataset(
             name=run_name, filename=DATA_TEST, iteration=iteration
         )
 
-        processed_data_test = get_embeddings_and_categorical(
-            dataset=data_test,
-            sentence_length=sentence_length,
-            labels=padded_labels,
-            glove_model=glove_model,
-            label2id=label2id,
+        # Download Model
+        processed_data_test = train_bilstm(
+            cfg,
+            run_name,
+            sentence_length,
+            padded_labels,
+            class_weights,
+            label2id,
+            id2label,
+            iteration,
+            data_train,
+            data_test,
         )
-
-        # Get Model
-        model = get_model(
-            n_tags=len(set(padded_labels)),
-            sentence_length=sentence_length,
-            cfg_bilstm=cfg.bilstm,
-            id2label=id2label,
-            average=cfg.experiment.average,
-        )
-
-        # Train
-        model.fit(
-            x=np.array(processed_data["embeddings"]),
-            y=np.array(processed_data["onehot_encoded"]),
-            batch_size=cfg.bilstm.batch_size,
-            epochs=cfg.bilstm.number_epochs,
-            validation_data=(
-                np.array(processed_data_test["embeddings"]),
-                np.array(processed_data_test["onehot_encoded"]),
-            ),
-            class_weight=class_weights,
-            verbose=cfg.bilstm.verbose,
-        )
-
-        model.save(model_path(name=run_name, iteration=iteration))
-        log_artifacts(model_path(name=run_name, iteration=iteration))
-        # Classify
 
         trained_model = tf.keras.models.load_model(
             model_path(name=run_name, iteration=iteration),
@@ -186,3 +155,63 @@ def bilstm_pipeline(cfg: BiLSTMConfig, run_name: str) -> None:
     )
 
     end_tracing()
+
+
+def train_bilstm(
+    cfg: BiLSTMConfig,
+    run_name: str,
+    sentence_length: int,
+    padded_labels: Sequence[Label_None_Pad],
+    class_weights: Dict[int, np.float32],
+    label2id: Dict[Label_None_Pad, int],
+    id2label: Dict[int, Label_None_Pad],
+    iteration: int,
+    data_train: DataSet[DataDF],
+    data_test: DataSet[DataDF],
+) -> ProcessedData:
+    glove_model = get_glove_model()
+
+    processed_data = get_embeddings_and_categorical(
+        dataset=data_train,
+        sentence_length=sentence_length,
+        labels=padded_labels,
+        glove_model=glove_model,
+        label2id=label2id,
+    )
+
+    processed_data_test = get_embeddings_and_categorical(
+        dataset=data_test,
+        sentence_length=sentence_length,
+        labels=padded_labels,
+        glove_model=glove_model,
+        label2id=label2id,
+    )
+
+    # Get Model
+    model = get_model(
+        n_tags=len(set(padded_labels)),
+        sentence_length=sentence_length,
+        cfg_bilstm=cfg.bilstm,
+        id2label=id2label,
+        average=cfg.experiment.average,
+    )
+
+    # Train
+    model.fit(
+        x=np.array(processed_data["embeddings"]),
+        y=np.array(processed_data["onehot_encoded"]),
+        batch_size=cfg.bilstm.batch_size,
+        epochs=cfg.bilstm.number_epochs,
+        validation_data=(
+            np.array(processed_data_test["embeddings"]),
+            np.array(processed_data_test["onehot_encoded"]),
+        ),
+        class_weight=class_weights,
+        verbose=cfg.bilstm.verbose,
+    )
+
+    model.save(model_path(name=run_name, iteration=iteration))
+    log_artifacts(model_path(name=run_name, iteration=iteration))
+    # Classify
+
+    return processed_data_test

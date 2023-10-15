@@ -30,7 +30,7 @@ class StagedBertModelConfig(BertConfig):
         num_hint_labels: int = 0,
         layers: List[int] = [],
         weights: Optional[List[float]] = None,
-        **kwargs,
+        **kwargs: Any,
     ):
         super().__init__(**kwargs)
         self.num_hint_labels = num_hint_labels
@@ -65,7 +65,7 @@ class StagedBertForTokenClassification(BertPreTrainedModel):
         )
         self.dropout = nn.Dropout(classifier_dropout)
 
-        in_size = config.hidden_size + config.num_hint_labels
+        in_size = config.hidden_size + (config.num_hint_labels)
         layers = [layer for layer in config.layers]
 
         layers.insert(0, in_size)

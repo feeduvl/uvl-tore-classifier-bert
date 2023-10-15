@@ -179,6 +179,7 @@ def log_iteration_result(result: IterationResult) -> None:
         "iteration_label_count", result.label_count, step=result.step
     )
 
+    mlflow.log_metric("f1", result.f1, step=result.step)
     mlflow.log_metric("precision", result.precision, step=result.step)
     mlflow.log_metric("recall", result.recall, step=result.step)
 
@@ -199,6 +200,10 @@ def log_iteration_result(result: IterationResult) -> None:
 
 def log_experiment_result(result: ExperimentResult) -> None:
     mlflow.log_metric("label_count", result.label_count)
+
+    mlflow.log_metric("min_f1", result.min_f1)
+    mlflow.log_metric("max_f1", result.max_f1)
+    mlflow.log_metric("mean_f1", result.mean_f1)
 
     mlflow.log_metric("min_precision", result.min_precision)
     mlflow.log_metric("max_precision", result.max_precision)

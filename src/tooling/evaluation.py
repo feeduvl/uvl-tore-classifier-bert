@@ -152,6 +152,10 @@ def score_recall(
     return recall
 
 
+def compute_f1(precision: float, recall: float) -> float:
+    return 2 * ((precision * recall) / (precision + recall))
+
+
 @overload
 def evaluate(
     run_name: str,
@@ -207,6 +211,7 @@ def evaluate(
         labels=solution_labels,
         average=average,
     )
+    res.f1 = compute_f1(precision=res.precision, recall=res.recall)
 
     pl_precision = score_precision(
         solution=solution,
@@ -272,6 +277,10 @@ def evaluate_experiment(
     results_df = pd.DataFrame(iteration_results)
 
     res.label_count = results_df["label_count"].max()
+
+    res.min_f1 = results_df["f1"].min()
+    res.mean_f1 = results_df["f1"].mean()
+    res.max_f1 = results_df["f1"].max()
 
     res.min_precision = results_df["precision"].min()
     res.mean_precision = results_df["precision"].mean()

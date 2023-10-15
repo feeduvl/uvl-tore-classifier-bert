@@ -24,7 +24,7 @@ first_model_bert:
         description: Perform a multi parameter grid search to find the optimal configuration for using staged bert
         dataset: all
         folds: 5
-        iterations: 1 # only run one experiment per config
+        iterations: 5 # only run one experiment per config
         force: False
         lower_case: True
     bert:

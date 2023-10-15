@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y \
 
 RUN pip3 install --no-cache-dir --upgrade pip
 
-COPY requirements.txt /app/
+COPY requirements/requirements.txt /app/
 
 RUN pip3 install --no-cache-dir  -r /app/requirements.txt
 
@@ -28,7 +28,7 @@ RUN python -m nltk.downloader -d /usr/share/nltk_data omw-1.4
 WORKDIR /app
 COPY . /app/
 COPY src/service/nginx.conf /etc/nginx
-RUN pip3 install --no-cache-dir --upgrade pip -r requirements-local.txt
+RUN pip3 install --no-cache-dir --upgrade pip -r requirements/requirements-local.txt
 
 ARG mlflow_tracking_password
 ARG mlflow_tracking_username

@@ -86,7 +86,7 @@ def prepare_data(
 
     else:
         data_without_labels: List[BertData] = [
-            {"id": id, "string": data[0], "tore_label_id": None}
+            {"id": id, "string": data[0], "tore_label_id": None}  # type: ignore
             for id, data in enumerate(zip(token_lists_list))
         ]
 
@@ -106,7 +106,7 @@ def pad_or_truncate_list(input_list: List[int], length: int) -> List[int]:
 
 
 def prepare_data_with_hints(
-    dataframe: DataSet[DataDF],
+    dataframe: DataSet[DataDF] | DataSet[HintedDataDF],
     label2id: Dict[Label_None_Pad, int],
     hint_label2id: Dict[Label_None_Pad, int],
     ignore_labels: bool,
@@ -121,7 +121,7 @@ def prepare_data_with_hints(
             data=dataframe, label2id=label2id
         )
     else:
-        label_lists_list = [None] * len(token_lists_list)
+        label_lists_list = [None] * len(token_lists_list)  # type: ignore
 
     data: List[StagedBertData] = [
         {

@@ -82,7 +82,7 @@ class SNER:
 @dataclass
 class BiLSTM:
     type: str = "BiLSTM"
-    sentence_length: Optional[int] = None
+    sentence_length: Optional[int] = 106
     batch_size: int = 32
     number_epochs: int = 4
     verbose: int = 1

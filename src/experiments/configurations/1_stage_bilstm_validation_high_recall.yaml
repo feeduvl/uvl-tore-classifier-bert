@@ -10,21 +10,20 @@ defaults:
 
 experiment:
     name: v2_1stStageValidation_special
-    description: Cross validate high precision
+    description: Cross validate BiLSTM High Recall
     dataset: all
     folds: 5
     iterations: 5 # only run one experiment per config
     force: False
     lower_case: True
 
-bert:
-    model: bert-base-uncased
-    max_len: 123
-    number_epochs: 8
-    train_batch_size: 8
-    validation_batch_size: 64
-    learning_rate_bert: 3e-05
-    learning_rate_classifier: 0.0005
-    weight_decay: 0.001
+bilstm:
+    sentence_length: 106
+    batch_size: 32
+    learning_rate: 0.01
+    number_epochs: 5
+    verbose: 2
     weighted_classes: True
+
+
 

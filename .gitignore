@@ -170,4 +170,6 @@ src/data/datasets/forum/anno_train.json
 src/data/datasets/prolific/TORE_Coded_Answers_1_33.json
 src/data/datasets/prolific/TORE_Coded_Answers_34_66.json
 src/data/datasets/prolific/TORE_Coded_Answers_67_100.json
+src/data/datasets/app/Komoot_AppReview.json
 src/service/models/
+*.log

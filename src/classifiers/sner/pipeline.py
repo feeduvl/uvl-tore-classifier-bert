@@ -22,6 +22,8 @@ from tooling.sampling import load_split_dataset
 from tooling.sampling import split_dataset_k_fold
 from tooling.transformation import transform_dataset
 from tooling.types import IterationResult
+from strictly_typed_pandas.dataset import DataSet
+from tooling.model import DataDF
 
 
 logging = logging_setup(__name__)
@@ -56,14 +58,7 @@ def sner_pipeline(cfg: SNERConfig, run_name: str) -> None:
             name=run_name, filename=DATA_TRAIN, iteration=iteration
         )
 
-        create_train_file(
-            name=run_name, iteration=iteration, data_train=data_train
-        )
-
-        create_config_file(name=run_name, iteration=iteration)
-
-        # Train
-        train_sner(name=run_name, iteration=iteration)
+        train_sner_pipeline(run_name, iteration, data_train)
 
         # Classify
         data_test = load_split_dataset(
@@ -105,3 +100,16 @@ def sner_pipeline(cfg: SNERConfig, run_name: str) -> None:
     )
 
     end_tracing()
+
+
+def train_sner_pipeline(
+    run_name: str, iteration: int, data_train: DataSet[DataDF]
+) -> None:
+    create_train_file(
+        name=run_name, iteration=iteration, data_train=data_train
+    )
+
+    create_config_file(name=run_name, iteration=iteration)
+
+    # Train
+    train_sner(name=run_name, iteration=iteration)

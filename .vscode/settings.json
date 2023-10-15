@@ -2,8 +2,6 @@
     "[python]": {
         "editor.defaultFormatter": "ms-python.black-formatter"
     },
-    "python.formatting.provider": "none",
-    "ansible.python.interpreterPath": "/Users/bockstaller/MA/uvl-tore-classifier-bert/venv/bin/python",
     "cSpell.words": [
         "argmax",
         "autolog",
