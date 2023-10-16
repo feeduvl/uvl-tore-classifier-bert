@@ -19,11 +19,11 @@ from classifiers.sner.classifier import classify_with_sner
 from classifiers.staged_bert.classifier import classify_with_bert
 from classifiers.staged_bert.classifier import classify_with_bert_stage_1
 from classifiers.staged_bert.classifier import classify_with_bert_stage_2
-from service.types import Classifier_Options
-from service.types import Code
-from service.types import Documents
-from service.types import Label2Id2Label
-from service.types import Models
+from service.service_types import Classifier_Options
+from service.service_types import Code
+from service.service_types import Documents
+from service.service_types import Label2Id2Label
+from service.service_types import Models
 from tooling.model import Label_None_Pad, ZERO
 from tooling.model import string_list_lists_to_datadf
 

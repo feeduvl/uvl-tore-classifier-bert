@@ -29,8 +29,8 @@ rich
 scikit-learn
 seqeval
 strictly-typed-pandas
-tensorflow==2.13.0
+tensorflow
 torch
-transformers<=4.29.2
+transformers
 uWSGI
 Werkzeug

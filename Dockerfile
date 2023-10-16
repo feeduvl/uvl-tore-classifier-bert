@@ -1,7 +1,7 @@
 FROM python:3.11-slim-buster
 
 ENV PYDEVD_DISABLE_FILE_VALIDATION=1
-ENV GLIBC_TUNABLES=glibc.rtld.optional_static_tls=1024
+ENV GLIBC_TUNABLES=glibc.rtld.optional_static_tls=2048
 ENV CUDA_VISIBLE_DEVICES=-1
 
 RUN apt-get update && apt-get install -y \
@@ -50,6 +50,8 @@ RUN mkdir -p $TRANSFORMERS_CACHE
 RUN jupyter nbconvert --to python --execute train.ipynb
 
 WORKDIR /app/src/service/
+
+RUN export LD_PRELOAD=/usr/local/lib/python3.11/site-packages/tensorflow_cpu_aws.libs/libgomp-cc9055c7.so.1.0.0
 
 RUN chmod +x start.sh
 

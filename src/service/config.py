@@ -7,8 +7,8 @@ from transformers import BertTokenizerFast
 
 from typing import Dict, Any
 from classifiers.bilstm import get_glove_model
-from service.types import Label2Id2Label
-from service.types import Models
+from service.service_types import Label2Id2Label
+from service.service_types import Models
 
 
 def configure(cache: Dict[str, Any]) -> Dict[str, Any]:

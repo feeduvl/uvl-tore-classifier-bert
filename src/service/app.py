@@ -11,8 +11,8 @@ from flask import Response
 from service.annotation_handler import create_new_annotation
 from service.classifier import classify_dataset
 from service.config import configure
-from service.types import Classifier_Options
-from service.types import Documents
+from service.service_types import Classifier_Options
+from service.service_types import Documents
 from typing import Dict, Any
 
 

@@ -4,8 +4,8 @@ from typing import List
 
 import requests
 
-from service.types import Annotation
-from service.types import Code
+from service.service_types import Annotation
+from service.service_types import Code
 
 
 def initialize_annotation(
