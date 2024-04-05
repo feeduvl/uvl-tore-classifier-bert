@@ -6,6 +6,7 @@ from typing import List
 from typing import Literal
 from typing import Tuple
 
+import numpy as np
 import pandas as pd
 from sklearn.model_selection import GroupKFold
 from strictly_typed_pandas import DataSet
@@ -14,7 +15,7 @@ from data import create_file
 from data import sampling_filepath
 from tooling.config import Experiment
 from tooling.logging import logging_setup
-from tooling.model import create_datadf
+from tooling.model import create_datadf, create_multi_datadf
 from tooling.model import DataDF
 from tooling.observability import log_artifacts
 
@@ -32,57 +33,96 @@ FILES = (
     DATA_TEST,
 )
 
-
 def split_dataset_k_fold(
     name: str, dataset: pd.DataFrame, cfg_experiment: Experiment
 ) -> Iterator[Tuple[int, List[Path]]]:
-    data = create_datadf(data=dataset)
-    sentence_ids = dataset["sentence_id"]
-
-    splitter = GroupKFold(
-        n_splits=cfg_experiment.folds,
-    )
-    for iteration, (train_index, test_index) in enumerate(
-        splitter.split(X=data, groups=sentence_ids)
-    ):
-        data_train = data.loc[train_index]
-        data_test = data.loc[test_index]
-
+    if cfg_experiment.iterations == 1:
+        data_train, data_test= create_multi_datadf(data=dataset)
         partial_files = (data_train, data_test)
+        print(data_train)
 
         paths: List[Path] = []
 
         for partial_file, base_filename in zip(partial_files, FILES):
-            filename = f"{iteration}_{base_filename}"
+            filename = f"{1}_{base_filename}"
 
             filepath = sampling_filepath(
                 name=name, filename=filename + ".pickle"
             )
             with create_file(
-                file_path=filepath,
-                mode="wb",
-                encoding=None,
-                buffering=-1,
+                    file_path=filepath,
+                    mode="wb",
+                    encoding=None,
+                    buffering=-1,
             ) as f:
                 partial_file.to_pickle(f)
                 paths.append(filepath)
 
             filepath = sampling_filepath(name=name, filename=filename + ".csv")
             with create_file(
-                file_path=filepath,
-                mode="wb",
-                encoding=None,
-                buffering=-1,
+                    file_path=filepath,
+                    mode="wb",
+                    encoding=None,
+                    buffering=-1,
             ) as f:
                 partial_file.to_csv(f)
                 paths.append(filepath)
 
-        log_artifacts(paths)
+        #log_artifacts(paths)
         logging.info(
-            f"Created fold datasets for fold: {iteration}, stored at {paths=}"
+            f"Created datasets for foldless run"
         )
 
-        yield iteration, paths
+        yield 1, paths
+
+    else:
+        data = create_datadf(data=dataset)
+        sentence_ids = dataset["sentence_id"]
+        splitter = GroupKFold(
+            n_splits=cfg_experiment.folds,
+        )
+
+        for iteration, (train_index, test_index) in enumerate(
+            splitter.split(X=data, groups=sentence_ids)
+        ):
+            data_train = data.loc[train_index]
+            data_test = data.loc[test_index]
+
+            partial_files = (data_train, data_test)
+
+            paths: List[Path] = []
+
+            for partial_file, base_filename in zip(partial_files, FILES):
+                filename = f"{iteration}_{base_filename}"
+
+                filepath = sampling_filepath(
+                    name=name, filename=filename + ".pickle"
+                )
+                with create_file(
+                    file_path=filepath,
+                    mode="wb",
+                    encoding=None,
+                    buffering=-1,
+                ) as f:
+                    partial_file.to_pickle(f)
+                    paths.append(filepath)
+
+                filepath = sampling_filepath(name=name, filename=filename + ".csv")
+                with create_file(
+                    file_path=filepath,
+                    mode="wb",
+                    encoding=None,
+                    buffering=-1,
+                ) as f:
+                    partial_file.to_csv(f)
+                    paths.append(filepath)
+
+            #log_artifacts(paths)
+            logging.info(
+                f"Created fold datasets for fold: {iteration}, stored at {paths=}"
+            )
+
+            yield iteration, paths
 
 
 def load_split_dataset(

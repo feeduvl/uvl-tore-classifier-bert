@@ -32,6 +32,17 @@ DATASETS = list(zip(dataset_source, IMPORT_DATASET_PATHS))
 FORUM = DATASETS[:2]
 PROLIFIC = DATASETS[2:5]
 KOMOOT = [DATASETS[5]]
+PAF = [DATASETS[x] for x in [2,3,4,0,1]]
+PAK = [DATASETS[x] for x in [2,3,4,5]]
+FAK = [DATASETS[x] for x in [0,1,5]]
+FAP = [DATASETS[x] for x in [0,1,2,3,4]]
+KAP = [DATASETS[x] for x in [5,2,3,4]]
+KAF = [DATASETS[x] for x in [5,0,1]]
+PFTrainKTest = [DATASETS[x] for x in [2,3,4,0,1,5]]
+KFTrainPTest = [DATASETS[x] for x in [5,0,1,2,3,4]]
+PKTrainFTest = [DATASETS[x] for x in [2,3,4,5,0,1]]
+
+
 
 
 def get_dataset_information(name: str) -> List[tuple[str, Path]]:
@@ -43,6 +54,24 @@ def get_dataset_information(name: str) -> List[tuple[str, Path]]:
         return KOMOOT
     if name == "all":
         return DATASETS
+    if name == "paf":
+        return PAF
+    if name == "pak":
+        return PAK
+    if name == "fak":
+        return FAK
+    if name == "fap":
+        return FAP
+    if name == "kap":
+        return KAP
+    if name == "kaf":
+        return KAF
+    if name == "PFTrainKTest":
+        return PFTrainKTest
+    if name == "KFTrainPTest":
+        return KFTrainPTest
+    if name == "PKTrainFTest":
+        return PKTrainFTest
 
     raise ValueError("No dataset with this name available")
 

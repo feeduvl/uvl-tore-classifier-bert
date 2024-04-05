@@ -192,8 +192,6 @@ class ImportCode(BaseModel):
 
 
 class ImportDataSet(BaseModel):
-    uploaded_at: Optional[datetime]
-    last_updated: Optional[datetime]
     name: str
     dataset: str
     docs: List[ImportDoc]
@@ -259,6 +257,34 @@ class ToreLabelDF:
 class TokenDF:
     id: Optional[int]
     token: str
+
+def create_multi_datadf(data: pd.DataFrame) -> DataSet[DataDF]:
+    source1 = data.loc[0,"source"]
+    source2 = source1
+    source3 = source1
+
+    for index, row in data.iterrows():
+        if row['source'] != source1:
+            if source1 != source2 and source2 != row['source']:
+                source3 = row['source']
+            else:
+                source2 = row['source']
+        if row['source'] != source1 and row['source'] != source2 and row['source']!=source3:
+            raise ValueError("Too many different Datasets found")
+    print(source1)
+    print(source2)
+    print(source3)
+    if source1 == source2 == source3:
+        raise ValueError("Set Iterations to >1")
+    traindatadf = pd.DataFrame(columns=["sentence_id", "sentence_idx", "string", "tore_label"])
+    testdatadf = pd.DataFrame(columns=["sentence_id", "sentence_idx", "string", "tore_label"])
+    for index, row in data.iterrows():
+        row_df = pd.DataFrame([row], columns=["sentence_id", "sentence_idx", "string", "tore_label"])
+        if row['source'] == source1 or (row['source'] == source2 and source1 != source3):
+            traindatadf = pd.concat([traindatadf, row_df], ignore_index=True)
+        else:
+            testdatadf = pd.concat([testdatadf, row_df], ignore_index=True)
+    return [cast(DataSet[DataDF], traindatadf),cast(DataSet[DataDF], testdatadf)]
 
 
 def create_datadf(data: pd.DataFrame) -> DataSet[DataDF]:

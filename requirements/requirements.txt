@@ -32,5 +32,4 @@ strictly-typed-pandas
 tensorflow
 torch
 transformers
-uWSGI
 Werkzeug

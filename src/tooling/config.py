@@ -51,7 +51,6 @@ class Experiment:
     force: bool = True
     pin_commit: bool = False
 
-
 @dataclass
 class Transformation:
     description: str = MISSING
@@ -136,7 +135,6 @@ class BERTConfig:
 
     experiment: Experiment = field(default_factory=Experiment)
     transformation: Transformation = field(default_factory=Transformation)
-
 
 @dataclass
 class StagedBERTConfig:
