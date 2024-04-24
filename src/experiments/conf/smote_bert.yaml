@@ -1,0 +1,35 @@
+defaults:
+    - base_config
+
+    - transformation: levels
+
+    - override hydra/launcher: joblib
+    - override hydra/job_logging: colorlog
+    - override hydra/hydra_logging: colorlog
+
+    - _self_
+
+experiment:
+    name: BERT_SMOTE
+    dataset: all
+    lower_case: True
+    force: True
+    iterations: 5
+    smote: True
+
+bert:
+    model: bert-base-uncased
+    max_len: 123
+    train_batch_size: 32
+    validation_batch_size: 8
+    number_epochs: 5
+    learning_rate_bert: 5e-05
+    learning_rate_classifier: 0.01
+    weight_decay: 0.01
+    weighted_classes: True
+
+hydra:
+    launcher:
+        n_jobs: 1
+    sweeper:
+        params:

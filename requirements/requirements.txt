@@ -27,9 +27,11 @@ pytest
 requests
 rich
 scikit-learn
+scipy==1.12
 seqeval
 strictly-typed-pandas
 tensorflow
 torch
 transformers
 Werkzeug
+imblearn

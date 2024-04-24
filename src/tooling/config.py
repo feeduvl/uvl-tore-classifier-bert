@@ -50,6 +50,7 @@ class Experiment:
     lower_case: bool = False
     force: bool = True
     pin_commit: bool = False
+    smote: bool = False
 
 @dataclass
 class Transformation:

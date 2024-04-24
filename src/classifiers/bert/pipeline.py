@@ -125,7 +125,7 @@ def bert_pipeline(cfg: BERTConfig, run_name: str) -> None:
 
         logging.info(f"Finished {iteration=}")
         logging.info("Logging model artifact (might take a while)")
-        #log_artifacts(model_path(name=run_name, iteration=iteration))
+        log_artifacts(model_path(name=run_name, iteration=iteration))
 
         # early break if configured
         if iteration + 1 == cfg.experiment.iterations:
