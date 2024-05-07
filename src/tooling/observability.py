@@ -111,6 +111,7 @@ def config_mlflow(cfg: Config) -> Iterator[mlflow.ActiveRun]:
             experiment_id=experiment.experiment_id, nested=nested
         ) as current_run:
             mlflow.autolog(silent=True, log_models=False)
+            mlflow.sklearn.autolog(diesable=True)
             log_config(cfg)
             yield current_run
     else:

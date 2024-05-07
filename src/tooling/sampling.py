@@ -94,7 +94,7 @@ def split_dataset_k_fold(
             
             if (cfg_experiment.smote):
                 mlflow.log_param(f"labelDistribution_{iteration}_Original", Counter(data_train['tore_label']))
-                data_train = apply_smote(data_train)
+                data_train = apply_smote(data_train, cfg_experiment.smote_k_neighbors, cfg_experiment.smote_sampling_strategy)
                 mlflow.log_param(f"labelDistribution_{iteration}_SMOTE", Counter(data_train['tore_label']))
             
             data_test = data.loc[test_index]
@@ -149,7 +149,7 @@ def load_split_dataset(
     ) as pickle_file:
         return cast(DataSet[DataDF], pickle.load(pickle_file))
 
-def apply_smote(traindatadf: pd.DataFrame) -> pd.DataFrame:
+def apply_smote(traindatadf: pd.DataFrame, smote_k_neighbors: int, smote_sampling_strategy: str) -> pd.DataFrame:
     """
     This function applies SMOTE to the pd.DataFrame "traindatadf" for balancing the dataset regarding 
     the number of label occurrences.
@@ -173,7 +173,7 @@ def apply_smote(traindatadf: pd.DataFrame) -> pd.DataFrame:
 
     labelIDs = np.array([label2id[label] for label in labels])
 
-    smote = SMOTEN()
+    smote = SMOTEN(k_neighbors = smote_k_neighbors, sampling_strategy = smote_sampling_strategy)
     stringsSmoteList, labelIDsSmoteList = smote.fit_resample(strings, labelIDs)
 
     labelsSmoteList = np.array([id2label[id] for id in labelIDsSmoteList])

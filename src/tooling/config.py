@@ -51,6 +51,8 @@ class Experiment:
     force: bool = True
     pin_commit: bool = False
     smote: bool = False
+    smote_k_neighbors: int = 5
+    smote_sampling_strategy: str = 'not majority'
 
 @dataclass
 class Transformation:
