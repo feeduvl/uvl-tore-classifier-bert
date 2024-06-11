@@ -94,7 +94,7 @@ def split_dataset_k_fold(
             
             if (cfg_experiment.smote):
                 mlflow.log_param(f"labelDistribution_{iteration}_Original", Counter(data_train['tore_label']))
-                data_train = apply_smote(data_train, cfg_experiment.smote_k_neighbors, cfg_experiment.smote_sampling_strategy)
+                data_train = apply_smote(data_train, cfg_experiment.smote_k_neighbors, cfg_experiment.smote_sampling_strategy, cfg_experiment.smote_balance_to_average)
                 mlflow.log_param(f"labelDistribution_{iteration}_SMOTE", Counter(data_train['tore_label']))
             
             data_test = data.loc[test_index]
@@ -149,7 +149,7 @@ def load_split_dataset(
     ) as pickle_file:
         return cast(DataSet[DataDF], pickle.load(pickle_file))
 
-def apply_smote(traindatadf: pd.DataFrame, smote_k_neighbors: int, smote_sampling_strategy: str) -> pd.DataFrame:
+def apply_smote(traindatadf: pd.DataFrame, smote_k_neighbors: int, smote_sampling_strategy: str, smote_balance_to_average: bool) -> pd.DataFrame:
     """
     This function applies SMOTE to the pd.DataFrame "traindatadf" for balancing the dataset regarding 
     the number of label occurrences.
@@ -164,38 +164,96 @@ def apply_smote(traindatadf: pd.DataFrame, smote_k_neighbors: int, smote_samplin
     id2label = get_id2label(traindatadf['tore_label'])
     label2id = get_label2id(traindatadf['tore_label'])
 
-    dfNoZeroLabels = traindatadf[traindatadf['tore_label'] != "0"]
+    if not smote_balance_to_average:
 
-    strings = dfNoZeroLabels["string"].to_numpy().reshape(-1, 1)
-    labels = dfNoZeroLabels["tore_label"].to_numpy()
+        dfNoZeroLabels = traindatadf[traindatadf['tore_label'] != "0"]
 
-    originalLength = len(strings)
+        strings = dfNoZeroLabels["string"].to_numpy().reshape(-1, 1)
+        labels = dfNoZeroLabels["tore_label"].to_numpy()
 
-    labelIDs = np.array([label2id[label] for label in labels])
+        print("Counter original: ", Counter(labels))
 
-    smote = SMOTEN(k_neighbors = smote_k_neighbors, sampling_strategy = smote_sampling_strategy)
-    stringsSmoteList, labelIDsSmoteList = smote.fit_resample(strings, labelIDs)
+        originalLength = len(strings)
 
-    labelsSmoteList = np.array([id2label[id] for id in labelIDsSmoteList])
+        labelIDs = np.array([label2id[label] for label in labels])
 
-    smoteGeneratedStrings = stringsSmoteList[originalLength:]
-    smoteGeneratedLabels = labelsSmoteList[originalLength:]
+        smote = SMOTEN(k_neighbors = smote_k_neighbors, sampling_strategy= smote_sampling_strategy)
+        stringsSmoteList, labelIDsSmoteList = smote.fit_resample(strings, labelIDs)
 
-    lengthDiff = len(stringsSmoteList) - originalLength
+        labelsSmoteList = np.array([id2label[id] for id in labelIDsSmoteList])
 
-    random_uuids = np.array([uuid.uuid4() for _ in range(lengthDiff)], dtype=object)
-    sentenceIDs = np.array(random_uuids)
-    sentenceIDXs = np.zeros(lengthDiff, dtype=int)
+        print("Counter SMOTE: ", Counter(labelsSmoteList))
 
-    smoteDfData = {
-    'sentence_id': sentenceIDs,
-    'sentence_idx': sentenceIDXs,
-    'string': smoteGeneratedStrings.flatten(),
-    'tore_label': smoteGeneratedLabels
-    }
+        smoteGeneratedStrings = stringsSmoteList[originalLength:]
+        smoteGeneratedLabels = labelsSmoteList[originalLength:]
 
-    trainDataDfSMOTE = pd.DataFrame(smoteDfData)
+        lengthDiff = len(stringsSmoteList) - originalLength
 
-    balancedTrainDataDf = pd.concat([traindatadf, trainDataDfSMOTE], ignore_index=True)
+        random_uuids = np.array([uuid.uuid4() for _ in range(lengthDiff)], dtype=object)
+        sentenceIDs = np.array(random_uuids)
+        sentenceIDXs = np.zeros(lengthDiff, dtype=int)
 
-    return balancedTrainDataDf
+        smoteDfData = {
+        'sentence_id': sentenceIDs,
+        'sentence_idx': sentenceIDXs,
+        'string': smoteGeneratedStrings.flatten(),
+        'tore_label': smoteGeneratedLabels
+        }
+
+        trainDataDfSMOTE = pd.DataFrame(smoteDfData)
+
+        balancedTrainDataDf = pd.concat([traindatadf, trainDataDfSMOTE], ignore_index=True)
+
+        return balancedTrainDataDf
+    
+    else:
+        
+        toreLabelCounter = Counter(traindatadf['tore_label'])
+        
+        filteredCounter = {k: v for k, v in toreLabelCounter.items() if k != "0"}
+        totalOccurrences = sum(filteredCounter.values())
+        numberOfElements = len(filteredCounter)
+        averageOccurrences = int(totalOccurrences / numberOfElements)
+        
+        labelsUnderAverageOccurrences = [label for label, count in toreLabelCounter.items() if count < averageOccurrences]
+        
+        dfNoHighOccurrencesLabels = traindatadf[traindatadf['tore_label'].isin(labelsUnderAverageOccurrences)]
+        
+        strings = dfNoHighOccurrencesLabels["string"].to_numpy().reshape(-1, 1)
+        labels = dfNoHighOccurrencesLabels["tore_label"].to_numpy()
+
+        print("Counter original: ", Counter(labels))
+
+        originalLength = len(strings)
+
+        labelIDs = np.array([label2id[label] for label in labels])
+
+        smote = SMOTEN(k_neighbors = smote_k_neighbors, sampling_strategy= {label: averageOccurrences for label in np.unique(labelIDs)})
+        stringsSmoteList, labelIDsSmoteList = smote.fit_resample(strings, labelIDs)
+
+        labelsSmoteList = np.array([id2label[id] for id in labelIDsSmoteList])
+
+        print("Counter SMOTE: ", Counter(labelsSmoteList))
+
+        smoteGeneratedStrings = stringsSmoteList[originalLength:]
+        smoteGeneratedLabels = labelsSmoteList[originalLength:]
+
+        lengthDiff = len(stringsSmoteList) - originalLength
+
+        random_uuids = np.array([uuid.uuid4() for _ in range(lengthDiff)], dtype=object)
+        sentenceIDs = np.array(random_uuids)
+        sentenceIDXs = np.zeros(lengthDiff, dtype=int)
+
+        smoteDfData = {
+        'sentence_id': sentenceIDs,
+        'sentence_idx': sentenceIDXs,
+        'string': smoteGeneratedStrings.flatten(),
+        'tore_label': smoteGeneratedLabels
+        }
+
+        trainDataDfSMOTE = pd.DataFrame(smoteDfData)
+
+        balancedTrainDataDf = pd.concat([traindatadf, trainDataDfSMOTE], ignore_index=True)
+
+        return balancedTrainDataDf
+    
