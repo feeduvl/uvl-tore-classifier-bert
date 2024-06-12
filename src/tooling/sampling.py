@@ -224,6 +224,13 @@ def apply_smote(traindatadf: pd.DataFrame, smote_k_neighbors: int, smote_samplin
 
         print("Counter original: ", Counter(labels))
 
+        # first proof, if SMOTE with sampling strategy 'to average' is applicable to the dataset
+        labelCounter = Counter(labels)
+        uniqueClasses = list(labelCounter.keys())
+
+        if len(uniqueClasses) <= 1:
+            raise ValueError("SMOTE sampling strategy 'to average' is not applicable to the dataset, because only 1 class has less occurrences than the average occurrences over all classes. It needs to be more than 1 class to apply SMOTE with sampling strategy 'to average'!")
+
         originalLength = len(strings)
 
         labelIDs = np.array([label2id[label] for label in labels])
