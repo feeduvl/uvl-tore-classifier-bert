@@ -53,6 +53,7 @@ class Experiment:
     smote: bool = False
     smote_k_neighbors: int = 5
     smote_sampling_strategy: str = 'not majority'
+    smote_balance_to_average: bool = False
 
 @dataclass
 class Transformation:
