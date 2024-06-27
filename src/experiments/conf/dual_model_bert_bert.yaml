@@ -24,7 +24,7 @@ first_model_bert:
         iterations: 1
 
     bert:
-        model: bert-base-uncased
+        model: bert-large-uncased
         max_len:
         train_batch_size: 32
         validation_batch_size: 8
@@ -35,7 +35,7 @@ first_model_bert:
         weighted_classes: True
 
 bert:
-    model: bert-base-uncased
+    model: bert-large-uncased
     max_len:
     train_batch_size: 8
     validation_batch_size: 64

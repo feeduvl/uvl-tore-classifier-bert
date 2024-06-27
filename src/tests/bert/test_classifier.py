@@ -7,7 +7,7 @@ from classifiers.bert.classifier import tokenize_and_align_labels
 
 
 def test_tokenize_and_align_labels() -> None:
-    tokenizer = BertTokenizerFast.from_pretrained("bert-base-uncased")
+    tokenizer = BertTokenizerFast.from_pretrained("bert-large-uncased",ignore_mismatched_sizes=True)
     tokens = [
         "This",
         "is",

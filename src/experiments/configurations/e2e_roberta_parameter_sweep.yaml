@@ -1,0 +1,37 @@
+defaults:
+    - base_config
+    - transformation: none
+
+    - override hydra/launcher: joblib
+    - override hydra/job_logging: colorlog
+    - override hydra/hydra_logging: colorlog
+
+    - _self_
+
+experiment:
+    name: v2_E2E_RoBerta_Parameter_Sweep
+    description: Perform a multi parameter grid search to find the optimal configuration for using roberta in an e2e setting
+    dataset: all
+    folds: 5
+    iterations: 1 # only run one experiment per config
+    force: False
+    lower_case: True
+
+roberta:
+    model: roberta-large
+    max_len: 123
+    validation_batch_size: 64
+    weighted_classes: False
+    
+
+hydra:
+    launcher:
+        n_jobs: 1
+    sweeper:
+        params:
+            roberta.number_epochs: "8,11"
+            roberta.train_batch_size: "8,16"
+            roberta.learning_rate_roberta: "4e-05,5e-05,6e-05"
+            roberta.learning_rate_classifier: "0.1"
+            roberta.weight_decay: "0.01"
+            roberta.weighted_classes: "False"

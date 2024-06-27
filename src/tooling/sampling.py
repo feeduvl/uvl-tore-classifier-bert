@@ -41,11 +41,11 @@ FILES = (
 def split_dataset_k_fold(
     name: str, dataset: pd.DataFrame, cfg_experiment: Experiment
 ) -> Iterator[Tuple[int, List[Path]]]:
-    if cfg_experiment.iterations == 1:
+    if cfg_experiment.iterations == 1 and cfg_experiment.dataset != "all":
+        print("Entered Iteration 1 now")
         data_train, data_test= create_multi_datadf(data=dataset)
         partial_files = (data_train, data_test)
         print(data_train)
-
         paths: List[Path] = []
 
         for partial_file, base_filename in zip(partial_files, FILES):
@@ -73,7 +73,7 @@ def split_dataset_k_fold(
                 partial_file.to_csv(f)
                 paths.append(filepath)
 
-        #log_artifacts(paths)
+        log_artifacts(paths)
         logging.info(
             f"Created datasets for foldless run"
         )

@@ -124,7 +124,8 @@ def classify_dataset(
     lemmas = get_lemmas(tokens=tokens)
 
     data = string_list_lists_to_datadf(tokens)
-
+    print("Current Method is:")
+    print(method)
     if method == "bert-classifier/sner_bert":
         tokenizer = BertTokenizerFast.from_pretrained(models.bert_2_sner)
 
@@ -174,7 +175,7 @@ def classify_dataset(
         )
 
     elif method == "bert-classifier/bert_bert":
-        tokenizer_1 = BertTokenizerFast.from_pretrained(models.bert_1)
+        tokenizer_1 = BertTokenizerFast.from_pretrained(models.bert_1,ignore_mismatched_sizes=True)
 
         hinted_bert_data = classify_with_bert_stage_1(
             model_path=models.bert_1,

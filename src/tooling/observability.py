@@ -92,8 +92,8 @@ def check_rerun(cfg: Config) -> None:
         if cfg.experiment.force:
             logging.warn("Experiment was already run, continuing")
         else:
-            logging.warn("Experiment was already run, aborting")
-            raise RerunException
+            logging.warn("Experiment was already run")
+            #raise RerunException
     else:
         logging.info("New experiment. Running")
 
@@ -111,7 +111,7 @@ def config_mlflow(cfg: Config) -> Iterator[mlflow.ActiveRun]:
             experiment_id=experiment.experiment_id, nested=nested
         ) as current_run:
             mlflow.autolog(silent=True, log_models=False)
-            mlflow.sklearn.autolog(diesable=True)
+            mlflow.sklearn.autolog(disable=True)
             log_config(cfg)
             yield current_run
     else:

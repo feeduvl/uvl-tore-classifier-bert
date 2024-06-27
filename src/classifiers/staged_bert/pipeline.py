@@ -51,7 +51,7 @@ def staged_bert_pipeline(cfg: StagedBERTConfig, run_name: str) -> None:
     import_dataset(cfg, run_name)
 
     # Setup Tokenizer
-    TOKENIZER = BertTokenizerFast.from_pretrained(cfg.bert.model)
+    TOKENIZER = BertTokenizerFast.from_pretrained(cfg.bert.model,ignore_mismatched_sizes=True)
     TOKENIZER.model_input_names.append("hint_input_ids")
 
     # Transform Dataset
@@ -217,7 +217,7 @@ def dual_stage_bert_pipeline(
     cfg: DualModelStagedBERTConfig, run_name: str
 ) -> None:
     device = setup_device()
-
+    logging.info("Training 2nd Stage")
     mlflow.log_param("bert.num_layers", len(cfg.bert.layers))
     mlflow.log_param("bert.layers", ",".join(str(x) for x in cfg.bert.layers))
 
@@ -225,7 +225,7 @@ def dual_stage_bert_pipeline(
     import_dataset(cfg, run_name)
 
     # Setup Tokenizer
-    TOKENIZER = BertTokenizerFast.from_pretrained(cfg.bert.model)
+    TOKENIZER = BertTokenizerFast.from_pretrained(cfg.bert.model, ignore_mismatched_sizes=True)
     TOKENIZER.model_input_names.append("hint_input_ids")
 
     # Transform Dataset
@@ -322,21 +322,20 @@ def dual_stage_bert_pipeline(
             id2label=id2label,
             label2id=label2id,
             weights=raw_class_weights.tolist(),
+            hidden_size=1024,
+            num_attention_heads=8
         )
-
         # Get Model
         model = StagedBertForTokenClassification.from_pretrained(
-            pretrained_model_name_or_path=cfg.bert.model,
-            config=model_config,
             ignore_mismatched_sizes=True,
+            pretrained_model_name_or_path=cfg.bert.model,
+            config=model_config
         )
-
         print(model)
         # for param in model.bert.parameters():
         #    param.requires_grad = False
 
         model.to(device=device)
-
         # Train
         training_args = TrainingArguments(
             output_dir=str(
@@ -357,7 +356,7 @@ def dual_stage_bert_pipeline(
             push_to_hub=False,
             use_mps_device=(device == "mps"),
         )
-
+        logging.info("7")
         trainer = WeightedTrainer(  # type: ignore
             model=model,
             args=training_args,

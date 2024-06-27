@@ -154,7 +154,6 @@ def run_model(
         model_path = pretrained_model_path(name=run_name).joinpath(
             Path(f"{iteration}_model")
         )
-
         first_bert_data = create_bert_dataset(
             input_data=data,
             label2id=label2id,  # we have all labels in the data, therefore provide label2id - classify with bert won't use them
@@ -171,7 +170,6 @@ def run_model(
         hint_ids = [
             [hint_label2id[hint] for hint in hint_list] for hint_list in hints
         ]
-
         second_bert_data = create_bert_dataset(
             input_data=data,
             label2id=label2id,

@@ -258,7 +258,7 @@ def import_dataset(cfg: Config, run_name: str) -> ImportDatasetPaths:
     imported_dataset_path = _import_dataset(
         name=run_name, ds_spec=dataset_information
     )
-    #log_artifacts(dict(imported_dataset_path))
+    log_artifacts(dict(imported_dataset_path))
     return imported_dataset_path
 
 

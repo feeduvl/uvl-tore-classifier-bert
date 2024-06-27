@@ -75,7 +75,6 @@ class Transformation:
     internal_data: Optional[str] = None
     system_level: Optional[str] = None
 
-
 @dataclass
 class SNER:
     type: str = "SNER"
@@ -94,7 +93,9 @@ class BiLSTM:
 
 @dataclass
 class BERT:
-    model: str = "bert-base-uncased"
+    #model: str = "bert-base-uncased"
+    model: str = "bert-large-uncased"
+    #model: str= "bert-large-uncased-whole-word-masking"
     type: str = "BERT"
     max_len: Optional[int] = 106
     train_batch_size: int = 32
@@ -104,6 +105,21 @@ class BERT:
     learning_rate_classifier: float = 0.01
     weight_decay: float = 0.01
     weighted_classes: bool = False
+
+@dataclass
+class RoBERTa:
+    #model: str = "roberta-large"
+    model: str = "Jean-Baptiste/roberta-large-ner-english"
+    type: str = "RoBERTa"
+    max_len: Optional[int] = 106
+    train_batch_size: int = 32
+    validation_batch_size: int = 32
+    number_epochs: int = 5
+    learning_rate_roberta: float = 2e-05
+    learning_rate_classifier: float = 0.01
+    weight_decay: float = 0.01
+    weighted_classes: bool = False
+
 
 
 @dataclass
@@ -135,6 +151,13 @@ class BiLSTMConfig:
 @dataclass
 class BERTConfig:
     bert: BERT = field(default_factory=BERT)
+
+    experiment: Experiment = field(default_factory=Experiment)
+    transformation: Transformation = field(default_factory=Transformation)
+
+@dataclass
+class RoBERTaConfig:
+    roberta: RoBERTa = field(default_factory=RoBERTa)
 
     experiment: Experiment = field(default_factory=Experiment)
     transformation: Transformation = field(default_factory=Transformation)

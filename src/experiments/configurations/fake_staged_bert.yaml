@@ -18,7 +18,7 @@ experiment:
     force: False
 
 bert:
-    model: bert-base-uncased
+    model: bert-large-uncased
     max_len: 123
     validation_batch_size: 64
     weighted_classes: True

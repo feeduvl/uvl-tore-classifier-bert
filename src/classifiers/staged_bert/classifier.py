@@ -112,7 +112,7 @@ def classify_with_bert_stage_1(
 
     logging.info("Loading Model")
     model = BertForTokenClassification.from_pretrained(
-        pretrained_model_name_or_path=model_path
+        pretrained_model_name_or_path=model_path, ignore_mismatched_sizes=True
     )
     model.to(device=setup_device())
     trainer = Trainer(model=model)
@@ -148,7 +148,7 @@ def classify_with_bert_stage_2(
 ) -> List[List[Label_None_Pad]]:
     logging.info("Loading Model")
     model = StagedBertForTokenClassification.from_pretrained(
-        pretrained_model_name_or_path=model_path
+        pretrained_model_name_or_path=model_path, ignore_mismatched_sizes=True
     )
     model.to(device=setup_device())
     trainer = Trainer(model=model)
@@ -168,7 +168,7 @@ def classify_with_bert(
 ) -> List[List[Label_None_Pad]]:
     logging.info("Loading Model")
     model = BertForTokenClassification.from_pretrained(
-        pretrained_model_name_or_path=model_path
+        pretrained_model_name_or_path=model_path, ignore_mismatched_sizes=True
     )
     model.to(device=setup_device())
     trainer = Trainer(model=model)
@@ -181,5 +181,5 @@ def classify_with_bert(
     hint_column = get_hint_column(first_stage_train_result[0])
 
     del model
-
+    logging.info("Hint column created")
     return hint_column_to_labels(column=hint_column, id2label=id2label)
