@@ -50,7 +50,7 @@ IMPORT_DATASET_PATHS = [
     IMPORT_PATH.joinpath(Path(dataset)) for dataset in datasets
 ]
 DATASETS = list(zip(dataset_source, IMPORT_DATASET_PATHS))
-ALL = DATASETS[0,1,2,3,4,5]
+ALL = [DATASETS[x] for x in [0,1,2,3,4,5]]
 FORUM = DATASETS[:2]
 PROLIFIC = DATASETS[2:5]
 KOMOOT = [DATASETS[5]]
