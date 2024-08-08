@@ -33,6 +33,17 @@ def get_max_len() -> int:
 
 def get_models() -> Models:
     return Models(
+        bert=Path(
+            os.environ.get(
+                "UVL_BERT_MODEL",
+                Path(__file__)
+                .parent.resolve()
+                .joinpath(Path("./models/bert")),
+                )
+        ),
+        
+    )
+'''
         sner=Path(
             os.environ.get(
                 "UVL_SNER_MODEL",
@@ -81,16 +92,7 @@ def get_models() -> Models:
                 .joinpath(Path("./models/bert_2_bilstm")),
             )
         ),
-        bert=Path(
-            os.environ.get(
-                "UVL_BERT_MODEL",
-                Path(__file__)
-                .parent.resolve()
-                .joinpath(Path("./models/bert")),
-            )
-        ),
-    )
-
+'''
 
 def get_label2id2label() -> Label2Id2Label:
     return Label2Id2Label(

@@ -47,12 +47,12 @@ class Annotation(TypedDict):
 
 @dataclass
 class Models:
-    sner: Path
-    bilstm: Path
-    bert_1: Path
-    bert_2_bert: Path
-    bert_2_sner: Path
-    bert_2_bilstm: Path
+    #sner: Path
+    #bilstm: Path
+    #bert_1: Path
+    #bert_2_bert: Path
+    #bert_2_sner: Path
+    #bert_2_bilstm: Path
     bert: Path
 
 
@@ -65,8 +65,8 @@ class Label2Id2Label:
 
 
 Classifier_Options = Literal[
-    "bert-classifier/bilstm_bert",
-    "bert-classifier/sner_bert",
-    "bert-classifier/bert_bert",
+    #"bert-classifier/bilstm_bert",
+    #"bert-classifier/sner_bert",
+    #"bert-classifier/bert_bert",
     "bert-classifier/bert",
 ]
