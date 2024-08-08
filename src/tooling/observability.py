@@ -102,7 +102,6 @@ def check_rerun(cfg: Config) -> None:
 def config_mlflow(cfg: Config) -> Iterator[mlflow.ActiveRun]:
     if not os.getenv("DISABLE_MLFLOW"):
         experiment = mlflow.get_experiment_by_name(cfg.experiment.name)
-
         nested = False
         if mlflow.active_run():
             nested = True

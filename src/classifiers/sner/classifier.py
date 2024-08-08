@@ -126,7 +126,7 @@ def train_sner(name: str, iteration: int) -> Path:
         universal_newlines=True,
         bufsize=1,
     ) as process:
-        modulo = 10
+        modulo = 1
 
         logging.info(f"Starting training, only printing every {modulo}. line.")
         line_counter = 0
