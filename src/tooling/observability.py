@@ -93,7 +93,7 @@ def check_rerun(cfg: Config) -> None:
             logging.warn("Experiment was already run, continuing")
         else:
             logging.warn("Experiment was already run")
-            #raise RerunException
+            raise RerunException
     else:
         logging.info("New experiment. Running")
 
@@ -168,7 +168,7 @@ def get_run_id(cfg: Config, pin_commit: bool = True) -> Optional[str]:
         run_id = str(res["run_id"].iloc[-1])
         return run_id
     else:
-        return '97f6d3072d1644f6a08c33ebc3c165b5'
+        return None
 
 
 def end_tracing() -> None:
