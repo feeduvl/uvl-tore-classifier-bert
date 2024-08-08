@@ -50,6 +50,7 @@ IMPORT_DATASET_PATHS = [
     IMPORT_PATH.joinpath(Path(dataset)) for dataset in datasets
 ]
 DATASETS = list(zip(dataset_source, IMPORT_DATASET_PATHS))
+ALL = DATASETS[0,1,2,3,4,5]
 FORUM = DATASETS[:2]
 PROLIFIC = DATASETS[2:5]
 KOMOOT = [DATASETS[5]]
@@ -86,7 +87,7 @@ def get_dataset_information(name: str) -> List[tuple[str, Path]]:
     if name == "spellchecked_relevance":
         return SPELLCHECKED_RELEVANCE
     if name == "all":
-        return DATASETS
+        return ALL
     if name == "paf":
         return PAF
     if name == "pak":

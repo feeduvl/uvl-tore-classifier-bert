@@ -102,7 +102,7 @@ def compile_model(
 ) -> None:
     model.compile(
         run_eagerly=True,
-        optimizer=tf.keras.optimizers.legacy.Adam(
+        optimizer=tf.keras.optimizers.Adam(
             learning_rate=cfg.learning_rate
         ),
         loss="categorical_crossentropy",

@@ -47,7 +47,7 @@ RUN mkdir -p $MPLCONFIGDIR
 ENV TRANSFORMERS_CACHE=/app/temp/transformers/
 RUN mkdir -p $TRANSFORMERS_CACHE
 
-#RUN jupyter nbconvert --to python --execute train.ipynb
+RUN jupyter nbconvert --to python --execute train.ipynb
 
 WORKDIR /app/src/service/
 
