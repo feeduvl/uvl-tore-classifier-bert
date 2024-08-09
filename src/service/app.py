@@ -97,9 +97,6 @@ def get_status() -> Response:
         }
     except Exception as e:
         status = {"status": "not_operational", "error": str(e)}
-    status = {
-        "status": "operational",
-    }
     return jsonify(status)
 
 

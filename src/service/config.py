@@ -1,7 +1,9 @@
 import os
 import pickle
 from pathlib import Path
+import logging
 
+logger = logging.getLogger(__name__)
 
 from transformers import BertTokenizerFast
 
@@ -12,18 +14,19 @@ from service.service_types import Models
 
 
 def configure(cache: Dict[str, Any]) -> Dict[str, Any]:
+    logger.debug("Entered configure")
     if cache.get("glove_model", None) is None:
         cache["glove_model"] = get_glove_model()
-
+    logger.debug("Got glove model")
     if cache.get("models", None) is None:
         cache["models"] = get_models()
-
+    logger.debug("Got models")
     if cache.get("label2id2label", None) is None:
         cache["label2id2label"] = get_label2id2label()
-
+    logger.debug("Got label2id2label")
     if cache.get("max_len", None) is None:
         cache["max_len"] = get_max_len()
-
+    logger.debug("Got max_len")
     return cache
 
 
