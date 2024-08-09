@@ -12,7 +12,7 @@ hydra_colorlog
 itsdangerous
 Jinja2
 jupyter
-keras
+tf-keras
 MarkupSafe
 matplotlib
 mlflow
