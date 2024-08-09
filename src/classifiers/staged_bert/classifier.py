@@ -160,20 +160,16 @@ def classify_with_bert_stage_2(
 
     return hint_column_to_labels(column=hint_column, id2label=id2label)
 
+
 def classify_with_bert(
     model_path: Path,
     bert_data: Dataset,
     id2label: Dict[int, Label_None_Pad],
 ) -> List[List[Label_None_Pad]]:
     logging.info("Loading Model")
-    try:
-        model = BertForTokenClassification.from_pretrained(
-            pretrained_model_name_or_path=model_path, ignore_mismatched_sizes=True
-        )
-    except OSError as e:
-        logging.error(f"Error loading model: {e}")
-        raise
-
+    model = BertForTokenClassification.from_pretrained(
+        pretrained_model_name_or_path=model_path, ignore_mismatched_sizes=True
+    )
     model.to(device=setup_device())
     trainer = Trainer(model=model)
 
