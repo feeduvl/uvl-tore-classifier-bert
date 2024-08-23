@@ -30,6 +30,7 @@ from tooling.model import string_list_lists_to_datadf
 
 def do_nltk_downloads() -> None:
     download("punkt")
+    download("punkt_tab")
     download("averaged_perceptron_tagger")
     download("wordnet")
     download("omw-1.4")
