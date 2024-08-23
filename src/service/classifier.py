@@ -32,6 +32,7 @@ def do_nltk_downloads() -> None:
     download("punkt")
     download("punkt_tab")
     download("averaged_perceptron_tagger")
+    download("averaged_perceptron_tagger_eng")
     download("wordnet")
     download("omw-1.4")
 
